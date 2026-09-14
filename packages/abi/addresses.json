@@ -1,0 +1,6 @@
+{
+  "4217": { "name": "Tempo", "Vault": "", "VerifierRegistry": "", "explorer": "https://explore.mainnet.tempo.xyz" },
+  "42431": { "name": "Tempo Moderato", "Vault": "", "VerifierRegistry": "", "explorer": "https://explore.moderato.tempo.xyz" },
+  "8453": { "name": "Base", "Vault": "", "VerifierRegistry": "", "explorer": "https://basescan.org" },
+  "84532": { "name": "Base Sepolia", "Vault": "", "VerifierRegistry": "", "explorer": "https://sepolia.basescan.org" }
+}

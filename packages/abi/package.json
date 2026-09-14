@@ -1,0 +1,24 @@
+{
+  "name": "@vouch/abi",
+  "version": "0.1.0",
+  "description": "Vouch Vault ABIs and deployment addresses",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./addresses.json": "./addresses.json"
+  },
+  "files": ["dist", "addresses.json"],
+  "scripts": {
+    "extract": "node scripts/extract.mjs",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "echo skip",
+    "test": "echo skip"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
