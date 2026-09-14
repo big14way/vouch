@@ -1,0 +1,49 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contracts:
+    name: forge test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - run: forge --version
+      - run: forge fmt --check
+      - run: forge build --sizes
+      - run: forge test -vvv
+        env:
+          FOUNDRY_PROFILE: ci
+      - run: forge snapshot --check --tolerance 5
+
+  web:
+    name: typecheck + lint + test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+        if: hashFiles('pnpm-lock.yaml') != ''
+      - run: pnpm -r typecheck
+        if: hashFiles('pnpm-lock.yaml') != ''
+      - run: pnpm -r lint
+        if: hashFiles('pnpm-lock.yaml') != ''
+      - run: pnpm -r test
+        if: hashFiles('pnpm-lock.yaml') != ''
