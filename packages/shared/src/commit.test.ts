@@ -26,6 +26,15 @@ describe("hashing", () => {
   it("canonical JSON sorts keys recursively", () => {
     expect(canonicalJson({ b: 1, a: { d: 2, c: [{ z: 1, y: 2 }] } })).toBe('{"a":{"c":[{"y":2,"z":1}],"d":2},"b":1}');
   });
+  it("manifest hash ignores storage keys and timestamps (client and server agree)", () => {
+    const full: DeliveryManifest = {
+      version: 1, jobId: `0x${"1".repeat(64)}`, submittedBy: "0x00000000000000000000000000000000000000b2",
+      files: [{ name: "a.md", sha256: `0x${"a".repeat(64)}`, size: 3, contentType: "text/markdown", url: "jobs/x/aaa" }],
+      links: [], note: "hi\r\n", createdAt: "2026-09-14T00:00:00Z",
+    };
+    const core = { jobId: full.jobId, submittedBy: full.submittedBy, files: [{ name: "a.md", sha256: `0x${"A".repeat(64)}` as `0x${string}`, size: 3, contentType: "text/markdown" }], links: [], note: "hi" };
+    expect(hashManifest(full)).toBe(hashManifest(core));
+  });
   it("manifest hash is order independent for keys", () => {
     const m: DeliveryManifest = {
       version: 1, jobId: `0x${"1".repeat(64)}`, submittedBy: "0x00000000000000000000000000000000000000b2",

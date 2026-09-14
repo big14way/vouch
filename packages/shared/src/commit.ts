@@ -91,9 +91,31 @@ function sortKeys(v: unknown): unknown {
   return v;
 }
 
-/** deliverableHash written on-chain = keccak256(canonical manifest JSON). */
-export function hashManifest(m: DeliveryManifest): Hex {
-  return keccak256(toHex(canonicalJson(m)));
+/**
+ * The part of a delivery that both the worker (client) and Vouch (server) can compute independently:
+ * no storage keys, no timestamps. `deliverableHash` on-chain = keccak256(canonicalJson(DeliveryCore)).
+ */
+export interface DeliveryCore {
+  jobId: Hex;
+  submittedBy: Address;
+  files: { name: string; sha256: Hex; size: number; contentType: string }[];
+  links: string[];
+  note: string;
+}
+
+export function deliveryCore(m: DeliveryManifest | DeliveryCore): DeliveryCore {
+  return {
+    jobId: m.jobId.toLowerCase() as Hex,
+    submittedBy: m.submittedBy.toLowerCase() as Address,
+    files: m.files.map((f) => ({ name: f.name, sha256: f.sha256.toLowerCase() as Hex, size: f.size, contentType: f.contentType })),
+    links: [...m.links],
+    note: normaliseText(m.note),
+  };
+}
+
+/** deliverableHash written on-chain. Works on a full manifest or on the core alone. */
+export function hashManifest(m: DeliveryManifest | DeliveryCore): Hex {
+  return keccak256(toHex(canonicalJson(deliveryCore(m))));
 }
 
 /** attestationHash written on-chain = keccak256(canonical verdict report JSON). */

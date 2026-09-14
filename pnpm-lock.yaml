@@ -132,6 +132,34 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  packages/mcp:
+    dependencies:
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.30.0
+        version: 1.30.0(zod@4.6.5)
+      '@vouch/shared':
+        specifier: workspace:*
+        version: link:../shared
+      mppx:
+        specifier: ^0.9.3
+        version: 0.9.3(@modelcontextprotocol/sdk@1.30.0(zod@4.6.5))(express@5.2.1)(hono@4.13.7)(next@15.5.25(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@types/node@24.13.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(typescript@5.9.3)(viem@2.56.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.6.5))
+      viem:
+        specifier: ^2.56.5
+        version: 2.56.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.6.5)
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
+    devDependencies:
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.13.4
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.0
+        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.13.4)(vite@8.3.0(@types/node@24.13.4)(jiti@2.7.0)(terser@5.51.2))
+
   packages/shared:
     dependencies:
       viem:
