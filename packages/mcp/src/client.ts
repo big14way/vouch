@@ -58,7 +58,8 @@ export class VouchClient {
     const key = await this.ensureApiKey();
     const res = await fetch(this.url(path), {
       method,
-      headers: { "content-type": "application/json", ...(key ? { authorization: `Bearer ${key}` } : {}), ...extraHeaders },
+      // x-api-key (not Authorization) so the MPP `Authorization: Payment …` credential can coexist on /fund.
+      headers: { "content-type": "application/json", ...(key ? { "x-api-key": key } : {}), ...extraHeaders },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
     const text = await res.text();
@@ -114,7 +115,7 @@ export class VouchClient {
     const doFetch = this.payerFetch();
     const res = await doFetch(this.url(`/jobs/${id}/fund`), {
       method: "POST",
-      headers: { "content-type": "application/json", ...(key ? { authorization: `Bearer ${key}` } : {}) },
+      headers: { "content-type": "application/json", ...(key ? { "x-api-key": key } : {}) },
       body: "{}",
     });
     const data = (await res.json().catch(() => ({}))) as { status?: string; route?: string; tx?: string; paymentTx?: string; job?: JobDto; note?: string; error?: { message?: string; code?: string; next?: string } };

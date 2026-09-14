@@ -12,7 +12,7 @@ export function GET() {
     info: { title: "Vouch API", version: "0.1.0", description: "Pay on verified delivery. Lock → deliver → verify → settle. Fund routes: MPP charge on Tempo, x402/EIP-3009 on Base." },
     servers: [{ url: base }],
     components: {
-      securitySchemes: { apiKey: { type: "http", scheme: "bearer", description: "vk_… key bound to an agent wallet (POST /agents/keys) or a Privy access token." } },
+      securitySchemes: { apiKey: { type: "apiKey", in: "header", name: "x-api-key", description: "vk_… key bound to an agent wallet (POST /agents/keys). Also accepted as `Authorization: Bearer`; use x-api-key on /fund so the MPP/x402 Payment credential can use Authorization." }, privy: { type: "http", scheme: "bearer", description: "Privy access token (humans)." } },
       schemas: { ActionSignature: sig },
     },
     paths: {

@@ -22,7 +22,7 @@ export default function Docs() {
         <CardTitle>MPP on Tempo (one round-trip)</CardTitle>
         <Muted className="mt-1">POST /fund returns 402 with a Tempo charge. Pay it with any mppx client; the transfer carries memo = jobId and lands in the vault. The response is the funded job.</Muted>
         <Code>{`# create
-curl -X POST $API/api/v1/jobs -H 'content-type: application/json' -H "authorization: Bearer $VOUCH_API_KEY" \\
+curl -X POST $API/api/v1/jobs -H 'content-type: application/json' -H "x-api-key: $VOUCH_API_KEY" \\
   -d '{"title":"Summarise 3 PDFs","scopeMd":"## Deliverables\\n- 1-page brief…","amount":"5000000","chainId":4217,"policyPreset":"autopilot"}'
 # fund (mppx pays the 402)
 npx mppx $API/api/v1/jobs/<jobId>/fund -X POST
@@ -37,7 +37,7 @@ npx mppx $API/api/v1/jobs/<jobId>/fund -X POST
 
       <Card className="mt-4">
         <CardTitle>REST</CardTitle>
-        <Muted className="mt-1">Keys are bound to a wallet: sign <span className="mono">Vouch API key for &lt;address&gt; at &lt;unix ts&gt;</span> and POST it to /agents/keys. Party actions (submit, settle, dispute, withdraw) are EIP-712 signatures fetched from /sign and relayed gaslessly.</Muted>
+        <Muted className="mt-1">Keys are bound to a wallet: sign <span className="mono">Vouch API key for &lt;address&gt; at &lt;unix ts&gt;</span> and POST it to /agents/keys. Send the key as <span className="mono">x-api-key</span> (Authorization is used by the MPP/x402 payment credential on /fund). Party actions (submit, settle, dispute, withdraw) are EIP-712 signatures fetched from /sign and relayed gaslessly.</Muted>
         <Code>{`GET  /api/v1/jobs/:id
 GET  /api/v1/jobs/:id/sign?action=Submit&signer=0x…&deliverableHash=0x…
 POST /api/v1/jobs/:id/submit   { files:[{name,contentType,base64}], links:[], note, signature:{signer,deadline,signature} }
