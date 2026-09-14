@@ -1,0 +1,257 @@
+// Vouch service schema. Postgres (Neon). Prisma 6.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  privyId   String   @unique
+  email     String?  @unique
+  name      String?
+  role      String?  // "payer" | "worker" | "both"
+  address   String?  @unique // embedded wallet (lowercase)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  keys       AgentKey[]
+  payerJobs  Job[]      @relation("PayerJobs")
+  workerJobs Job[]      @relation("WorkerJobs")
+}
+
+/// API keys for agents. The key is stored hashed; `address` is the wallet the key is bound to.
+model AgentKey {
+  id         String    @id @default(cuid())
+  keyHash    String    @unique
+  prefix     String
+  label      String
+  address    String
+  userId     String?
+  user       User?     @relation(fields: [userId], references: [id])
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+
+  @@index([address])
+}
+
+model Job {
+  id          String  @id // bytes32 hex jobId
+  shortId     String  @unique
+  chainId     Int
+  title       String
+  scopeMd     String
+  scopeHash   String
+  token       String
+  tokenSymbol String
+  commit      String? // null until payer is known
+
+  payer        String? // lowercase address
+  payerUserId  String?
+  payerUser    User?   @relation("PayerJobs", fields: [payerUserId], references: [id])
+  worker       String? // lowercase address; null = open to first submitter
+  workerHint   String? // email / agent URL the payer typed
+  workerUserId String?
+  workerUser   User?   @relation("WorkerJobs", fields: [workerUserId], references: [id])
+
+  // policy (mirrors Vault.Policy)
+  autoRelease      Int
+  minConfidenceBps Int
+  maxAutoAmount    String // base units as decimal string
+  reviewWindow     Int
+  submitDeadline   Int
+
+  status        String  @default("Open") // Vault.Status name, plus "Draft" before on-chain creation
+  verdict       String? // PASS | NEEDS_REVIEW | FAIL
+  confidenceBps Int?
+  resubmits     Int     @default(0)
+
+  fundedAt          DateTime?
+  submittedAt       DateTime?
+  attestedAt        DateTime?
+  settledAt         DateTime?
+  paymentDeadlineAt DateTime?
+
+  deliverableHash String?
+  attestationHash String?
+  txs             Json    @default("{}") // { created, funded, submitted, attested, settled, disputed, resolved, refunded }
+  feeBps          Int     @default(100)
+  amountPublic    Boolean @default(false) // true once settled/resolved
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  secret       JobSecret?
+  deliveries   Delivery[]
+  verdicts     Verdict[]
+  disputes     Dispute[]
+  attributions Attribution[]
+  events       ChainEvent[]
+  txLogs       TxLog[]
+  funnel       FunnelEvent[]
+
+  @@index([payer])
+  @@index([worker])
+  @@index([status])
+  @@index([chainId, status])
+}
+
+/// Amount and salt, AES-256-GCM encrypted with JOB_SECRETS_KEY. Decrypted only to build calldata.
+model JobSecret {
+  jobId     String   @id
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  amountEnc String
+  saltEnc   String
+  createdAt DateTime @default(now())
+}
+
+model Delivery {
+  id           String   @id @default(cuid())
+  jobId        String
+  job          Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  manifest     Json
+  manifestHash String
+  submittedBy  String
+  resubmission Int      @default(0)
+  txHash       String?
+  createdAt    DateTime @default(now())
+
+  verdicts Verdict[]
+
+  @@index([jobId])
+}
+
+model Verdict {
+  id            String   @id @default(cuid())
+  jobId         String
+  job           Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  deliveryId    String
+  delivery      Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  stage         String   @default("queued") // queued | reading_scope | checking_files | writing_report | attesting | done | failed
+  verdict       String?
+  confidenceBps Int?
+  report        Json?
+  reportHash    String?
+  reportKey     String? // storage key
+  model         String?
+  promptHash    String?
+  responseHash  String?
+  attestTx      String?
+  attempts      Int      @default(0)
+  error         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([jobId])
+  @@index([stage])
+}
+
+model Dispute {
+  id         String    @id @default(cuid())
+  jobId      String
+  job        Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  by         String
+  reason     String
+  reasonHash String
+  txHash     String?
+  workerBps  Int?
+  note       String?
+  resolveTx  String?
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  @@index([jobId])
+}
+
+/// Every deposit attribution, keyed by `ref` (= tx hash or facilitator reference). Replays are no-ops.
+model Attribution {
+  ref       String   @id
+  chainId   Int
+  token     String
+  to        String
+  amount    String
+  memo      String?
+  jobId     String?
+  job       Job?     @relation(fields: [jobId], references: [id])
+  sourceTx  String?
+  txHash    String? // attributeDeposit tx
+  status    String   @default("pending") // pending | done | failed
+  error     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([jobId])
+}
+
+/// Raw chain events, unique per (chainId, txHash, logIndex).
+model ChainEvent {
+  id          String   @id @default(cuid())
+  chainId     Int
+  txHash      String
+  logIndex    Int
+  blockNumber BigInt
+  name        String
+  jobId       String?
+  job         Job?     @relation(fields: [jobId], references: [id])
+  args        Json
+  processedAt DateTime?
+  createdAt   DateTime @default(now())
+
+  @@unique([chainId, txHash, logIndex])
+  @@index([jobId])
+  @@index([chainId, blockNumber])
+}
+
+model IndexerCursor {
+  chainId   Int      @id
+  lastBlock BigInt
+  updatedAt DateTime @updatedAt
+}
+
+/// Audit log of every transaction the service sends.
+model TxLog {
+  id        String   @id @default(cuid())
+  chainId   Int
+  kind      String // attributeDeposit | createJob | fund | submitWithSig | attest | autoSettle | ...
+  jobId     String?
+  job       Job?     @relation(fields: [jobId], references: [id])
+  from      String
+  to        String
+  hash      String?
+  status    String   @default("pending") // pending | sent | confirmed | failed
+  error     String?
+  gasUsed   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([jobId])
+  @@index([status])
+}
+
+/// Funnel: created → funded → delivered → verified → settled | disputed. These are the pitch numbers.
+model FunnelEvent {
+  id        String   @id @default(cuid())
+  jobId     String
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  kind      String
+  chainId   Int
+  actor     String? // "agent" | "human"
+  createdAt DateTime @default(now())
+
+  @@index([kind])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  jobId     String
+  to        String
+  kind      String
+  sentAt    DateTime @default(now())
+  error     String?
+
+  @@unique([jobId, to, kind])
+}
