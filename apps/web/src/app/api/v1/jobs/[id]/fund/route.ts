@@ -8,7 +8,7 @@ import { toDto } from "@/lib/jobs/dto";
 import { decryptSecret } from "@/lib/jobs/secrets";
 import { attributeAndFund, fundFromBalance, getJobOrThrow } from "@/lib/jobs/service";
 import { chargeHandler, receiptFromResponse } from "@/lib/mpp";
-import { publicClient } from "@/lib/chain/clients";
+import { publicClient, vaultAddress } from "@/lib/chain/clients";
 import { readBalance, transfersToVault } from "@/lib/chain/vault";
 import { rateLimit } from "@/lib/ratelimit";
 
@@ -91,5 +91,5 @@ export const GET = withErrors(async (req, ctx: Ctx) => {
   const dto = await toDto(job, p);
   const { amount } = await decryptSecret(job.id);
   const attributions = await db.attribution.findMany({ where: { jobId: job.id }, orderBy: { createdAt: "desc" }, take: 5 });
-  return json({ chainId: job.chainId, token: job.token, tokenSymbol: job.tokenSymbol, amount: amount.toString(), status: job.status, fundRoutes: dto.fundRoutes, attributions });
+  return json({ chainId: job.chainId, vault: vaultAddress(job.chainId), token: job.token, tokenSymbol: job.tokenSymbol, amount: amount.toString(), status: job.status, fundRoutes: dto.fundRoutes, attributions });
 });

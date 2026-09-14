@@ -40,10 +40,18 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-        if: hashFiles('pnpm-lock.yaml') != ''
+      - run: pnpm --filter @vouch/abi build && pnpm --filter @vouch/shared build
       - run: pnpm -r typecheck
-        if: hashFiles('pnpm-lock.yaml') != ''
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
       - run: pnpm -r lint
-        if: hashFiles('pnpm-lock.yaml') != ''
       - run: pnpm -r test
-        if: hashFiles('pnpm-lock.yaml') != ''
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+          JOB_SECRETS_KEY: "0xabababababababababababababababababababababababababababababababab"
+      - run: pnpm --filter @vouch/mcp build
+      - run: pnpm --filter @vouch/web build
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+          JOB_SECRETS_KEY: "0xabababababababababababababababababababababababababababababababab"
+          NEXT_PUBLIC_APP_URL: http://localhost:3000

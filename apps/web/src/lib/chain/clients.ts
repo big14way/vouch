@@ -2,14 +2,13 @@ import {
   createPublicClient,
   createWalletClient,
   http,
-  type Account,
   type Address,
   type Chain,
   type Hex,
   type PublicClient,
   type WalletClient,
 } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
+import { privateKeyToAccount, type PrivateKeyAccount } from "viem/accounts";
 import { base, baseSepolia, tempo, tempoModerato } from "viem/chains";
 import { createClient as createTempoClient } from "viem/tempo";
 import { getAddresses } from "@vouch/abi";
@@ -91,7 +90,7 @@ function keyFor(role: Role): Hex | undefined {
   }
 }
 
-export function accountFor(role: Role): Account {
+export function accountFor(role: Role): PrivateKeyAccount {
   const k = keyFor(role);
   if (!k) throw new Error(`No private key configured for role "${role}"`);
   return privateKeyToAccount(k);

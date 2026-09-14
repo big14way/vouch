@@ -4,7 +4,9 @@
   "version": "0.1.0",
   "description": "Pay on verified delivery. A conditional-settlement layer for agent and human work.",
   "packageManager": "pnpm@10.33.0",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "build": "pnpm -r --filter './packages/**' build && pnpm --filter @vouch/web build",
     "dev": "pnpm --filter @vouch/web dev",
