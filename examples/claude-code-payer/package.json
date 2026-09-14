@@ -1,0 +1,22 @@
+{
+  "name": "@vouch/example-claude-code-payer",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Unattended demo: a payer agent hires a worker agent through Vouch on Tempo (MPP) or Base (x402) with zero human clicks.",
+  "scripts": {
+    "start": "tsx run.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "echo skip",
+    "test": "echo skip"
+  },
+  "dependencies": {
+    "@vouch/mcp": "workspace:*",
+    "@vouch/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.3"
+  }
+}

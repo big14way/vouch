@@ -9,15 +9,18 @@ import type { VerdictOutput } from "@vouch/shared";
 export const INJECTION_PATTERNS: RegExp[] = [
   /ignore (all|any|the|previous|prior|above)?\s*(scope|instructions?|rules|prompt)/i,
   /disregard (the|all|any|previous)?\s*(scope|instructions?|rules)/i,
-  /(output|return|respond with|say|write|give)\s*["']?(pass|verdict\s*[:=]\s*pass)["']?/i,
-  /\bverdict\s*[:=]\s*["']?pass\b/i,
-  /confidence\s*[:=]\s*(1(\.0+)?|0?\.9\d*)/i,
+  /(output|return|respond with|say|write|give|record|mark|rate|grade|score|set)\s+(the\s+)?(verdict|this|it|the delivery|the work|the submission)?\s*(as\s+)?["']?pass\b/i,
+  /\bverdict["']?\s*[:=]\s*["']?pass\b/i,
+  /confidence["']?\s*[:=]\s*["']?(1(\.0+)?|0?\.9\d*)/i,
   /\bsystem prompt\b/i,
-  /\byou are (an? )?(ai|assistant|verifier|llm|language model)\b/i,
+  /\byou are (now )?(an? |the )?(ai|assistant|verifier|llm|language model|reviewer|judge|[\w']+ assistant)\b/i,
   /\bas an ai\b/i,
-  /\b(this|the) (deliverable|submission|work) (fully )?(meets|satisfies) (all|every) (requirement|scope item)s?\b.*\b(mark|rate|score)\b/i,
+  /\b(note|message|instructions?) (to|for) the (verifier|reviewer|judge|ai|model)\b/i,
+  /\bplease (approve|pass|release|settle)\b/i,
+  /\b(fully|clearly|completely) (meets|satisfies) (all|every) (requirement|scope item)s?\b/i,
   /<\/?(system|instruction|assistant)>/i,
   /\[\s*(system|inst)\s*\]/i,
+  /maintenance mode/i,
 ];
 
 export function detectInjection(text: string): string[] {
