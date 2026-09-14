@@ -1,0 +1,27 @@
+# deps
+node_modules/
+.pnpm-store/
+# build
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+# foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast/**/dry-run/
+# env
+.env
+.env.*
+!.env.example
+# misc
+.DS_Store
+*.log
+coverage/
+lcov.info
+.vercel
+# local skills (installed via npx skills add)
+.agents/
+.claude/
+skills-lock.json
