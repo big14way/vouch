@@ -154,6 +154,28 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  examples/moderato-e2e:
+    dependencies:
+      '@vouch/abi':
+        specifier: workspace:*
+        version: link:../../packages/abi
+      '@vouch/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      viem:
+        specifier: ^2.56.5
+        version: 2.56.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.6.5)
+    devDependencies:
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.13.4
+      tsx:
+        specifier: ^4.23.13
+        version: 4.23.13
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
   packages/abi:
     devDependencies:
       typescript:

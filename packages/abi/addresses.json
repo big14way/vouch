@@ -1,6 +1,26 @@
 {
-  "4217": { "name": "Tempo", "Vault": "", "VerifierRegistry": "", "explorer": "https://explore.mainnet.tempo.xyz" },
-  "42431": { "name": "Tempo Moderato", "Vault": "", "VerifierRegistry": "", "explorer": "https://explore.moderato.tempo.xyz" },
-  "8453": { "name": "Base", "Vault": "", "VerifierRegistry": "", "explorer": "https://basescan.org" },
-  "84532": { "name": "Base Sepolia", "Vault": "", "VerifierRegistry": "", "explorer": "https://sepolia.basescan.org" }
+  "4217": {
+    "name": "Tempo",
+    "Vault": "",
+    "VerifierRegistry": "",
+    "explorer": "https://explore.mainnet.tempo.xyz"
+  },
+  "42431": {
+    "name": "Tempo Moderato",
+    "Vault": "0x4d5fC080199A36fB451F320c17BC87717C78e8c0",
+    "VerifierRegistry": "0xC3BDa0fff0AcaA0B557F0899B4fE298AAbed9547",
+    "explorer": "https://explore.moderato.tempo.xyz"
+  },
+  "8453": {
+    "name": "Base",
+    "Vault": "",
+    "VerifierRegistry": "",
+    "explorer": "https://basescan.org"
+  },
+  "84532": {
+    "name": "Base Sepolia",
+    "Vault": "",
+    "VerifierRegistry": "",
+    "explorer": "https://sepolia.basescan.org"
+  }
 }

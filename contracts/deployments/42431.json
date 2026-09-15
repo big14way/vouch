@@ -1,0 +1,20 @@
+{
+  "chainId": 42431,
+  "VerifierRegistry": "0xC3BDa0fff0AcaA0B557F0899B4fE298AAbed9547",
+  "Vault": "0x4d5fC080199A36fB451F320c17BC87717C78e8c0",
+  "owner": "0xC5c49eAC6C66620823e1Cb0f45f757f999Eed14D",
+  "arbiter": "0x42D4108f9aec4f872B4562817eDc1Bd8FD61DE2e",
+  "intake": "0xe62c6BAdafa9368aeBD23eDcA5fcC32C1279Bd96",
+  "verifier": "0x2BA42AaE62a6CCe1cfFAe16BE5Ea9B3a64df35FA",
+  "block": 35459100,
+  "tokens": [
+    "0x20C0000000000000000000000000000000000000",
+    "0x20C000000000000000000000b9537d11c60E8b50"
+  ],
+  "txs": {
+    "Vault": "0xc5ce441682d762edc8b035b1121d5e6951a5ba282d20f04babc540548054aa78",
+    "setVerifier": "0xf8e1f3d249bff073889d81adc7ff584f625de1d3c16d9207b5a25a53401012d5",
+    "setFee": "0x93ad492b5111d4c728905504b1578bf2242fbbd51a7b151585276b70c396e608"
+  },
+  "note": "testnet keys; owner/arbiter/intake/verifier are throwaway roles for Moderato"
+}

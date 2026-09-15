@@ -4,11 +4,11 @@
 ```
 cd contracts
 cp ../.env.example ../.env    # DEPLOYER_PRIVATE_KEY, ARBITER_ADDRESS, INTAKE_ADDRESS, VERIFIER_ADDRESS, FEE_RECIPIENT
-forge script script/Deploy.s.sol --rpc-url moderato --broadcast          # Tempo testnet (faucet: tempo_fundAddress)
+./script/deploy-tempo.sh                                                  # Tempo testnet (RPC_URL=https://rpc.tempo.xyz for mainnet); explicit gas, see contracts/README.md
 forge script script/Deploy.s.sol --rpc-url base_sepolia --broadcast --verify
-forge script script/Deploy.s.sol --rpc-url tempo --broadcast             # mainnet
 forge script script/Deploy.s.sol --rpc-url base --broadcast --verify
 ```
+Testnet funds: `cast rpc tempo_fundAddress <address> --rpc-url https://rpc.moderato.tempo.xyz`. Then `pnpm --filter @vouch/example-moderato-e2e start` proves the deployment end-to-end.
 Copy `deployments/<chainId>.json` addresses into `packages/abi/addresses.json` (or set `VAULT_ADDRESS_<chainId>`).
 
 Fund the server keys: intake/relayer/verifier/feePayer need pathUSD on Tempo (fees are paid in stablecoin) and a little ETH on Base (~0.01).

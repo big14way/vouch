@@ -58,13 +58,24 @@ Invariants (see `test/invariant/`): solvency (`balanceOf ≥ Σbalances + locked
 
 ## Deploy
 
+**Tempo (Moderato / mainnet)** — use the wrapper, not `forge script`. Tempo charges 1,000 gas per byte of deployed code plus 250k per new account (TIP-1000) and the node's gas estimate does not include it, so scripted CREATEs run out of gas exactly at their estimate. The wrapper deploys with explicit limits (registry 5M, Vault 30M, the per-tx cap) and configures the verifier and fee:
+
 ```
-cp ../.env.example ../.env   # fill DEPLOYER_PRIVATE_KEY, ARBITER_ADDRESS, INTAKE_ADDRESS, VERIFIER_ADDRESS, FEE_RECIPIENT
-forge script script/Deploy.s.sol --rpc-url moderato     --broadcast
+set -a; . ./.env.moderato; set +a          # DEPLOYER_*, ARBITER_ADDRESS, INTAKE_ADDRESS, VERIFIER_ADDRESS
+./script/deploy-tempo.sh                    # RPC_URL=https://rpc.tempo.xyz for mainnet
+```
+
+Faucet for Moderato: `cast rpc tempo_fundAddress <address> --rpc-url https://rpc.moderato.tempo.xyz` (1,000,000 test pathUSD).
+
+**Base (Sepolia / mainnet)** — standard gas accounting, the Foundry script works:
+
+```
 forge script script/Deploy.s.sol --rpc-url base_sepolia --broadcast --verify
-forge script script/Deploy.s.sol --rpc-url tempo        --broadcast
 forge script script/Deploy.s.sol --rpc-url base         --broadcast --verify
 ```
+
+### Fork testing on Tempo
+`forge test --network tempo --fork-url <rpc>` emulates the TIP-20 precompiles, but the token's transfer-policy check reverts with `PolicyForbids` in the fork even though the same calls succeed live (the policy registry state is not reproduced). Use the live end-to-end script in `examples/moderato-e2e` instead; it runs the full lifecycle against the deployed contracts and prints transaction hashes.
 
 The script writes `deployments/<chainId>.json`; copy the addresses into `packages/abi/addresses.json`. Default token allow-lists: Tempo (4217/42431) pathUSD + USDC.e; Base (8453) USDC; Base Sepolia (84532) USDC. Override with `TOKENS=0x…,0x…`.
 

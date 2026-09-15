@@ -1,0 +1,23 @@
+{
+  "name": "@vouch/example-moderato-e2e",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Live end-to-end lifecycle against the deployed Vault on Tempo Moderato: both funding paths, attest, auto-settle, relayed settle, withdraw.",
+  "scripts": {
+    "start": "tsx run.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "echo skip",
+    "test": "echo skip"
+  },
+  "dependencies": {
+    "@vouch/abi": "workspace:*",
+    "@vouch/shared": "workspace:*",
+    "viem": "^2.56.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.3"
+  }
+}

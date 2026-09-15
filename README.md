@@ -54,11 +54,13 @@ npx mppx https://vouch.dev/api/v1/jobs/<jobId>/fund -X POST     # 402 → pays t
 | Chain | Vault | VerifierRegistry |
 |---|---|---|
 | Tempo 4217 | _pending deploy_ | _pending deploy_ |
-| Tempo Moderato 42431 | _pending deploy_ | _pending deploy_ |
+| Tempo Moderato 42431 | [`0x4d5fC080199A36fB451F320c17BC87717C78e8c0`](https://explore.moderato.tempo.xyz/address/0x4d5fC080199A36fB451F320c17BC87717C78e8c0) ([deploy tx](https://explore.moderato.tempo.xyz/tx/0xc5ce441682d762edc8b035b1121d5e6951a5ba282d20f04babc540548054aa78)) | [`0xC3BDa0fff0AcaA0B557F0899B4fE298AAbed9547`](https://explore.moderato.tempo.xyz/address/0xC3BDa0fff0AcaA0B557F0899B4fE298AAbed9547) |
 | Base 8453 | _pending deploy_ | _pending deploy_ |
 | Base Sepolia 84532 | _pending deploy_ | _pending deploy_ |
 
 Addresses are committed to `packages/abi/addresses.json` the day they are deployed, with explorer links and the deploy tx.
+
+**Live on Moderato, Sept 15:** [`docs/e2e-moderato-2026-09-15.log`](docs/e2e-moderato-2026-09-15.log) is a full run of `examples/moderato-e2e` against the deployed contracts, 15 transactions with explorer links: wallet-path job (approve → deposit → createJob → fund → submit → attest PASS → autoSettle → withdraw of real pathUSD) and memo-path job (`transferWithMemo` into the vault → intake attribution → job created and funded on the payer's behalf → open worker submits → NEEDS_REVIEW → payer-signed, relayer-sent `settleWithSig`). Tempo deploy notes (gas per byte, 30M cap, `--network tempo` fork caveat) are in [contracts/README.md](contracts/README.md).
 
 `Vault`: pooled multi-token ledger (`balances`, `locked`, `accounted`), jobs carry a commitment `keccak256(abi.encode(jobId, payer, worker, token, amount, scopeHash, salt))`, verifier is attest-only, settlement policy enforced on-chain (`autoSettle` reverts unless every predicate holds), disputes + arbiter split, `refundExpired`, `resubmit` (≤ 2), EIP-3009 deposits, surplus attribution for MPP/x402/memo payments, EIP-712 `*WithSig` relays, pause that never traps funds. See [contracts/README.md](contracts/README.md).
 
@@ -100,10 +102,10 @@ See [docs/deploy.md](docs/deploy.md). In short: `pnpm install`, build `packages/
 | # | Feature | State |
 |---|---|---|
 | F1 | Vault + registry, 100% branch coverage, invariants | done (60 unit · 6 fuzz · 6 invariants × 10k calls) |
-| F2 | Funding rails: Tempo batched, MPP charge, Base EIP-3009, x402 | implemented; mainnet tx links pending deploy |
+| F2 | Funding rails: Tempo batched, MPP charge, Base EIP-3009, x402 | implemented; contracts live on Moderato (Sept 15); mainnet + Base Sepolia pending |
 | F3 | `@vouch/mcp` | implemented, stdio + HTTP; npm publish pending |
 | F4 | Verifier + on-chain attestation | implemented |
-| F5 | Settlement policy on-chain | done |
+| F5 | Settlement policy on-chain | done; autoSettle and settleWithSig exercised live on Moderato |
 | F6 | Web app S0–S7 + motion system | implemented; Lighthouse run pending |
 | F7 | Disputes + arbiter | implemented |
 | F8 | Public job page + timeline | implemented, SSE ≤ 2 s after the service writes, ≤ 60 s via indexer |
