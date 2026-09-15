@@ -21,6 +21,12 @@ contracts/broadcast/**/dry-run/
 coverage/
 lcov.info
 .vercel
+# meeting recordings and video (never committed)
+docs/*.m4a
+docs/*.mp3
+docs/*.mp4
+docs/*.mov
+docs/*.wav
 # local skills (installed via npx skills add)
 .agents/
 .claude/

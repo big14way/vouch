@@ -110,7 +110,11 @@ See [docs/deploy.md](docs/deploy.md). In short: `pnpm install`, build `packages/
 | F9 | Unlinkable settlements | pooled vault + commitments; documented above |
 | F10 | Observability | health, TxLog, verifier audit, Sentry, funnel |
 
-Known gaps: job page first load is 209 kB gzipped (106 kB of it Next/React) against a 150 kB target; slither report not yet committed; `[VERIFY]` items in the spec (dual-track eligibility, Privy on 4217, mppx handler context) are re-checked on the day they are used.
+Known gaps: job page first load is 209 kB gzipped (106 kB of it Next/React) against a 150 kB target; slither report not yet committed; remaining `[VERIFY]` items in the spec (Privy on 4217, mppx handler context, submission deadline) are re-checked on the day they are used.
+
+Resolved Sept 15 from the Colosseum kickoff call: cross-chain submissions are allowed and a team can win any track it places in, but the track is decided by depth of integration. Tempo is the primary submission; the Base x402/EIP-3009 rail stays as built and gets no further UX work.
+
+Launch wedge: judges and the pitch lead with agent services on the MPP directory hired from Claude Code with zero clicks; human beta users come from freelancers sharing a WhatsApp pay link. Tester conversations are logged in `docs/users.md`.
 
 ## Roadmap (out of scope for v1)
 Third-party verifiers, worker bonds, Private Zone payouts, virtual deposit address per job, fiat rails, invoice financing on settlement history.

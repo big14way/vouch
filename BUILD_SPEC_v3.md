@@ -15,7 +15,7 @@
 4. Crypto-only. Stablecoins in, stablecoins out. No fiat rails, no KYC.
 5. Agents are first-class: if the MCP server or the MPP/x402 fund route breaks, the demo breaks.
 6. One primitive: lock → deliver → verify → settle. No NFTs, yield, marketplace, token, DAO.
-7. Chains: **Tempo mainnet (4217) primary, Base mainnet (8453) secondary.** Same Solidity. **[VERIFY]** in the arena: whether one submission may enter both chain tracks. If not, Tempo only.
+7. Chains: **Tempo mainnet (4217) primary, Base mainnet (8453) secondary.** Same Solidity. **Resolved (kickoff call, Sept 15):** cross-chain submissions are welcome and a team can win any track it places in, but the track is decided by depth of integration; a shallow add-on on a second chain is counted as the primary chain's submission. Decision: keep the Base x402 rail as built, spend no further effort on Base-specific UX, and put remaining effort into Tempo depth (memo attribution, batched sponsored funding, MPP directory listing, Private Zone stretch).
 
 ---
 
@@ -55,6 +55,12 @@ Vouch lets a payer — human or AI agent — lock stablecoins against a scope, g
 - Payer: an agent (Claude Code, Codex, OpenClaw, Auto.exchange-style orchestrators) or a human.
 - Worker: an agent service or a human professional.
 - Verifier: Vouch's verifier at launch; registry supports third parties later.
+
+### 2.3.1 Launch wedge (decided Sept 15)
+The organisers' guidance is a narrow V1 that is indispensable to ten people first. Two wedges, one per audience:
+- **Judges and the pitch lead with the agent wedge:** agent services already listed on the MPP directory, hired by Claude Code / Codex sessions on Tempo with zero clicks. This is the demo, the Builder Updates, and the headline.
+- **Human beta users come from the freelancer wedge:** Nigerian freelancers sharing a WhatsApp pay link (§1.2, S2 share sheet). This is where the first ten real jobs and the §1.4 numbers come from.
+Everything else in §2.3 stays supported but is not marketed until the two wedges have returning users.
 
 ### 2.4 Answers to the three hard questions
 | Question | Answer |
@@ -357,21 +363,24 @@ VOUCH_API_URL=  VOUCH_API_KEY=  VOUCH_AGENT_PRIVATE_KEY=  VOUCH_DEFAULT_CHAIN=42
 - Sept 19–20: REST `/jobs`, `/fund` (direct + memo path), `/submit`, `/approve`; minimal job page.
 - Exit: create → fund (batched, sponsored) → submit → settle on Moderato from the UI; memo'd transfer attributed by intake.
 
-**Week 2 (Sept 21–27) — agents**
+**Week 2 (Sept 21–27) — agents + first users**
 - `mppx.charge` on `/fund` (Tempo); `npx mppx` client funds a job end-to-end on **Tempo mainnet** ($1). Deploy + verify Tempo mainnet + Base mainnet. x402 on Base `/fund`.
 - `@vouch/mcp` 0.1.0 on npm; `examples/claude-code-payer` runs unattended: agent creates, funds via MPP, worker agent submits, verifier attests, Autopilot policy auto-settles.
 - Verifier v1 with structured output + attest.
-- Arena update #2 with tx hashes on both chains.
-- Exit: a Claude Code session hires and pays a worker on Tempo mainnet with no human clicks.
+- **Feedback loop starts now, not week 3:** ≥ 5 agent-to-agent jobs and ≥ 10 human jobs on testnet, then mainnet, with the two wedges from §2.3.1. Every tester conversation is logged in `docs/users.md` (date, who, what they tried, what broke, quote permission). These conversations drive week 3 priorities.
+- Exit: a Claude Code session hires and pays a worker on Tempo mainnet with no human clicks, and ten named people have used a pay link.
 
 **Week 3 (Sept 28–Oct 4) — humans, hardening, usage**
 - Screens S0–S7 with motion system; PolicyPicker; disputes + arbiter; email.
 - Threat model in README; 10 adversarial deliverables in `examples/adversarial`; calibration on 20 real samples; confusion matrix.
-- Real usage: ≥ 10 human jobs, ≥ 5 agent-to-agent jobs, on mainnet, with permission to quote. Weekly update #3.
+- Real usage continues from week 2 on mainnet: report returning payers, % auto-settled, time-to-settle, disputes. Iterate on what `docs/users.md` says, not on the feature list.
 - Stretch if ahead: Private Zone payout on Tempo; virtual address per job.
 
 **Week 4 (Oct 5–12) — freeze, film, submit**
 - Oct 5 freeze. Oct 6–8 README final; technical demo video. Oct 9–10 pitch video ≤ 3:00 + Google Slides (public). Oct 11 submit **[VERIFY]** deadline + timezone in arena. Oct 12 buffer.
+
+**Every day (Sept 15 – Oct 11) — Builder Update**
+- One update per 24 h on the arena feed (the platform allows exactly one). Each carries one real artefact: a tx hash, a screenshot, or a named tester. The organisers said the feed is where testers and distribution come from and that pace of decision-making is judged. Update #1 posted Sept 15.
 
 ---
 
@@ -407,6 +416,14 @@ Contract path tested incl. reverts · event indexed · UI has loading/success/er
 
 ---
 
+## 13b. Submission — what the judges said they read for (kickoff call, Sept 15)
+- Why you built this and who it is for; what decisions you made about what to build and whether users drove them.
+- Your unique insight: teach them something about why this opportunity exists now (Tempo shipped agent payments in March 2026, x402 shipped, both pay-first; §1.3).
+- Why this team; and a 5–10 year vision that sounds slightly irrational but is rational in retrospect: every agent-to-agent and human-to-human job settles on verified outcomes, with third-party verifiers competing on calibration.
+- Clear and concise. Long-form answers written by hand, not generated; they said generated answers do not land.
+- Form fields are visible on project creation: GitHub repo (may be private and shared), pitch video, product demo, long-form questions. An accelerator toggle adds a supplement; the accelerator itself is Solana-based, so expect a case-by-case conversation for a Tempo/Base team.
+- Prizes: best ~70–80 teams overall across tracks; a team outside the top 10 in one track but inside another gets that track's award. General pool top 21 are interviewed.
+
 ## 14. Pitch (≤ 3:00)
 0:00 team (true) · 0:20 problem: Tempo's own docs say agent commerce barely exists and pays first; 85% of freelancers get paid late, half of UK self-employed have done work they were never paid for · 0:50 demo cut (agent on Tempo, human on Tempo, x402 on Base) · 1:50 "not escrow, not MPP/x402 — the verification layer between them" · 2:15 oracle risk and bounded loss · 2:40 real usage numbers, calibration results, roadmap (third-party verifiers, Private Zones, worker bonds), ask.
 
@@ -425,10 +442,11 @@ Fiat rails (v1 spec), verifier marketplace/staking, worker bonds, invoice financ
 | TIP-20 approve/transferFrom semantics differ from ERC-20 | Fork test Day 2; if needed use `transferSync` + memo + intake path only |
 | Verifier gamed live | Adversarial suite + demo #4 |
 | "It's just escrow" | Never say it; lead with the agent demo; §2.4 |
-| Dual-track not allowed | Tempo only; Base deployment stays in README as portability proof |
+| Dual-track judged by depth (resolved Sept 15) | Base counts only if the integration is deep; we keep x402/EIP-3009 as built and do not chase Base UX. If Base is judged shallow, the submission is a Tempo one and nothing is lost |
+| Feature creep from AI tooling | Scope frozen at F1–F10. Stretch items ship only if a logged tester asked for them (`docs/users.md`) |
 | Team bandwidth | Order of build is fixed in §3.1; cut S6/S7 polish before cutting F2–F5 |
 
 ---
 
 ## 17. Sources consulted
-Tempo docs (TIP-20 overview, payments guide, one-time payments/mppx, agent-to-agent use case, faucet, Bungee bridge token list, FAQ), BitGo Tempo reference, Ledger Insights/CoinDesk/Bankless Tempo mainnet coverage, Circle USDC address list, Coinbase CDP x402/Onramp docs, Colosseum Copilot outputs (2026-09-14), Colosseum X announcements (tracks), Kaplan Group/Remote/Bonsai/IPSE/Payoneer late-payment research as reported by MediaPost, PPC Land, Agiled, NudgeBadger, Flexable.
+Colosseum kickoff call (Sept 15, 2026; organisers' guidance and Q&A, 37 min recording, not committed). Tempo docs (TIP-20 overview, payments guide, one-time payments/mppx, agent-to-agent use case, faucet, Bungee bridge token list, FAQ), BitGo Tempo reference, Ledger Insights/CoinDesk/Bankless Tempo mainnet coverage, Circle USDC address list, Coinbase CDP x402/Onramp docs, Colosseum Copilot outputs (2026-09-14), Colosseum X announcements (tracks), Kaplan Group/Remote/Bonsai/IPSE/Payoneer late-payment research as reported by MediaPost, PPC Land, Agiled, NudgeBadger, Flexable.
