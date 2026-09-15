@@ -1,0 +1,35 @@
+Vault 0x4d5fC080199A36fB451F320c17BC87717C78e8c0 on Tempo Moderato (https://rpc.moderato.tempo.xyz)
+payer 0xeBCfb9c6E03B5338684A0f96187DD15862cB2202 · worker 0x121636cC839Adaf71FCc3f8BE670874747975a10 · verifier 0x2BA42AaE62a6CCe1cfFAe16BE5Ea9B3a64df35FA · intake 0xe62c6BAdafa9368aeBD23eDcA5fcC32C1279Bd96 · relayer 0xE4a7e5584461D1bc4d61e6e75703a1488e457bBd
+=== Job A: wallet path, Autopilot, autoSettle, withdraw ===
+✔ approve(vault)                     https://explore.moderato.tempo.xyz/tx/0xcebf509e2359f928807c1ce9ca456dfcb001ca6f0f2ee8504fab0b93ca8baf94  gas 277942
+✔ deposit                            https://explore.moderato.tempo.xyz/tx/0xcf9c3d7b738765c03f5e6c187cdcca9699883c7e2685a95bb755bbcb63858ebb  gas 66356
+   ✓ payer vault balance credited
+✔ createJob                          https://explore.moderato.tempo.xyz/tx/0xf3b4d99b9250a48ca52de3a510a989771195f224c93407818fa8a7f4e589b2dc  gas 1298940
+✔ fund                               https://explore.moderato.tempo.xyz/tx/0x58e9f4671dbd61f0d9e49bf7fd9aa4d7895f73225028b03641885dfc1ea04c93  gas 60319
+   ✓ status Funded
+✔ submit (worker)                    https://explore.moderato.tempo.xyz/tx/0x0a08c51fde3551480341e905b85f506b3c8676b2ce9a0f8c954a1bf5a378fd7f  gas 293884
+✔ attest PASS 95% (verifier)         https://explore.moderato.tempo.xyz/tx/0xf598e8aef3b17a9e1b6c5e8b251220a823fd6be337398c1c7fa1cb151c1ca908  gas 300101
+   ✓ status Attested, PASS, 9500 bps
+   ✓ canAutoSettle is true (autopilot, reviewWindow 0)
+✔ autoSettle (relayer)               https://explore.moderato.tempo.xyz/tx/0xdac3e22141921c11d750396f2332a3d96b91a51a4cbac752b9d24d828c220d48  gas 66091
+   ✓ worker credited 4950000 (amount − 1% fee)
+✔ withdraw (worker)                  https://explore.moderato.tempo.xyz/tx/0x3bc3a6656a5c8d39db0683a5b44eeacdb77d979da5bde9b13cf2008d51cd20b5  gas 47512
+   ✓ worker pathUSD delta 4949368 = payout 4950000 − gas 632 (fees paid in pathUSD) on the real token
+   ✓ solvency: vault holds 16200000 ≥ accounted 15200000
+=== Job B: memo transfer → intake attribution → open worker → NEEDS_REVIEW → relayed settle ===
+✔ transferWithMemo(vault, memo=jobId) https://explore.moderato.tempo.xyz/tx/0x480e903991657407b0d1dcef1b9275516507d89c253865922733a11b5e6dd335  gas 33815
+   ✓ memo transfer shows as unattributed surplus
+✔ attributeDeposit (intake)          https://explore.moderato.tempo.xyz/tx/0xab2fe24eeeb3671e892e35eaa8a4a9de9c265f35620822af51920ecbe0a8d86e  gas 301951
+   ✓ payer credited from surplus
+✔ createJob on payer's behalf (intake) https://explore.moderato.tempo.xyz/tx/0xa51a43e8ce446e2bc4b395209d70317621c45513c4118677da50f29f6f4778f5  gas 1050623
+✔ fund on payer's behalf (intake)    https://explore.moderato.tempo.xyz/tx/0x6f175938cf96cd79cc687768a65ac692df200df9dfb7bea0aba780f27840c1bc  gas 309615
+✔ submit (open worker)               https://explore.moderato.tempo.xyz/tx/0xffc27d00d85e4966453f3a31e80c8e930e285990e4f20b15ec95c06e307c09a5  gas 294275
+   ✓ first submitter became the worker
+✔ attest NEEDS_REVIEW 60% (verifier) https://explore.moderato.tempo.xyz/tx/0x260643c13095ed5e9914848b67ba0a9de3b5b14721b69862f36dc6d56fbc5df0  gas 300113
+   ✓ manual policy: autoSettle not permitted
+✔ settleWithSig (relayer, payer signed) https://explore.moderato.tempo.xyz/tx/0x6395cc53bdce62266c032c2bdebe166fc837b6cc5534652513608203d89b23a3  gas 77846
+   ✓ status Settled
+   ✓ payer nonce consumed
+jobs: A 0x11ddccc4f76484572ff7f965077ea6c46681947d53a1adc79127d1d778684390
+      B 0x776c28bad42364088fe313352e3bf60e2219051f353a1df7c0e714c6a9be218b
+ALL CHECKS PASSED
