@@ -8,7 +8,8 @@
     "start": "tsx run.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "echo skip",
-    "test": "echo skip"
+    "test": "echo skip",
+    "start:batched": "tsx batched.ts"
   },
   "dependencies": {
     "@vouch/abi": "workspace:*",

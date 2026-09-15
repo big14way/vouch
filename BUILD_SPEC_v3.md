@@ -211,12 +211,12 @@ IVerifierRegistry public registry;
 
 ### 6.3 Tempo-specific integration (this is the "deep integration" judges look for)
 - **Fee sponsorship:** all human-initiated txs are sent with Vouch's `feePayer` account so users hold zero fee tokens. Agents pay their own fees in the stablecoin they hold (any USD TIP-20 via Fee AMM).
-- **Batched transactions:** web app funds a job in one atomic Tempo tx: `approve(vault) → deposit → createJob → fund`. One signature, one confirmation, ~0.6 s finality.
+- **Batched transactions:** web app funds a job in one atomic Tempo tx: `approve(vault) → deposit → createJob → fund`. One signature, one confirmation, ~0.6 s finality. Proven live on Moderato Sept 16 with both a local feePayer co-signature and Tempo's public sponsor service (`examples/moderato-e2e/batched.ts`).
 - **Transfer memos:** any direct TIP-20 transfer to the vault carries `memo = jobId` (32 bytes). The indexer (TIDX) reads memo → intake calls `attributeDeposit(ref=jobId)`. This lets a payer fund from *any* Tempo wallet with a plain transfer.
 - **MPP Charge (agents):** `POST /v1/jobs/:id/fund` on Tempo is wrapped in `mppx.charge({ amount: job.amount, description })` with `recipient = Vault address`, `currency = job.token`. Handler runs only after payment is verified; it calls `attributeDeposit` then `fund` (server-side reveal of amount/salt). One HTTP round-trip: `402 → pay → 200 {status:"Funded", tx}`. **[VERIFY]** that the mppx server context exposes payer address + tx hash to the handler; if not, read the settlement from TIDX by recipient+amount+time and reconcile.
 - **Virtual addresses (stretch):** one TIP-20 virtual deposit address per job so wallet payers don't need memos.
 - **Private Zones (stretch):** payouts to workers executed inside a zone.
-- **Discovery:** publish Vouch as an MPP service in the mpp.dev directory so agents can find it. **[VERIFY]** listing process.
+- **Discovery:** publish Vouch as an MPP service in the mpp.dev directory so agents can find it. **Resolved Sept 16:** the process is (1) serve an OpenAPI 3.1 discovery document at `/openapi.json` with `x-payment-info.offers[]` and `x-service-info` (done, validated with `mppx/discovery`), (2) register the live URL on MPPScan (one click), (3) open a PR to `tempoxyz/mpp` adding an entry to `schemas/services.ts` using their service PR template; the directory accepts live services only. Draft PR text and entry: `docs/mpp-listing.md`. Do both the day the Vercel deploy is public.
 
 ### 6.4 Base-specific integration
 - Deposits via EIP-3009 `receiveWithAuthorization` (payer never needs ETH). x402 middleware on `/fund` (Base network, USDC, Coinbase facilitator): settlement is a `transferWithAuthorization` to the vault; handler attributes then funds. Relayer tops up embedded wallets with 0.0002 ETH for other calls.

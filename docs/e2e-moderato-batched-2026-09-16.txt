@@ -1,0 +1,11 @@
+Vault 0x4d5fC080199A36fB451F320c17BC87717C78e8c0 · payer 0xeBCfb9c6E03B5338684A0f96187DD15862cB2202 · feePayer 0x63C1C585fAEE51b270E3D9386Db95259a1370588
+=== Variant 1: one batched tx, fee co-signed by the Vouch feePayer key ===
+✔ batched approve→deposit→createJob→fund  https://explore.moderato.tempo.xyz/tx/0xe4fe17d32b661e501b054467b0c2ad6436cbe34a0deea790867d65cd0a50e30d  gas 1375945
+   ✓ transaction succeeded
+   ✓ job is Funded after a single transaction
+   ✓ payer pathUSD moved by exactly the job amount (5000000); no fee charged to the payer
+   ✓ feePayer paid the fee: 2543 pathUSD base units
+   tx type tempo · from 0xebcfb9c6e03b5338684a0f96187dd15862cb2202 · feePayer (see explorer)
+=== Variant 2: same batch, sponsored by the public service https://sponsor.moderato.tempo.xyz (reported, not asserted) ===
+✔ sponsored by service  https://explore.moderato.tempo.xyz/tx/0xf96a54f02da2d3e96b37de028334c4de13b6dc08cadacf87f307f0032108e44b  gas 1373645  payer delta 5000000  job status 2
+ALL CHECKS PASSED

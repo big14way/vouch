@@ -66,9 +66,10 @@ Addresses are committed to `packages/abi/addresses.json` the day they are deploy
 
 ## Tempo integration
 - **Fee sponsorship**: MPP pull-mode charges are co-signed by Vouch's feePayer; wallet-side funding uses a Tempo fee-payer service; humans never hold a fee token.
-- **Batched transactions**: `approve → deposit → createJob → fund` in one atomic Tempo transaction from the payer's wallet.
+- **Batched transactions**: `approve → deposit → createJob → fund` in one atomic Tempo transaction from the payer's wallet. Proven live on Moderato, Sept 16 ([log](docs/e2e-moderato-batched-2026-09-16.txt)): one transaction, job Funded, payer's pathUSD moved by exactly the job amount, fee paid by the Vouch feePayer key (2,543 base units); the same batch was also accepted by Tempo's public sponsor service.
 - **Transfer memos**: any TIP-20 transfer to the vault with `memo = jobId` is attributed and funds the job — pay from any wallet.
 - **MPP charge**: `POST /fund` is `tempo/charge`-gated with `memo = jobId`; handler runs only after payment is verified, reads the transfer from the receipt, attributes, funds. One round-trip.
+- **Discovery**: MPP discovery document at [`/openapi.json`](apps/web/src/lib/openapi.ts) (`x-payment-info.offers[]` on the fund route, `x-service-info`, `llms.txt`), validated in CI with mppx's validator. Listing on MPPScan and the mpp.dev directory is prepared in [docs/mpp-listing.md](docs/mpp-listing.md) and waits only on the public deploy.
 - Stretch: virtual address per job; Private Zone payouts.
 
 ## Base integration
