@@ -19,8 +19,8 @@
   },
   "84532": {
     "name": "Base Sepolia",
-    "Vault": "",
-    "VerifierRegistry": "",
+    "Vault": "0x5787D1C800d9725c391616890fC65358985098D6",
+    "VerifierRegistry": "0x1925a308A335984Ca4FA2F9534348147C8310347",
     "explorer": "https://sepolia.basescan.org"
   }
 }

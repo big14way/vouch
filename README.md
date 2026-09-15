@@ -56,7 +56,7 @@ npx mppx https://vouch.dev/api/v1/jobs/<jobId>/fund -X POST     # 402 → pays t
 | Tempo 4217 | _pending deploy_ | _pending deploy_ |
 | Tempo Moderato 42431 | [`0x4d5fC080199A36fB451F320c17BC87717C78e8c0`](https://explore.moderato.tempo.xyz/address/0x4d5fC080199A36fB451F320c17BC87717C78e8c0) ([deploy tx](https://explore.moderato.tempo.xyz/tx/0xc5ce441682d762edc8b035b1121d5e6951a5ba282d20f04babc540548054aa78)) | [`0xC3BDa0fff0AcaA0B557F0899B4fE298AAbed9547`](https://explore.moderato.tempo.xyz/address/0xC3BDa0fff0AcaA0B557F0899B4fE298AAbed9547) |
 | Base 8453 | _pending deploy_ | _pending deploy_ |
-| Base Sepolia 84532 | _pending deploy_ | _pending deploy_ |
+| Base Sepolia 84532 | [`0x5787D1C800d9725c391616890fC65358985098D6`](https://sepolia.basescan.org/address/0x5787D1C800d9725c391616890fC65358985098D6) ([deploy tx](https://sepolia.basescan.org/tx/0x409dbd25ea7f5e16064a05aeb07aecee25e874c969d0edc095c073c79ea2793a), [Sourcify match](https://repo.sourcify.dev/84532/0x5787D1C800d9725c391616890fC65358985098D6)) | [`0x1925a308A335984Ca4FA2F9534348147C8310347`](https://sepolia.basescan.org/address/0x1925a308A335984Ca4FA2F9534348147C8310347) ([Sourcify match](https://repo.sourcify.dev/84532/0x1925a308A335984Ca4FA2F9534348147C8310347)) |
 
 Addresses are committed to `packages/abi/addresses.json` the day they are deployed, with explorer links and the deploy tx.
 
@@ -102,7 +102,7 @@ See [docs/deploy.md](docs/deploy.md). In short: `pnpm install`, build `packages/
 | # | Feature | State |
 |---|---|---|
 | F1 | Vault + registry, 100% branch coverage, invariants | done (60 unit · 6 fuzz · 6 invariants × 10k calls) |
-| F2 | Funding rails: Tempo batched, MPP charge, Base EIP-3009, x402 | implemented; contracts live on Moderato (Sept 15); mainnet + Base Sepolia pending |
+| F2 | Funding rails: Tempo batched, MPP charge, Base EIP-3009, x402 | implemented; contracts live on Moderato and Base Sepolia (Sept 15); mainnets pending |
 | F3 | `@vouch/mcp` | implemented, stdio + HTTP; npm publish pending |
 | F4 | Verifier + on-chain attestation | implemented |
 | F5 | Settlement policy on-chain | done; autoSettle and settleWithSig exercised live on Moderato |

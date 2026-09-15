@@ -70,9 +70,20 @@ Faucet for Moderato: `cast rpc tempo_fundAddress <address> --rpc-url https://rpc
 **Base (Sepolia / mainnet)** — standard gas accounting, the Foundry script works:
 
 ```
-forge script script/Deploy.s.sol --rpc-url base_sepolia --broadcast --verify
-forge script script/Deploy.s.sol --rpc-url base         --broadcast --verify
+set -a; . ./.env.base-sepolia; set +a
+forge script script/Deploy.s.sol --rpc-url base_sepolia --broadcast
+forge script script/Deploy.s.sol --rpc-url base         --broadcast --verify   # with a real BASESCAN_API_KEY
 ```
+
+Verification without a Basescan key: submit Foundry's standard JSON to Sourcify directly (forge's `--verifier sourcify` is overridden by the `[etherscan.*]` entries in `foundry.toml` whenever `BASESCAN_API_KEY` is set):
+
+```
+forge verify-contract <addr> src/Vault.sol:Vault --chain 84532 --show-standard-json-input > vault.json
+curl -X POST https://sourcify.dev/server/v2/verify/84532/<addr> -H 'content-type: application/json' \
+  -d "{\"stdJsonInput\": $(cat vault.json), \"compilerVersion\": \"0.8.26+commit.8a97fa7a\", \"contractIdentifier\": \"src/Vault.sol:Vault\", \"creationTransactionHash\": \"<tx>\"}"
+```
+
+Both Base Sepolia contracts are exact matches on Sourcify (see `deployments/84532.json`).
 
 ### Fork testing on Tempo
 `forge test --network tempo --fork-url <rpc>` emulates the TIP-20 precompiles, but the token's transfer-policy check reverts with `PolicyForbids` in the fork even though the same calls succeed live (the policy registry state is not reproduced). Use the live end-to-end script in `examples/moderato-e2e` instead; it runs the full lifecycle against the deployed contracts and prints transaction hashes.
