@@ -9,12 +9,14 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "echo skip",
     "test": "echo skip",
-    "start:batched": "tsx batched.ts"
+    "start:batched": "tsx batched.ts",
+    "start:service": "tsx service.ts"
   },
   "dependencies": {
     "@vouch/abi": "workspace:*",
     "@vouch/shared": "workspace:*",
-    "viem": "^2.56.5"
+    "viem": "^2.56.5",
+    "@vouch/mcp": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

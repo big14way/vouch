@@ -39,7 +39,9 @@ export async function pollChain(chainId: number): Promise<{ from: bigint; to: bi
   const pub = publicClient(chainId);
   const head = await pub.getBlockNumber();
   const cursor = await db.indexerCursor.findUnique({ where: { chainId } });
-  const from = cursor ? cursor.lastBlock + 1n : head;
+  // First run: start at INDEXER_START_BLOCK_<chainId> (the Vault's deployment block) so nothing before the cursor is skipped.
+  const startEnv = process.env[`INDEXER_START_BLOCK_${chainId}`];
+  const from = cursor ? cursor.lastBlock + 1n : startEnv && /^\d+$/.test(startEnv) ? BigInt(startEnv) : head;
   if (from > head) return { from, to: head, events: 0 };
   const to = from + MAX_RANGE - 1n < head ? from + MAX_RANGE - 1n : head;
   const vault = vaultAddress(chainId);

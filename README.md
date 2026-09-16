@@ -60,6 +60,8 @@ npx mppx https://vouch.dev/api/v1/jobs/<jobId>/fund -X POST     # 402 → pays t
 
 Addresses are committed to `packages/abi/addresses.json` the day they are deployed, with explorer links and the deploy tx.
 
+**Service layer live on Moderato, Sept 16:** [`docs/e2e-service-moderato-2026-09-16.txt`](docs/e2e-service-moderato-2026-09-16.txt) drives the REST API with the `@vouch/mcp` client: wallet-bound API key → `POST /jobs` → `POST /fund` answered with a 402, paid by mppx as a Tempo charge with `memo = jobId`, attributed and funded by intake in the same round-trip → worker's relayed `submitWithSig` → payer's relayed `settleWithSig` → timeline, indexer and timelock crons. The indexer backfilled every Vault event since deployment (72 events, 13 kinds) and linked the job's four. The verifier stage reports `failed: ANTHROPIC_API_KEY not configured` in that run, as designed without a model key.
+
 **Live on Moderato, Sept 15:** [`docs/e2e-moderato-2026-09-15.txt`](docs/e2e-moderato-2026-09-15.txt) is a full run of `examples/moderato-e2e` against the deployed contracts, 15 transactions with explorer links: wallet-path job (approve → deposit → createJob → fund → submit → attest PASS → autoSettle → withdraw of real pathUSD) and memo-path job (`transferWithMemo` into the vault → intake attribution → job created and funded on the payer's behalf → open worker submits → NEEDS_REVIEW → payer-signed, relayer-sent `settleWithSig`). Tempo deploy notes (gas per byte, 30M cap, `--network tempo` fork caveat) are in [contracts/README.md](contracts/README.md).
 
 `Vault`: pooled multi-token ledger (`balances`, `locked`, `accounted`), jobs carry a commitment `keccak256(abi.encode(jobId, payer, worker, token, amount, scopeHash, salt))`, verifier is attest-only, settlement policy enforced on-chain (`autoSettle` reverts unless every predicate holds), disputes + arbiter split, `refundExpired`, `resubmit` (≤ 2), EIP-3009 deposits, surplus attribution for MPP/x402/memo payments, EIP-712 `*WithSig` relays, pause that never traps funds. See [contracts/README.md](contracts/README.md).
@@ -104,12 +106,12 @@ See [docs/deploy.md](docs/deploy.md). In short: `pnpm install`, build `packages/
 |---|---|---|
 | F1 | Vault + registry, 100% branch coverage, invariants | done (60 unit · 6 fuzz · 6 invariants × 10k calls) |
 | F2 | Funding rails: Tempo batched, MPP charge, Base EIP-3009, x402 | implemented; contracts live on Moderato and Base Sepolia (Sept 15); mainnets pending |
-| F3 | `@vouch/mcp` | implemented, stdio + HTTP; npm publish pending |
+| F3 | `@vouch/mcp` | implemented, stdio + HTTP; its client drove the live service run on Moderato; npm publish pending |
 | F4 | Verifier + on-chain attestation | implemented |
 | F5 | Settlement policy on-chain | done; autoSettle and settleWithSig exercised live on Moderato |
 | F6 | Web app S0–S7 + motion system | implemented; Lighthouse run pending |
 | F7 | Disputes + arbiter | implemented |
-| F8 | Public job page + timeline | implemented, SSE ≤ 2 s after the service writes, ≤ 60 s via indexer |
+| F8 | Public job page + timeline | implemented; indexer proven on Moderato (backfill from deployment block, events linked to jobs); SSE ≤ 2 s after the service writes |
 | F9 | Unlinkable settlements | pooled vault + commitments; documented above |
 | F10 | Observability | health, TxLog, verifier audit, Sentry, funnel |
 

@@ -19,7 +19,7 @@ cd apps/web && pnpm db:deploy       # applies prisma/migrations to DATABASE_URL 
 ```
 
 ## 3. Service (Vercel)
-Set every variable in `.env.example`. `vercel.json` schedules the indexer and verifier every minute and the timelock every 5 minutes; set `CRON_SECRET` and Vercel sends it as a bearer token.
+Set every variable in `.env.example`. Three that are easy to miss: `MPP_SECRET_KEY` (binds MPP challenges; required in production), `INDEXER_START_BLOCK_<chainId>` (the Vault deployment block, so the first indexer run backfills instead of starting at the head), and per-chain role keys (`INTAKE_PRIVATE_KEY_84532` etc.) when the Tempo and Base roles are different wallets. `vercel.json` schedules the indexer and verifier every minute and the timelock every 5 minutes; set `CRON_SECRET` and Vercel sends it as a bearer token.
 
 ## 4. Base webhook (optional, faster than polling)
 Alchemy → Custom webhook on the Vault address and the USDC contract → `https://<app>/api/webhooks/alchemy`, signing key in `ALCHEMY_WEBHOOK_SECRET`.
@@ -28,6 +28,7 @@ Alchemy → Custom webhook on the Vault address and the USDC contract → `https
 Publish `packages/mcp` (`pnpm --filter @vouch/mcp build && npm publish --access public`). List the `/fund` route on mpp.dev.
 
 ## Local
+Postgres: `brew install postgresql@17 && brew services start postgresql@17 && createdb vouch` (or Docker). Then:
 ```
 pnpm install
 pnpm --filter @vouch/abi build && pnpm --filter @vouch/shared build

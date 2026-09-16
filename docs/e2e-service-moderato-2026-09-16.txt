@@ -1,0 +1,27 @@
+# Service-layer end-to-end on Tempo Moderato, 2026-09-16 (examples/moderato-e2e/service.ts against a local Vouch API)
+# Verifier stage 'failed' is expected here: no ANTHROPIC_API_KEY was configured.
+
+07:43:44 api http://localhost:3000 payer 0xeBCfb9c6E03B5338684A0f96187DD15862cB2202 worker 0x121636cC839Adaf71FCc3f8BE670874747975a10
+   ✓ health: vault configured on 42431
+   ✓ payer got a wallet-bound API key
+07:43:50 created 0x4dbd406d0c0dc195790b965bf4d304b848c96a7526a63d7de51fad1f5fac1838 http://localhost:3000/j/0x4dbd406d0c0dc195790b965bf4d304b848c96a7526a63d7de51fad1f5fac1838
+   ✓ job Open, caller is payer
+   ✓ MPP fund route advertised
+07:44:06 funded Funded route mpp fundTx 0x38583a218c352ce204cea33d3a815fa65e206745a9e2c5cd812550076d4ecf8e paymentTx 0xa74d687c05491b1ad3d0b7998860573d78e532c9d8e4381c1a829898633e94e7
+   ✓ status Funded after one round-trip
+   ✓ route was MPP
+   ✓ payment tx recorded
+07:44:13 cron/indexer 200 {"chains":{"42431":{"from":"35521503","to":"35521503","events":0},"84532":{"from":"46888182","to":"46888182","events":0}}}
+   ✓ indexer cron ran
+07:44:22 submitted Submitted tx 0x0940e7a1281edb53b2d42ccb995a92621d8a760036938d14130858a8a3c1d076 hash 0x9525f113d41ad5766a55436404e109d83c4308429ddf2a197c4cedfee42b6fef
+   ✓ status Submitted (relayed submitWithSig)
+07:44:23 cron/verifier 200 {"ran":[],"failed":["cmu3soqu5000nse9wjy26e569"]}
+07:44:24 verdict failed null null 
+   ✓ verifier queued/failed cleanly without a model key
+07:44:29 approved Settled tx 0xfc723121e4cc4aabbffd220c6af7edec4a0ab281deb22851b3ce87a4813b2438
+   ✓ status Settled via settleWithSig
+   ✓ worker sees the amount after settlement ($5.00)
+07:44:33 timeline events: 7
+   ✓ timeline has created/funded/submitted/settled
+07:44:34 cron/timelock 200 {"settled":[],"refunded":[],"errors":{}}
+ALL CHECKS PASSED

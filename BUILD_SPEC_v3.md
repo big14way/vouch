@@ -361,7 +361,7 @@ VOUCH_API_URL=  VOUCH_API_KEY=  VOUCH_AGENT_PRIVATE_KEY=  VOUCH_DEFAULT_CHAIN=42
 - Sept 15–17: `Vault.sol` + registry + tests (unit, fuzz, invariants) + Moderato fork test with batched tx + fee sponsorship.
 - Sept 18: deploy + verify Moderato and Base Sepolia; relayer/feePayer; TIDX indexer; timelock cron.
 - Sept 19–20: REST `/jobs`, `/fund` (direct + memo path), `/submit`, `/approve`; minimal job page.
-- Exit: create → fund (batched, sponsored) → submit → settle on Moderato from the UI; memo'd transfer attributed by intake.
+- Exit: create → fund (batched, sponsored) → submit → settle on Moderato from the UI; memo'd transfer attributed by intake. **Done Sept 16** through the API and the MCP client (`docs/e2e-service-moderato-2026-09-16.txt`), batched sponsored funding proven Sept 16 (`docs/e2e-moderato-batched-2026-09-16.txt`), raw-contract lifecycle Sept 15. The UI path is built but not yet clicked through (needs Privy + a public deploy).
 
 **Week 2 (Sept 21–27) — agents + first users**
 - `mppx.charge` on `/fund` (Tempo); `npx mppx` client funds a job end-to-end on **Tempo mainnet** ($1). Deploy + verify Tempo mainnet + Base mainnet. x402 on Base `/fund`.

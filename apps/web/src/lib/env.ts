@@ -32,6 +32,8 @@ const ServerEnvSchema = z.object({
   JOB_SECRETS_KEY: hex32,
 
   MPP_REALM: z.string().optional(),
+  /** Binds MPP challenges to their contents (HMAC). Required in production; derived from JOB_SECRETS_KEY in dev. */
+  MPP_SECRET_KEY: z.string().min(16).optional(),
   X402_FACILITATOR_URL: z.string().url().default("https://x402.org/facilitator"),
 
   NEXT_PUBLIC_PRIVY_APP_ID: z.string().optional(),

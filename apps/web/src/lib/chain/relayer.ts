@@ -41,7 +41,7 @@ export async function sendTx(p: SendParams): Promise<SendResult> {
 }
 
 async function sendNow(p: SendParams): Promise<SendResult> {
-  const account = accountFor(p.role);
+  const account = accountFor(p.role, p.chainId);
   const log = await db.txLog.create({
     data: { chainId: p.chainId, kind: p.kind, jobId: p.jobId, from: account.address.toLowerCase(), to: p.to.toLowerCase() },
   });
@@ -54,7 +54,7 @@ async function sendNow(p: SendParams): Promise<SendResult> {
       chain: wallet.chain,
       to: p.to,
       data: p.data,
-      ...(sponsored ? { feePayer: accountFor("feePayer") } : {}),
+      ...(sponsored ? { feePayer: accountFor("feePayer", p.chainId) } : {}),
     } as Parameters<typeof wallet.sendTransaction>[0]);
     await db.txLog.update({ where: { id: log.id }, data: { hash, status: "sent" } });
     const receipt = await pub.waitForTransactionReceipt({ hash, timeout: 120_000 });

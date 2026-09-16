@@ -24,8 +24,8 @@ export const GET = withErrors(async () => {
       entry.lagBlocks = cursor ? (head - cursor.lastBlock).toString() : null;
       const relayers: Record<string, unknown> = {};
       for (const role of ["relayer", "intake", "verifier", "feePayer"] as const) {
-        if (!hasRole(role)) continue;
-        const a = accountFor(role);
+        if (!hasRole(role, chainId)) continue;
+        const a = accountFor(role, chainId);
         if (chainId === 4217 || chainId === 42431) {
           const t = TOKENS[chainId as ChainId][0]!;
           const bal = await readTokenBalance(chainId, t.address, a.address).catch(() => null);

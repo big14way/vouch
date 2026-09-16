@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { Mppx, evm, tempo } from "mppx/server";
 import { Receipt } from "mppx";
 import type { Address } from "viem";
@@ -26,6 +27,14 @@ export function realm(): string {
   return e.MPP_REALM ?? new URL(e.NEXT_PUBLIC_APP_URL).host;
 }
 
+/** MPP challenge-binding secret. Production sets MPP_SECRET_KEY; development derives one from JOB_SECRETS_KEY. */
+function secretKey(): string {
+  const e = env();
+  if (e.MPP_SECRET_KEY) return e.MPP_SECRET_KEY;
+  if (e.NODE_ENV === "production") throw new Error("MPP_SECRET_KEY is required in production");
+  return createHash("sha256").update(`mpp:${e.JOB_SECRETS_KEY}`).digest("hex");
+}
+
 export function mppFor(chainId: ChainId): Instance {
   const cached = instances.get(chainId);
   if (cached) return cached;
@@ -35,12 +44,13 @@ export function mppFor(chainId: ChainId): Instance {
   if (isTempo(chainId)) {
     inst = Mppx.create({
       realm: realm(),
+      secretKey: secretKey(),
       methods: [
         tempo({
           currency: token.address,
           recipient,
           testnet: chainId === TEMPO_MODERATO_ID,
-          ...(hasRole("feePayer") ? { feePayer: accountFor("feePayer") } : {}),
+          ...(hasRole("feePayer", chainId) ? { feePayer: accountFor("feePayer", chainId) } : {}),
         }),
       ],
     }) as unknown as Instance;
@@ -48,6 +58,7 @@ export function mppFor(chainId: ChainId): Instance {
     const domain = USDC_DOMAIN[chainId] ?? { name: "USD Coin", version: "2" };
     inst = Mppx.create({
       realm: realm(),
+      secretKey: secretKey(),
       methods: [
         evm({
           currency: token.address,

@@ -159,6 +159,9 @@ importers:
       '@vouch/abi':
         specifier: workspace:*
         version: link:../../packages/abi
+      '@vouch/mcp':
+        specifier: workspace:*
+        version: link:../../packages/mcp
       '@vouch/shared':
         specifier: workspace:*
         version: link:../../packages/shared

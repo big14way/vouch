@@ -74,30 +74,38 @@ export function publicClient(chainId: number): PublicClient {
   return c;
 }
 
-function keyFor(role: Role): Hex | undefined {
+const ROLE_VAR: Record<Role, string> = {
+  intake: "INTAKE_PRIVATE_KEY",
+  verifier: "VERIFIER_PRIVATE_KEY",
+  relayer: "RELAYER_PRIVATE_KEY",
+  arbiter: "ARBITER_PRIVATE_KEY",
+  feePayer: "TEMPO_FEEPAYER_PRIVATE_KEY",
+};
+
+/**
+ * Key for a role. A chain-specific variable (`INTAKE_PRIVATE_KEY_84532`) wins over the generic one, so the
+ * Tempo roles (funded with pathUSD) and the Base roles (funded with ETH) can be different wallets.
+ * Fallbacks: intake → relayer; feePayer → relayer.
+ */
+function keyFor(role: Role, chainId?: number): Hex | undefined {
+  const raw = process.env as Record<string, string | undefined>;
   const e = env() as unknown as Record<string, Hex | undefined>;
-  switch (role) {
-    case "intake":
-      return e.INTAKE_PRIVATE_KEY ?? e.RELAYER_PRIVATE_KEY;
-    case "verifier":
-      return e.VERIFIER_PRIVATE_KEY;
-    case "relayer":
-      return e.RELAYER_PRIVATE_KEY;
-    case "arbiter":
-      return e.ARBITER_PRIVATE_KEY;
-    case "feePayer":
-      return e.TEMPO_FEEPAYER_PRIVATE_KEY ?? e.RELAYER_PRIVATE_KEY;
-  }
+  const pick = (r: Role): Hex | undefined => {
+    const perChain = chainId ? raw[`${ROLE_VAR[r]}_${chainId}`] : undefined;
+    if (perChain && /^0x[0-9a-fA-F]{64}$/.test(perChain)) return perChain as Hex;
+    return e[ROLE_VAR[r]];
+  };
+  return pick(role) ?? (role === "intake" || role === "feePayer" ? pick("relayer") : undefined);
 }
 
-export function accountFor(role: Role): PrivateKeyAccount {
-  const k = keyFor(role);
-  if (!k) throw new Error(`No private key configured for role "${role}"`);
+export function accountFor(role: Role, chainId?: number): PrivateKeyAccount {
+  const k = keyFor(role, chainId);
+  if (!k) throw new Error(`No private key configured for role "${role}"${chainId ? ` on chain ${chainId}` : ""}`);
   return privateKeyToAccount(k);
 }
 
-export function hasRole(role: Role): boolean {
-  return Boolean(keyFor(role));
+export function hasRole(role: Role, chainId?: number): boolean {
+  return Boolean(keyFor(role, chainId));
 }
 
 /**
@@ -105,7 +113,7 @@ export function hasRole(role: Role): boolean {
  * serialised as Tempo transactions (fees paid in a stablecoin, `feePayer` supported).
  */
 export function walletClient(chainId: number, role: Role): WalletClient {
-  const account = accountFor(role);
+  const account = accountFor(role, chainId);
   const chain = chainFor(chainId);
   const transport = http(rpcUrl(chainId));
   if (isTempo(chainId)) {
