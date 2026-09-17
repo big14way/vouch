@@ -1,8 +1,8 @@
 {
-  "Vault": "0x932330E6Cc8f9Bb22DB93f46B39cd1be6b58923B",
-  "VerifierRegistry": "0xbFF6Da495F730b8439f0d9550e0C29C046d9F6a6",
+  "Vault": "0x9fA83aa77f155D3CC55Ca5034617313634a48fAd",
+  "VerifierRegistry": "0xCD4f2A717F5cC11607d9d0C2F0501B4Caf040Bca",
   "arbiter": "0x7369C296bE6A46cd1Bb5F9A8e377aC5c9C3d7B4c",
-  "block": 46934069,
+  "block": 46937235,
   "chainId": 84532,
   "intake": "0x5F99D4338230996a1DCE8Be60BCbE8F20F4B01a0",
   "owner": "0x3C343AD077983371b29fee386bdBC8a92E934C51",
@@ -10,5 +10,12 @@
     "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
   ],
   "verifier": "0x1777C03857B8B992aC2Ea3faB859C1A54E584196",
-  "note": "v2 with Earn while locked (F11), 2026-09-17, exact Sourcify match; v1 (0x5787D1C8\u2026) kept for the Sept 15 evidence"
+  "previous": {
+    "v3 (2026-09-17)": "0xd2D52Afd98D4a29F0Cd3908dF392042d3Efd898F / registry 0x2d73Bcb228A8819f32796f1a55328c5C8c1f1B95"
+  },
+  "txs": {
+    "VerifierRegistry": "0x1d805f8edc2fe1c09915542f09883dca4faba66eb0275404bf734ac4f3cabcf8",
+    "Vault": "0x6db7e4b89e2f7cec8e477fa2349cb938dfb8f4ed69551f8732789391797fbdd6"
+  },
+  "note": "v4 with Earn (F11) + Zone payout (F12, unused on Base: Zones are Tempo-only), 2026-09-17"
 }

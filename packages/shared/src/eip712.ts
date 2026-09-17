@@ -39,7 +39,44 @@ export const VaultTypes = {
     { name: "nonce", type: "uint256" },
     { name: "deadline", type: "uint256" },
   ],
+  EarnDeposit: [
+    { name: "earnVault", type: "address" },
+    { name: "amount", type: "uint256" },
+    { name: "nonce", type: "uint256" },
+    { name: "deadline", type: "uint256" },
+  ],
+  EarnRedeem: [
+    { name: "earnVault", type: "address" },
+    { name: "shares", type: "uint256" },
+    { name: "minAssets", type: "uint256" },
+    { name: "nonce", type: "uint256" },
+    { name: "deadline", type: "uint256" },
+  ],
+  /** Private payout into a Tempo Zone; `payloadHash = keccak256(abi.encode(EncryptedPayload))`. */
+  ZoneWithdraw: [
+    { name: "portal", type: "address" },
+    { name: "token", type: "address" },
+    { name: "amount", type: "uint256" },
+    { name: "keyIndex", type: "uint256" },
+    { name: "payloadHash", type: "bytes32" },
+    { name: "nonce", type: "uint256" },
+    { name: "deadline", type: "uint256" },
+  ],
 } as const;
+
+/** ABI shape of a Zone Portal encrypted payload, for hashing exactly as the Vault does. */
+export const ENCRYPTED_PAYLOAD_ABI = [
+  {
+    type: "tuple",
+    components: [
+      { name: "ephemeralPubkeyX", type: "bytes32" },
+      { name: "ephemeralPubkeyYParity", type: "uint8" },
+      { name: "ciphertext", type: "bytes" },
+      { name: "nonce", type: "bytes12" },
+      { name: "tag", type: "bytes16" },
+    ],
+  },
+] as const;
 
 export type VaultAction = keyof typeof VaultTypes;
 

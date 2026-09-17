@@ -117,6 +117,10 @@ export function discoveryDocument(): Record<string, unknown> {
         post: { summary: "Relay withdrawWithSig (fee sponsored on Tempo)", responses: { "200": { description: "tx" } } },
       },
       "/earn/vaults": { get: { summary: "Curated Tempo Earn vaults a job may use (APY, venue, on-chain allow-list state)", responses: { "200": { description: "vaults[]" } } } },
+      "/withdraw/zone": {
+        get: { summary: "Tempo Zones (testnet): vault + portal + typed data for a private payout (ZoneWithdraw)", responses: { "200": { description: "typedData" } } },
+        post: { summary: "Relay withdrawToZoneWithSig: available balance → Zone Portal depositEncrypted (recipient and memo encrypted)", responses: { "200": { description: "tx" } } },
+      },
       "/health": { get: { summary: "Chain heads, relayer balances, verifier queue", responses: { "200": { description: "health" } } } },
       "/stats": { get: { summary: "Public funnel numbers", responses: { "200": { description: "stats" } } } },
     },

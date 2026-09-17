@@ -1,23 +1,28 @@
 {
   "chainId": 42431,
-  "VerifierRegistry": "0xEFe712ba09BA206Ef56E18B2510fF68745c66820",
-  "Vault": "0x207aAB47e290C0cC23bE7A2415fF52Cce8D72FA5",
+  "VerifierRegistry": "0xBA8C173dB605414ea8b7bB5dbC57BA9724c70b9C",
+  "Vault": "0xaD15409d1B7EFA36a9898107fa9757E58a36442D",
   "owner": "0xC5c49eAC6C66620823e1Cb0f45f757f999Eed14D",
   "arbiter": "0x42D4108f9aec4f872B4562817eDc1Bd8FD61DE2e",
   "intake": "0xe62c6BAdafa9368aeBD23eDcA5fcC32C1279Bd96",
   "verifier": "0x2BA42AaE62a6CCe1cfFAe16BE5Ea9B3a64df35FA",
-  "block": 35674339,
+  "block": 35682511,
   "tokens": [
     "0x20C0000000000000000000000000000000000000",
     "0x20C000000000000000000000b9537d11c60E8b50"
   ],
   "txs": {
-    "VerifierRegistry": "0xcc69845039b6f51ceabddfd0f7e6f312f2a27229e2ca4c49f9452f76abf4e04e",
-    "Vault": "0x2554c551cb117a99a08144de6605547e71096ec1651ad7ef7113432ffadcc3ac"
+    "VerifierRegistry": "reused",
+    "Vault": "0x7d1cb6a07b8c1161be42396363a66e227a4ce681a96e647bcaba09d9c269b5d5"
   },
   "earnVaults": {
-    "0x0e30ef43cfb7c4cab5ec690a45a6550588325fb0": "open pathUSD Earn vault (testnet), allow-listed 2026-09-17 tx 0xe759f65996dc4b0f78a95cd7915f9ff57ba00d8db415845de9ac35cc7c49c68d",
-    "0xa2d6b710b92416760a05ad13022b7078e398ff9d": "Vouch demo Earn venue (test/mocks/MockEarnVault, ERC-4626-style, yield simulated by transfers) deployed 0xc62db61e43d573ed07ca071c4dd86e2a5ac02d5df716fd6848d756edade87049; used because both Tempo testnet pathUSD vaults revert deposits with a stale-price error (0x323a44c7)"
+    "0xa2d6b710b92416760a05ad13022b7078e398ff9d": "Vouch demo Earn venue (MockEarnVault); Tempo testnet pathUSD vaults revert deposits with stale-price error 0x323a44c7"
   },
-  "note": "v2 with Earn while locked (F11), 2026-09-17; v1 (0x4d5fC080\u2026) kept for the Sept 15\u201316 evidence logs"
+  "zonePortals": {
+    "0x7069DeC4E64Fd07334A0933eDe836C17259c9B23": "Tempo Zone A portal (zoneId 6, chain 4217000006), testnet-only private payouts; legacy=true (4-arg depositEncrypted, refunds return to the Vault as surplus)"
+  },
+  "previous": {
+    "v3 (2026-09-17)": "0x1e5ff1901DC67a5F61Bf79C498d661400ababa87"
+  },
+  "note": "v4: Earn while locked (F11) + Zone private payout (F12, legacy portal shape), 2026-09-17"
 }

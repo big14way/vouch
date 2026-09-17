@@ -77,6 +77,18 @@ export function chainMeta(chainId: number): ChainMeta {
   return CHAINS[chainId];
 }
 
+/** Tempo Zones (testnet-only while Zones are in development). Reads need an X-Authorization-Token signed by the account. */
+export const ZONES = {
+  42431: [
+    { zoneId: 6, name: "Zone A", chainId: 4217000006, rpcUrl: "https://rpc-zone-a.testnet.tempo.xyz", portal: "0x7069DeC4E64Fd07334A0933eDe836C17259c9B23" as Address },
+    { zoneId: 7, name: "Zone B", chainId: 4217000007, rpcUrl: "https://rpc-zone-b.testnet.tempo.xyz", portal: "0x3F5296303400B56271b476F5A0B9cBF74350D6Ac" as Address },
+  ],
+} as const satisfies Partial<Record<ChainId, readonly { zoneId: number; name: string; chainId: number; rpcUrl: string; portal: Address }[]>>;
+
+export function zonesFor(chainId: number) {
+  return (ZONES as Record<number, readonly { zoneId: number; name: string; chainId: number; rpcUrl: string; portal: Address }[]>)[chainId] ?? [];
+}
+
 export function txUrl(chainId: number, hash: string): string {
   return `${chainMeta(chainId).explorer}/tx/${hash}`;
 }

@@ -50,6 +50,9 @@
 | Base | USDC signature (humans) | `ReceiveWithAuthorization` signed by the Privy wallet → `POST /fund/eip3009` relays `depositWithAuthorization` → fund |
 | Both | Balance | if the payer already has enough vault balance, `fund` directly |
 
+## Private payout into a Tempo Zone (F12, testnet)
+`Vault.withdrawToZone(portal, token, amount, keyIndex, encrypted)` (and its `WithSig` twin, relayed by the server) moves an Available balance into an allow-listed Zone Portal with `depositEncrypted`. The client encrypts `recipient ‖ memo` to the zone sequencer's key (ECIES secp256k1 → HKDF-SHA256 → AES-256-GCM, `packages/shared/src/zone.ts`), bound to the Vault as the portal caller, so the public chain shows Vault → Portal and the amount only. The signature binds portal, token, amount, key index and the payload hash. `legacyZonePortal[portal]` selects the older 4-argument portal ABI and the pre-August encryption scheme (Moderato Zone A); on legacy portals a bounced deposit returns to the Vault as surplus, which intake attributes back with `attributeDeposit`. The zone RPC needs a token signed for the zone chain id; only the recipient can read the credited balance. Enabled with `ZONES_ENABLED=1` / `NEXT_PUBLIC_ZONES_ENABLED=1`, Moderato only.
+
 ## Roles and keys
 | Key | Used for | Blast radius |
 |---|---|---|

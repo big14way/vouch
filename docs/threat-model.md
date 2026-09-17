@@ -13,6 +13,7 @@
 - **Replay**: attributions keyed by `ref` on-chain and in the DB; EIP-712 actions use sequential nonces + deadlines; MPP/x402 credentials carry their own replay protection.
 - **Amount privacy**: not stored/emitted on-chain until settlement, when it appears in calldata. Deposits credit balances, not jobs. Stated plainly in the README and privacy page.
 - **Rate limits** on every POST; API keys hashed; cron/webhook routes need secrets; CSP + security headers; secrets only server-side.
+- **Zone payout (F12, testnet)**: the Vault only ever hands funds to allow-listed portals, and the signed `ZoneWithdraw` binds the payload hash, so a relayer cannot redirect a payout. A payload built for the wrong portal generation is accepted on-chain but never credited, so the client reads `legacyZonePortal` from the Vault rather than guessing; a legacy portal's bounce-back lands in the Vault as surplus and is attributed back by intake, never absorbed. Zones are testnet-only and nothing on mainnet depends on them.
 
 ## Calibration
 `pnpm --filter @vouch/web calibrate` (rules only) / `--model` (full). Adversarial corpus: `examples/adversarial`. Results in the root README.

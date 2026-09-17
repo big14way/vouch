@@ -5,3 +5,4 @@ export * from "./commit.js";
 export * from "./schemas.js";
 export * from "./eip712.js";
 export * from "./format.js";
+export * from "./zone.js";

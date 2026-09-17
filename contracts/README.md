@@ -55,7 +55,7 @@ Every party action has a `...WithSig` twin (`submitWithSig`, `resubmitWithSig`, 
 ## Tests
 
 ```
-forge test                # 60 unit · 17 Earn · 6 fuzz · 6 invariants (Earn deposits, yield, losses in the random walk)
+forge test                # 60 unit · 17 Earn · 7 Zone · 6 fuzz · 6 invariants (Earn deposits, yield, losses in the random walk)
 forge coverage --ir-minimum --no-match-coverage "(test|script|mocks)"
 forge snapshot
 ```
@@ -69,6 +69,7 @@ Invariants (see `test/invariant/`): solvency (`balanceOf ≥ Σbalances + locked
 ```
 set -a; . ./.env.moderato; set +a          # DEPLOYER_*, ARBITER_ADDRESS, INTAKE_ADDRESS, VERIFIER_ADDRESS
 ./script/deploy-tempo.sh                    # RPC_URL=https://rpc.tempo.xyz for mainnet
+# optional: REGISTRY=0x… reuses a registry; EARN_VAULTS=0x…,0x… and ZONE_PORTALS=0x…:true allow-list venues / portals (portal:legacy)
 ```
 
 Faucet for Moderato: `cast rpc tempo_fundAddress <address> --rpc-url https://rpc.moderato.tempo.xyz` (1,000,000 test pathUSD).
@@ -89,7 +90,10 @@ curl -X POST https://sourcify.dev/server/v2/verify/84532/<addr> -H 'content-type
   -d "{\"stdJsonInput\": $(cat vault.json), \"compilerVersion\": \"0.8.26+commit.8a97fa7a\", \"contractIdentifier\": \"src/Vault.sol:Vault\", \"creationTransactionHash\": \"<tx>\"}"
 ```
 
-Both Base Sepolia contracts are exact matches on Sourcify (see `deployments/84532.json`).
+Both Base Sepolia contracts are verified on Sourcify (see `deployments/84532.json`).
+
+### Zone portals (F12, testnet)
+`setZonePortal(portal, allowed, legacy)` allow-lists a Tempo Zone Portal for `withdrawToZone`. `legacy = true` for portals built before the August 2026 ABI (Moderato Zone A, `0x7069…9B23`): they take a 4-argument `depositEncrypted` with no refund recipient, so a bounced deposit returns to the Vault as surplus and intake attributes it back to the user. Current portals get the 5-argument call with the user as `tempoRefundRecipient`. The flag is read by the client (`legacyZonePortal`) to pick the matching encryption scheme; see `packages/shared/src/zone.ts`.
 
 ### Fork testing on Tempo
 `forge test --network tempo --fork-url <rpc>` emulates the TIP-20 precompiles, but the token's transfer-policy check reverts with `PolicyForbids` in the fork even though the same calls succeed live (the policy registry state is not reproduced). Use the live end-to-end script in `examples/moderato-e2e` instead; it runs the full lifecycle against the deployed contracts and prints transaction hashes.

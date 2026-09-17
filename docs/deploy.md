@@ -5,6 +5,7 @@
 cd contracts
 cp ../.env.example ../.env    # DEPLOYER_PRIVATE_KEY, ARBITER_ADDRESS, INTAKE_ADDRESS, VERIFIER_ADDRESS, FEE_RECIPIENT
 ./script/deploy-tempo.sh                                                  # Tempo testnet (RPC_URL=https://rpc.tempo.xyz for mainnet); explicit gas, see contracts/README.md
+#   REGISTRY=0x… EARN_VAULTS=0x… ZONE_PORTALS=0x7069DeC4E64Fd07334A0933eDe836C17259c9B23:true   # reuse a registry, allow-list Earn venues / Zone portals (portal:legacy)
 forge script script/Deploy.s.sol --rpc-url base_sepolia --broadcast --verify
 forge script script/Deploy.s.sol --rpc-url base --broadcast --verify
 ```
@@ -12,6 +13,8 @@ Testnet funds: `cast rpc tempo_fundAddress <address> --rpc-url https://rpc.moder
 Copy `deployments/<chainId>.json` addresses into `packages/abi/addresses.json` (or set `VAULT_ADDRESS_<chainId>`).
 
 Earn while locked: allow-list an Earn vault whose `asset()` is a job token — `cast send <Vault> "setEarnVault(address,bool)" <earnVault> true` (owner). The picker only offers allow-listed vaults; discovery and APY come from `GET https://api.tempo.xyz/v1/earn/vaults`.
+
+Private payouts (F12, Moderato only): allow-list the Zone A portal — `cast send <Vault> "setZonePortal(address,bool,bool)" 0x7069DeC4E64Fd07334A0933eDe836C17259c9B23 true true` (`legacy=true` for the current Zone A build) — and set `ZONES_ENABLED=1`, `NEXT_PUBLIC_ZONES_ENABLED=1`, `ZONE_PORTAL_42431`. The relayer pays the `withdrawToZoneWithSig` gas.
 
 Fund the server keys: intake/relayer/verifier/feePayer need pathUSD on Tempo (fees are paid in stablecoin) and a little ETH on Base (~0.01).
 

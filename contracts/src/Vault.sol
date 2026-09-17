@@ -11,6 +11,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {IVerifierRegistry} from "./interfaces/IVerifierRegistry.sol";
 import {IERC3009} from "./interfaces/IERC3009.sol";
 import {IEarnVault} from "./interfaces/IEarnVault.sol";
+import {IZonePortal, IZonePortalLegacy} from "./interfaces/IZonePortal.sol";
 
 /// @title Vault
 /// @notice Pooled conditional-settlement vault. One primitive: lock → deliver → verify → settle.
@@ -32,6 +33,12 @@ import {IEarnVault} from "./interfaces/IEarnVault.sol";
 ///   the payer's available balance before the worker is short. Opt-in per job; the payer carries that risk.
 /// - Idle-balance Earn: `depositToEarn` / `redeemFromEarn` move a user's available balance into / out of an
 ///   allow-listed vault; meanwhile the user holds shares (`userEarnShares`), not a balance.
+///
+/// Private payout (Tempo Zones, testnet-only at the time of writing)
+/// - `withdrawToZone` moves a user's available balance into a Tempo Zone through an owner-allow-listed Zone Portal
+///   (`depositEncrypted`): the public chain shows Vault → Portal and the amount; the recipient and memo are
+///   encrypted to the zone sequencer (payload built client-side, e.g. viem `encryptedDeposit.prepareRecipient`
+///   with `sender = this vault`). The user is the refund recipient if the deposit bounces.
 ///
 /// Roles
 /// - `payer` / `worker`: parties to a job. They act directly or via an EIP-712 signature relayed by anyone.
@@ -119,6 +126,9 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
         keccak256("EarnDeposit(address earnVault,uint256 amount,uint256 nonce,uint256 deadline)");
     bytes32 public constant EARN_REDEEM_TYPEHASH =
         keccak256("EarnRedeem(address earnVault,uint256 shares,uint256 minAssets,uint256 nonce,uint256 deadline)");
+    bytes32 public constant ZONE_WITHDRAW_TYPEHASH = keccak256(
+        "ZoneWithdraw(address portal,address token,uint256 amount,uint256 keyIndex,bytes32 payloadHash,uint256 nonce,uint256 deadline)"
+    );
 
     // ------------------------------------------------------------------
     // Storage
@@ -134,6 +144,8 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
     mapping(address signer => uint256) public nonces;
     mapping(address earnVault => bool) public allowedEarnVault;
     mapping(address user => mapping(address earnVault => uint256)) public userEarnShares;
+    mapping(address portal => bool) public allowedZonePortal;
+    mapping(address portal => bool) public legacyZonePortal; // no refund-recipient arg; bounces land here as surplus
 
     uint16 public feeBps;
     uint16 public earnSlippageBps = 50;
@@ -177,6 +189,8 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
     event EarnYieldCredited(bytes32 indexed jobId, address indexed payer, address indexed earnVault, uint256 shares);
     event EarnDeposited(address indexed user, address indexed earnVault, address token, uint256 amount, uint256 shares);
     event EarnRedeemed(address indexed user, address indexed earnVault, address token, uint256 shares, uint256 assets);
+    /// Recipient and memo are encrypted inside the portal deposit; only the amount is public.
+    event WithdrawnToZone(address indexed token, address indexed user, address indexed portal, uint256 amount);
 
     event RegistrySet(address registry);
     event ArbiterSet(address arbiter);
@@ -185,6 +199,7 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
     event TokenSet(address indexed token, bool allowed);
     event EarnVaultSet(address indexed earnVault, bool allowed);
     event EarnSlippageSet(uint16 bps);
+    event ZonePortalSet(address indexed portal, bool allowed, bool legacy);
 
     // ------------------------------------------------------------------
     // Errors
@@ -230,6 +245,9 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
     error EarnAssetMismatch();
     error InsufficientShares();
     error SlippageTooHigh();
+    error ZonePortalNotAllowed(address portal);
+    error ZoneDepositsInactive();
+    error AmountTooLarge();
 
     // ------------------------------------------------------------------
     // Constructor
@@ -603,6 +621,52 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
     }
 
     // ------------------------------------------------------------------
+    // Private payout into a Tempo Zone
+    // ------------------------------------------------------------------
+
+    /// @notice Move `amount` of the caller's available balance into a Tempo Zone through an allow-listed portal.
+    ///         `encrypted` was prepared client-side for `sender = address(this)`; the caller is the refund recipient.
+    function withdrawToZone(
+        address portal,
+        address token,
+        uint256 amount,
+        uint256 keyIndex,
+        IZonePortal.EncryptedPayload calldata encrypted
+    ) external nonReentrant {
+        _withdrawToZone(msg.sender, portal, token, amount, keyIndex, encrypted);
+    }
+
+    function withdrawToZoneWithSig(
+        address portal,
+        address token,
+        uint256 amount,
+        uint256 keyIndex,
+        IZonePortal.EncryptedPayload calldata encrypted,
+        address signer,
+        uint256 deadline,
+        bytes calldata sig
+    ) external nonReentrant {
+        _useSig(
+            signer,
+            deadline,
+            sig,
+            keccak256(
+                abi.encode(
+                    ZONE_WITHDRAW_TYPEHASH,
+                    portal,
+                    token,
+                    amount,
+                    keyIndex,
+                    keccak256(abi.encode(encrypted)),
+                    nonces[signer],
+                    deadline
+                )
+            )
+        );
+        _withdrawToZone(signer, portal, token, amount, keyIndex, encrypted);
+    }
+
+    // ------------------------------------------------------------------
     // Admin
     // ------------------------------------------------------------------
 
@@ -642,6 +706,16 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
         if (allowed && !allowedToken[IEarnVault(earnVault).asset()]) revert EarnAssetMismatch();
         allowedEarnVault[earnVault] = allowed;
         emit EarnVaultSet(earnVault, allowed);
+    }
+
+    /// @notice Allow-list a Tempo Zone Portal for private payouts. `legacy` portals (Moderato Zone A, Sept 2026)
+    ///         take no refund recipient: a bounced deposit returns to this contract as surplus, which intake
+    ///         attributes back to the user via `attributeDeposit`.
+    function setZonePortal(address portal, bool allowed, bool legacy) external onlyOwner {
+        if (portal == address(0)) revert ZeroAddress();
+        allowedZonePortal[portal] = allowed;
+        legacyZonePortal[portal] = allowed && legacy;
+        emit ZonePortalSet(portal, allowed, allowed && legacy);
     }
 
     function setEarnSlippage(uint16 bps) external onlyOwner {
@@ -794,6 +868,31 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
         uint256 assets = IEarnVault(ev).redeem(shares, address(this), minAssets == 0 ? 1 : minAssets);
         _credit(token, user, assets);
         emit EarnRedeemed(user, ev, token, shares, assets);
+    }
+
+    function _withdrawToZone(
+        address user,
+        address portal,
+        address token,
+        uint256 amount,
+        uint256 keyIndex,
+        IZonePortal.EncryptedPayload calldata encrypted
+    ) internal {
+        if (!allowedZonePortal[portal]) revert ZonePortalNotAllowed(portal);
+        if (amount == 0) revert ZeroAmount();
+        if (amount > type(uint128).max) revert AmountTooLarge();
+        if (!IZonePortal(portal).areDepositsActive(token)) revert ZoneDepositsInactive();
+        uint256 bal = balances[token][user];
+        if (bal < amount) revert InsufficientBalance();
+        balances[token][user] = bal - amount;
+        accounted[token] -= amount;
+        IERC20(token).forceApprove(portal, amount);
+        if (legacyZonePortal[portal]) {
+            IZonePortalLegacy(portal).depositEncrypted(token, uint128(amount), keyIndex, encrypted);
+        } else {
+            IZonePortal(portal).depositEncrypted(token, uint128(amount), keyIndex, encrypted, user);
+        }
+        emit WithdrawnToZone(token, user, portal, amount);
     }
 
     function _submit(bytes32 jobId, address worker, bytes32 deliverableHash) internal {

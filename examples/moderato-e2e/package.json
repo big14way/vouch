@@ -10,7 +10,8 @@
     "lint": "echo skip",
     "test": "echo skip",
     "start:batched": "tsx batched.ts",
-    "start:service": "tsx service.ts"
+    "start:service": "tsx service.ts",
+    "start:zone": "tsx zone.ts"
   },
   "dependencies": {
     "@vouch/abi": "workspace:*",

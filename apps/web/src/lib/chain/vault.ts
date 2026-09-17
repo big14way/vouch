@@ -114,6 +114,23 @@ export async function refundExpired(chainId: number, jobId: Hex, amount: bigint,
     data: enc("refundExpired", [jobId, amount, scopeHash, salt]) });
 }
 
+export interface EncryptedPayload { ephemeralPubkeyX: Hex; ephemeralPubkeyYParity: number; ciphertext: Hex; nonce: Hex; tag: Hex }
+
+/** F12: relay a signed private payout into a Tempo Zone (the Vault calls the portal's depositEncrypted). */
+export async function withdrawToZoneWithSig(chainId: number, p: { portal: Address; token: Address; amount: bigint; keyIndex: bigint; encrypted: EncryptedPayload; sig: Sig }) {
+  return sendTx({ chainId, role: "relayer", to: vaultAddress(chainId), kind: "withdrawToZoneWithSig",
+    data: enc("withdrawToZoneWithSig", [p.portal, p.token, p.amount, p.keyIndex, p.encrypted, p.sig.signer, p.sig.deadline, p.sig.signature]) });
+}
+
+export async function readZonePortalAllowed(chainId: number, portal: Address): Promise<boolean> {
+  return publicClient(chainId).readContract({ address: vaultAddress(chainId), abi: vaultAbi, functionName: "allowedZonePortal", args: [portal] });
+}
+
+/** F12: legacy portals (Moderato Zone A) take no refund recipient and expect the pre-August encryption scheme. */
+export async function readZonePortalLegacy(chainId: number, portal: Address): Promise<boolean> {
+  return publicClient(chainId).readContract({ address: vaultAddress(chainId), abi: vaultAbi, functionName: "legacyZonePortal", args: [portal] });
+}
+
 export async function withdrawWithSig(chainId: number, token: Address, amount: bigint, to: Address, sig: Sig) {
   return sendTx({ chainId, role: "relayer", to: vaultAddress(chainId), kind: "withdrawWithSig",
     data: enc("withdrawWithSig", [token, amount, to, sig.signer, sig.deadline, sig.signature]) });

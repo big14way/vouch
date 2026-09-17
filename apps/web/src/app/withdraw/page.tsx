@@ -13,6 +13,7 @@ import { TxLink } from "@/components/ui/tx-link";
 import { useToast } from "@/components/ui/toast";
 import { me, ClientError } from "@/lib/client/api";
 import { signTypedData } from "@/lib/client/wallet";
+import { ZonePayout } from "@/components/job/zone-payout";
 
 /** S6 Withdraw: balance → any address. Fee sponsored on Tempo. */
 export default function Withdraw() {
@@ -92,6 +93,7 @@ export default function Withdraw() {
           </div>
         ) : null}
       </Card>
+      {row && process.env.NEXT_PUBLIC_ZONES_ENABLED === "1" ? <ZonePayout chainId={row.chainId} token={row.token as Address} symbol={row.symbol} available={row.available} /> : null}
     </Shell>
   );
 }

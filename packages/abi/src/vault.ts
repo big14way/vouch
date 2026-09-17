@@ -189,6 +189,19 @@ export const vaultAbi = [
   },
   {
     "type": "function",
+    "name": "ZONE_WITHDRAW_TYPEHASH",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "acceptOwnership",
     "inputs": [],
     "outputs": [],
@@ -238,6 +251,25 @@ export const vaultAbi = [
     "inputs": [
       {
         "name": "token",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "allowedZonePortal",
+    "inputs": [
+      {
+        "name": "portal",
         "type": "address",
         "internalType": "address"
       }
@@ -989,6 +1021,25 @@ export const vaultAbi = [
   },
   {
     "type": "function",
+    "name": "legacyZonePortal",
+    "inputs": [
+      {
+        "name": "portal",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "locked",
     "inputs": [
       {
@@ -1372,6 +1423,29 @@ export const vaultAbi = [
   },
   {
     "type": "function",
+    "name": "setZonePortal",
+    "inputs": [
+      {
+        "name": "portal",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "allowed",
+        "type": "bool",
+        "internalType": "bool"
+      },
+      {
+        "name": "legacy",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "settle",
     "inputs": [
       {
@@ -1573,6 +1647,141 @@ export const vaultAbi = [
         "name": "to",
         "type": "address",
         "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "withdrawToZone",
+    "inputs": [
+      {
+        "name": "portal",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "keyIndex",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "encrypted",
+        "type": "tuple",
+        "internalType": "struct IZonePortal.EncryptedPayload",
+        "components": [
+          {
+            "name": "ephemeralPubkeyX",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "ephemeralPubkeyYParity",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "ciphertext",
+            "type": "bytes",
+            "internalType": "bytes"
+          },
+          {
+            "name": "nonce",
+            "type": "bytes12",
+            "internalType": "bytes12"
+          },
+          {
+            "name": "tag",
+            "type": "bytes16",
+            "internalType": "bytes16"
+          }
+        ]
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "withdrawToZoneWithSig",
+    "inputs": [
+      {
+        "name": "portal",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "keyIndex",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "encrypted",
+        "type": "tuple",
+        "internalType": "struct IZonePortal.EncryptedPayload",
+        "components": [
+          {
+            "name": "ephemeralPubkeyX",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "ephemeralPubkeyYParity",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "ciphertext",
+            "type": "bytes",
+            "internalType": "bytes"
+          },
+          {
+            "name": "nonce",
+            "type": "bytes12",
+            "internalType": "bytes12"
+          },
+          {
+            "name": "tag",
+            "type": "bytes16",
+            "internalType": "bytes16"
+          }
+        ]
+      },
+      {
+        "name": "signer",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "deadline",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "sig",
+        "type": "bytes",
+        "internalType": "bytes"
       }
     ],
     "outputs": [],
@@ -2321,8 +2530,69 @@ export const vaultAbi = [
     "anonymous": false
   },
   {
+    "type": "event",
+    "name": "WithdrawnToZone",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "portal",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ZonePortalSet",
+    "inputs": [
+      {
+        "name": "portal",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "allowed",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      },
+      {
+        "name": "legacy",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      }
+    ],
+    "anonymous": false
+  },
+  {
     "type": "error",
     "name": "AmountAboveCap",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "AmountTooLarge",
     "inputs": []
   },
   {
@@ -2625,5 +2895,21 @@ export const vaultAbi = [
     "type": "error",
     "name": "ZeroHash",
     "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ZoneDepositsInactive",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ZonePortalNotAllowed",
+    "inputs": [
+      {
+        "name": "portal",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
   }
 ] as const;

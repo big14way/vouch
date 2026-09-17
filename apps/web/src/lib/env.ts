@@ -58,6 +58,8 @@ const ServerEnvSchema = z.object({
   CRON_SECRET: z.string().min(16).optional(),
   SENTRY_DSN: z.string().optional(),
   ARBITER_ALLOWLIST: z.string().default(""), // comma-separated emails / addresses allowed into S7
+  /** F12: private payouts into Tempo Zones (testnet-only). Portal per chain: ZONE_PORTAL_<chainId>. */
+  ZONES_ENABLED: z.string().default("0"),
   RELAYER_MIN_BALANCE: z.string().default("5000000"), // 5 pathUSD / 0.005 ETH-equivalent alert threshold
 });
 

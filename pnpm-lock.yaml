@@ -215,6 +215,9 @@ importers:
 
   packages/shared:
     dependencies:
+      ox:
+        specifier: 0.14.44
+        version: 0.14.44(typescript@5.9.3)(zod@4.6.5)
       viem:
         specifier: ^2.56.5
         version: 2.56.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.6.5)

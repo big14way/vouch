@@ -1,0 +1,25 @@
+
+> @vouch/example-moderato-e2e@0.1.0 start:zone /Users/gwill/Developer/vouch/examples/moderato-e2e
+> tsx zone.ts
+
+Vault 0xaD15409d1B7EFA36a9898107fa9757E58a36442D · worker 0x121636cC839Adaf71FCc3f8BE670874747975a10 · Zone A portal 0x7069DeC4E64Fd07334A0933eDe836C17259c9B23 (zone chain 4217000006)
+   ✓ portal allow-listed on the Vault
+   portal info: (getPortalInfo unavailable on this portal version)
+✔ approve(vault)                           https://explore.moderato.tempo.xyz/tx/0x686ceba05f8ed95ce9c9a1ea0fd398e81ad7644d26f63fdd3e02ca799a7e5771  gas 32942
+✔ deposit → available balance              https://explore.moderato.tempo.xyz/tx/0xe411978e1ed16ee6d9470c44dcd0a23f45a2e47656ff565f161cfb7825090f8a  gas 70952
+   encrypted recipient prepared (legacy scheme): keyIndex 0, ciphertext 64 bytes, payload hash 0x6c448cc6afae7f83…
+   ✓ zone RPC refuses unauthenticated reads (HTTP 401)
+   zone chain id (authenticated): 4217000006
+   worker's private Zone A balance before: 3000000
+✔ withdrawToZone → portal.depositEncrypted (legacy shape) https://explore.moderato.tempo.xyz/tx/0x23f60cc6ea2c66df798231a852d8c446d6ec8aaf1ec5fbe6a67f3563e9c40646  gas 103975
+   ✓ portal emitted 1 log(s)
+   EncryptedDepositMade decoded with the legacy portal event shape (topic 0x98f4c0a3)
+   ✓ public sender is the Vault, not the worker
+   ℹ legacy portal: a bounced deposit returns to the Vault as surplus and intake attributes it back to the worker
+   ✓ amount 2000000 = net 2000000 + portal fee 0 (quoted 0)
+   ✓ recipient + memo travel encrypted
+   ✓ portal holds the 2000000 (was 32743419229161, now 32743421229161)
+   ✓ vault balance is zero afterwards
+   ✓ worker's private Zone A balance rose by 2000000 to 5000000 (net of portal fee)
+
+ALL CHECKS PASSED

@@ -54,9 +54,9 @@ npx mppx https://vouch.dev/api/v1/jobs/<jobId>/fund -X POST     # 402 → pays t
 | Chain | Vault | VerifierRegistry |
 |---|---|---|
 | Tempo 4217 | _pending deploy_ | _pending deploy_ |
-| Tempo Moderato 42431 | [`0x207aAB47e290C0cC23bE7A2415fF52Cce8D72FA5`](https://explore.moderato.tempo.xyz/address/0x207aAB47e290C0cC23bE7A2415fF52Cce8D72FA5) (v2 with Earn, Sept 17; [deploy tx](https://explore.moderato.tempo.xyz/tx/0x2554c551cb117a99a08144de6605547e71096ec1651ad7ef7113432ffadcc3ac)) | [`0xEFe712ba09BA206Ef56E18B2510fF68745c66820`](https://explore.moderato.tempo.xyz/address/0xEFe712ba09BA206Ef56E18B2510fF68745c66820) |
+| Tempo Moderato 42431 | [`0xaD15409d1B7EFA36a9898107fa9757E58a36442D`](https://explore.moderato.tempo.xyz/address/0xaD15409d1B7EFA36a9898107fa9757E58a36442D) (v4 with Earn + Zone payout, Sept 17; [deploy tx](https://explore.moderato.tempo.xyz/tx/0x7d1cb6a07b8c1161be42396363a66e227a4ce681a96e647bcaba09d9c269b5d5)) | [`0xBA8C173dB605414ea8b7bB5dbC57BA9724c70b9C`](https://explore.moderato.tempo.xyz/address/0xBA8C173dB605414ea8b7bB5dbC57BA9724c70b9C) |
 | Base 8453 | _pending deploy_ | _pending deploy_ |
-| Base Sepolia 84532 | [`0x932330E6Cc8f9Bb22DB93f46B39cd1be6b58923B`](https://sepolia.basescan.org/address/0x932330E6Cc8f9Bb22DB93f46B39cd1be6b58923B) (v2 with Earn, Sept 17; [Sourcify match](https://repo.sourcify.dev/84532/0x932330E6Cc8f9Bb22DB93f46B39cd1be6b58923B)) | [`0xbFF6Da495F730b8439f0d9550e0C29C046d9F6a6`](https://sepolia.basescan.org/address/0xbFF6Da495F730b8439f0d9550e0C29C046d9F6a6) ([Sourcify match](https://repo.sourcify.dev/84532/0xbFF6Da495F730b8439f0d9550e0C29C046d9F6a6)) |
+| Base Sepolia 84532 | [`0x9fA83aa77f155D3CC55Ca5034617313634a48fAd`](https://sepolia.basescan.org/address/0x9fA83aa77f155D3CC55Ca5034617313634a48fAd) (v4, Sept 17; [Sourcify match](https://repo.sourcify.dev/84532/0x9fA83aa77f155D3CC55Ca5034617313634a48fAd)) | [`0xCD4f2A717F5cC11607d9d0C2F0501B4Caf040Bca`](https://sepolia.basescan.org/address/0xCD4f2A717F5cC11607d9d0C2F0501B4Caf040Bca) ([Sourcify match](https://repo.sourcify.dev/84532/0xCD4f2A717F5cC11607d9d0C2F0501B4Caf040Bca)) |
 
 Addresses are committed to `packages/abi/addresses.json` the day they are deployed, with explorer links and the deploy tx.
 
@@ -64,7 +64,7 @@ Addresses are committed to `packages/abi/addresses.json` the day they are deploy
 
 **Live on Moderato, Sept 15:** [`docs/e2e-moderato-2026-09-15.txt`](docs/e2e-moderato-2026-09-15.txt) is a full run of `examples/moderato-e2e` against the deployed contracts, 15 transactions with explorer links: wallet-path job (approve → deposit → createJob → fund → submit → attest PASS → autoSettle → withdraw of real pathUSD) and memo-path job (`transferWithMemo` into the vault → intake attribution → job created and funded on the payer's behalf → open worker submits → NEEDS_REVIEW → payer-signed, relayer-sent `settleWithSig`). Tempo deploy notes (gas per byte, 30M cap, `--network tempo` fork caveat) are in [contracts/README.md](contracts/README.md).
 
-`Vault` v2 (Sept 17) adds Earn while locked; v1 addresses from Sept 15 are kept in `contracts/deployments/*.json` for the earlier evidence logs.
+`Vault` v4 (Sept 17) adds Earn while locked (F11) and private payouts into Tempo Zones (F12); the earlier addresses (v1 Sept 15, v2/v3 Sept 17) stay in `contracts/deployments/*.json` for the earlier evidence logs.
 
 `Vault`: pooled multi-token ledger (`balances`, `locked`, `accounted`), jobs carry a commitment `keccak256(abi.encode(jobId, payer, worker, token, amount, scopeHash, salt))`, verifier is attest-only, settlement policy enforced on-chain (`autoSettle` reverts unless every predicate holds), disputes + arbiter split, `refundExpired`, `resubmit` (≤ 2), EIP-3009 deposits, surplus attribution for MPP/x402/memo payments, EIP-712 `*WithSig` relays, pause that never traps funds. See [contracts/README.md](contracts/README.md).
 
@@ -75,7 +75,8 @@ Addresses are committed to `packages/abi/addresses.json` the day they are deploy
 - **MPP charge**: `POST /fund` is `tempo/charge`-gated with `memo = jobId`; handler runs only after payment is verified, reads the transfer from the receipt, attributes, funds. One round-trip.
 - **Earn while locked (F11)**: a payer can have the locked principal sit in a Tempo Earn vault while the work happens. The Vault deposits at `fund`, recalls exactly the principal with `withdrawExact` at settle/refund/resolve, and credits the leftover shares (the yield) to the payer; a venue shortfall is charged to the payer's balance before the worker is short. Proven live on Moderato, Sept 17 ([log](docs/e2e-earn-moderato-2026-09-17.txt)): principal into the venue, exact recall, yield shares to the payer, and the same flow funded by an MPP charge through the API. Honest note: both Tempo testnet pathUSD Earn vaults currently revert deposits with a stale-price error, and the Vault handles that by funding without Earn (`JobEarnSkipped`); the live proof therefore uses a clearly labelled demo venue (`MockEarnVault`) with simulated yield. Mainnet vaults are allow-listed by Tempo; the ask is in the spec.
 - **Discovery**: MPP discovery document at [`/openapi.json`](apps/web/src/lib/openapi.ts) (`x-payment-info.offers[]` on the fund route, `x-service-info`, `llms.txt`), validated in CI with mppx's validator. Listing on MPPScan and the mpp.dev directory is prepared in [docs/mpp-listing.md](docs/mpp-listing.md) and waits only on the public deploy.
-- Stretch: virtual address per job; Private Zone payouts.
+- **Private payout via Tempo Zone (F12, testnet-only)**: a worker (or any user) moves an Available balance straight into Tempo Zone A with `withdrawToZone`. The recipient and the job memo are encrypted in the browser to the zone sequencer and the Vault calls the Zone Portal, so the public chain shows only Vault → Portal and the amount; the credit is visible only to the recipient's signed zone session. Proven live on Moderato, Sept 17 ([log](docs/e2e-zone-moderato-2026-09-17.txt)): encrypted deposit from the Vault, portal event with the Vault as sender, private Zone A balance up by the full amount within seconds. Honest notes: Zones are testnet-only, and the Zone A portal is an older build (4-argument `depositEncrypted`, pre-August encryption scheme, refunds return to the Vault as surplus that intake attributes back). The Vault marks such portals with `legacyZonePortal` and the client builds the matching payload; a payload built for the wrong generation is accepted on-chain but never credited, which cost one $2 test deposit before the scheme was pinned down.
+- Stretch: virtual address per job; zone-funded jobs (Vault as withdrawal receiver).
 
 ## Base integration
 `POST /fund` speaks x402 (and the native evm/charge wire format): USDC EIP-3009 authorisation settled by the facilitator into the vault. Humans sign `ReceiveWithAuthorization` with a Privy embedded wallet; Vouch relays `depositWithAuthorization`. No ETH anywhere on the payer side.
@@ -98,7 +99,7 @@ Claude Sonnet 4.6, temperature 0, forced tool-use JSON, 60 s budget, ≤ 2 MB pe
 All 7 injection samples flagged (10/10 flag decisions correct), confidence capped at ≤ 0.5 on every flagged one; 6/7 confidence caps met (the unverifiable-claims sample needs the model). The 3 wrong PASSes (unrelated content, partial delivery, unverifiable claims) are judgment calls the rules cannot make; they are the model's job and are re-run with `--model` before submission together with 20 real deliverables. No number is published here until it has been run.
 
 ## Privacy, stated honestly
-Payer and worker addresses are in the job struct. Hidden on-chain: per-job amounts (commitment, until the amount appears in settlement calldata) and deposit → job linkage (deposits credit a balance; jobs draw from balance; payouts come from the vault). The web app gives every user a fresh embedded wallet so addresses carry no identity. Private Zone payouts on Tempo are the stretch goal.
+Payer and worker addresses are in the job struct. Hidden on-chain: per-job amounts (commitment, until the amount appears in settlement calldata) and deposit → job linkage (deposits credit a balance; jobs draw from balance; payouts come from the vault). The web app gives every user a fresh embedded wallet so addresses carry no identity. On Tempo testnet a payout can leave the Vault straight into Zone A with the recipient encrypted (F12), so the public ledger never shows who was paid.
 
 ## Run locally
 See [docs/deploy.md](docs/deploy.md). In short: `pnpm install`, build `packages/abi` and `packages/shared`, fill `apps/web/.env`, `pnpm db:migrate`, `pnpm dev`. Contracts: `cd contracts && forge test`.
@@ -118,7 +119,7 @@ See [docs/deploy.md](docs/deploy.md). In short: `pnpm install`, build `packages/
 | F9 | Unlinkable settlements | pooled vault + commitments; documented above |
 | F10 | Observability | health, TxLog, verifier audit, Sentry, funnel |
 | F11 | Earn while locked + idle-balance Earn | contracts done (17 tests, invariants with yield/loss), API + MCP + picker done, live on Moderato with a demo venue; real venue pending Tempo allow-list |
-| F12 | Private payout via Tempo Zone | next; testnet-only |
+| F12 | Private payout via Tempo Zone | contracts done (7 tests: legacy + current portal shapes, WithSig binds the payload), API route + withdraw-page card, live on Moderato Zone A with the private balance credited; testnet-only, behind `ZONES_ENABLED` |
 
 Known gaps: job page first load is 209 kB gzipped (106 kB of it Next/React) against a 150 kB target; slither report not yet committed; remaining `[VERIFY]` items in the spec (Privy on 4217, mppx handler context, submission deadline) are re-checked on the day they are used.
 
@@ -127,7 +128,7 @@ Resolved Sept 15 from the Colosseum kickoff call: cross-chain submissions are al
 Launch wedge: judges and the pitch lead with agent services on the MPP directory hired from Claude Code with zero clicks; human beta users come from freelancers sharing a WhatsApp pay link. Tester conversations are logged in `docs/users.md`.
 
 ## Roadmap (out of scope for v1)
-Third-party verifiers, worker bonds, Private Zone payouts, virtual deposit address per job, fiat rails, invoice financing on settlement history.
+Third-party verifiers, worker bonds, zone-funded jobs, virtual deposit address per job, fiat rails, invoice financing on settlement history.
 
 ## License
 MIT
