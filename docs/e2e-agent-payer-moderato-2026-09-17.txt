@@ -1,0 +1,9 @@
+# Unattended agent-to-agent run on Tempo Moderato, 2026-09-17 (examples/claude-code-payer against the local service, no ANTHROPIC_API_KEY so the verifier stage reports failed and the payer is asked to review)
+
+14:30:20 payer  0xeBCfb9c6E03B5338684A0f96187DD15862cB2202 worker 0x121636cC839Adaf71FCc3f8BE670874747975a10 chain 42431
+14:30:24 created 0x0a4a3a20ea89f07ec3f481479086aaae3057d0a7e0f3c4070fe3cef288fb8068 → http://localhost:3000/j/0x0a4a3a20ea89f07ec3f481479086aaae3057d0a7e0f3c4070fe3cef288fb8068
+14:30:37 funded   Funded route mpp fundTx 0x4759e92df6913aad86680e0909a54dc61abefaa158e839d5cf11c5b1881ef0e2 paymentTx 0x123eb1f04101996ffbdea2c7caeb9bff4ddccb63f3187e38b1f601086dba9ff2
+14:30:43 submitted Submitted tx 0x1e1c59d4715d2cfb5f7e443638144e54aa262a6f69f08d152b491ccd350c2fd2 deliverableHash 0x92c7a547d73b2c979e45136a486ecb8299d6d55c9ab8f19606ed08a3082a01f9
+14:30:45 verdict  null confidence null attestation null
+14:30:47 status   Submitted autoSettleAt (not eligible — payer reviews)
+14:30:47 done: $5.00 locked → delivered → null. Awaiting payer approval.

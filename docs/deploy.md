@@ -23,6 +23,24 @@ Fund the server keys: intake/relayer/verifier/feePayer need pathUSD on Tempo (fe
 cd apps/web && pnpm db:deploy       # applies prisma/migrations to DATABASE_URL (Neon)
 ```
 
+## Go-live checklist (what to gather before step 3)
+
+| Item | Where to get it | Used for |
+|---|---|---|
+| Vercel project | vercel.com → New project → import `big14way/vouch`, **Root Directory `apps/web`**, framework Next.js; build command `cd ../.. && pnpm --filter @vouch/abi build && pnpm --filter @vouch/shared build && pnpm --filter @vouch/mcp build && cd apps/web && pnpm build` | hosting, crons (`apps/web/vercel.json`) |
+| `DATABASE_URL` | neon.tech → project → pooled connection string (`?sslmode=require`); then `pnpm db:deploy` once | Postgres |
+| `NEXT_PUBLIC_PRIVY_APP_ID`, `PRIVY_APP_SECRET` | dashboard.privy.io → app → Settings; add the Vercel domain under Allowed origins; enable embedded wallets; add chains 42431 / 84532 (4217 / 8453 for mainnet) | login + embedded wallets |
+| `JOB_SECRETS_KEY`, `MPP_SECRET_KEY`, `CRON_SECRET` | `openssl rand -hex 32` each | job salts, MPP challenge binding, cron auth |
+| Role keys | `RELAYER_PRIVATE_KEY`, `INTAKE_PRIVATE_KEY`, `VERIFIER_PRIVATE_KEY`, `TEMPO_FEEPAYER_PRIVATE_KEY` (+ `_84532` overrides); fund them (pathUSD on Tempo, ETH on Base) | relays, attribution, attestations, sponsorship |
+| `ANTHROPIC_API_KEY` | console.anthropic.com | the verifier (without it every submission reports `failed`) |
+| `NEXT_PUBLIC_APP_URL` | the Vercel domain | pay links, discovery doc, MPP realm |
+| `INDEXER_START_BLOCK_42431` / `_84532` | `contracts/deployments/<chainId>.json` → `block` | first indexer run backfills from deployment |
+| R2 (`R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`) | Cloudflare → R2 → API token | deliverable storage (optional; the memory store is dev-only) |
+| `RESEND_API_KEY`, `EMAIL_FROM` | resend.com | worker/payer emails (optional) |
+| `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN` | sentry.io | error reporting (optional) |
+
+Then: `cd apps/web && vercel link && ../../scripts/vercel-env.sh .env.production && vercel --prod`. The crons start within a minute; check `https://<app>/api/v1/health` (vault reachable, indexer lag, relayer balances). `next build` passes locally as of Sept 17 (job page first load 244 kB, API routes 106 kB).
+
 ## 3. Service (Vercel)
 Set every variable in `.env.example`. Three that are easy to miss: `MPP_SECRET_KEY` (binds MPP challenges; required in production), `INDEXER_START_BLOCK_<chainId>` (the Vault deployment block, so the first indexer run backfills instead of starting at the head), and per-chain role keys (`INTAKE_PRIVATE_KEY_84532` etc.) when the Tempo and Base roles are different wallets. `vercel.json` schedules the indexer and verifier every minute and the timelock every 5 minutes; set `CRON_SECRET` and Vercel sends it as a bearer token.
 
