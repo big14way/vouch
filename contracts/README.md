@@ -29,6 +29,12 @@ None ─createJob─▶ Open ─fund─▶ Funded ─submit─▶ Submitted ─a
 - `attributeDeposit` credits a user only from the *unattributed surplus* (`balanceOf(vault) − accounted`). This is how MPP charges, x402 settlements, and memo'd TIP-20 transfers that land directly in the vault become spendable balance.
 - Fee (≤ 2%) is charged exactly once per job, at settle/autoSettle/resolve, and credited to `feeRecipient`'s balance.
 
+## Earn while locked (Tempo Earn)
+
+`Policy.earnVault` (zero = off) names an owner-allow-listed Tempo Earn vault whose `asset()` is the job token. On `fund` the locked principal is deposited into it (`deposit(assets, this, minEarnShares)`, `minEarnShares` from `previewWithdraw` minus `earnSlippageBps`) and the job's shares are recorded; `deployed[token]` tracks principal held as shares, so the solvency invariant becomes `balanceOf + deployed ≥ Σbalances + locked`. Settle, autoSettle, resolve and refundExpired recall exactly the principal with `withdrawExact`; the shares left over are the yield and go to the payer's Earn position (`userEarnShares`), redeemable with `redeemFromEarn`. If the venue cannot return the full principal the Vault redeems every job share, charges the shortfall to the payer's available balance first, and only then pays the worker less (`JobEarnRecalled(exact=false, shortfall)`). A paused or reverting Earn vault at funding time is skipped (`JobEarnSkipped`), so funding never fails because of Earn. Idle balances can earn too: `depositToEarn` / `redeemFromEarn` and their `WithSig` twins. Vouch takes no cut of yield. Base has no Tempo Earn; the allow-list stays empty there.
+
+Size: the Vault compiles with `via_ir = true, optimizer_runs = 200` (18.9 KB runtime); without via-IR it is 27.7 KB, above EIP-170 on Base. Tests that read `block.timestamp` around `vm.warp` use `vm.getBlockTimestamp()` because via-IR legitimately caches `block.timestamp` within a call.
+
 ## Roles
 
 | Role | Can | Cannot |
@@ -49,8 +55,8 @@ Every party action has a `...WithSig` twin (`submitWithSig`, `resubmitWithSig`, 
 ## Tests
 
 ```
-forge test                # 60 unit · 6 fuzz · 6 invariants
-forge coverage --no-match-coverage "(test|script|mocks)"
+forge test                # 60 unit · 17 Earn · 6 fuzz · 6 invariants (Earn deposits, yield, losses in the random walk)
+forge coverage --ir-minimum --no-match-coverage "(test|script|mocks)"
 forge snapshot
 ```
 

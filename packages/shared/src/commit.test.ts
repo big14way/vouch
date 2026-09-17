@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { computeCommit, hashScope, hashManifest, canonicalJson, jobMemo, stringMemo, type DeliveryManifest } from "./commit.js";
-import { POLICY_PRESETS, policyPermits, resolvePolicy, policyToWire } from "./policy.js";
+import { POLICY_PRESETS, policyPermits, resolvePolicy, policyToWire, policyToStruct } from "./policy.js";
 import { pillFor, Verdict } from "./status.js";
 import { formatAmount, parseAmount, formatDuration } from "./format.js";
 
@@ -68,6 +68,16 @@ describe("policy", () => {
     expect(resolvePolicy({ policyPreset: "trusted" })).toEqual(POLICY_PRESETS.trusted);
     expect(resolvePolicy({ policy: policyToWire(POLICY_PRESETS.autopilot) })).toEqual(POLICY_PRESETS.autopilot);
     expect(() => resolvePolicy({ policyPreset: "custom" })).toThrow();
+  });
+  it("earn while locked is off by default and carried through the wire", () => {
+    const ev = "0x0e30ef43cfb7c4cab5ec690a45a6550588325fb0";
+    expect(POLICY_PRESETS.trusted.earnVault).toBe("0x0000000000000000000000000000000000000000");
+    const p = resolvePolicy({ policyPreset: "trusted", earnVault: ev });
+    expect(p.earnVault).toBe(ev);
+    expect(policyToWire(p).earnVault).toBe(ev);
+    expect(policyToStruct(p).earnVault).toBe(ev);
+    // legacy wire payloads without the field still parse
+    expect(resolvePolicy({ policy: { autoRelease: 0, minConfidenceBps: 0, maxAutoAmount: "0", reviewWindow: 0, submitDeadline: 0 } as never }).earnVault).toBe("0x0000000000000000000000000000000000000000");
   });
 });
 

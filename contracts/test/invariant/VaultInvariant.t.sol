@@ -16,6 +16,7 @@ import {VaultHandler} from "./VaultHandler.sol";
 ///  I6  fee charged exactly once per job                 (Σ fee credits == Σ expected fees)
 ///  I7  attributeDeposit never pushes accounted above real balance (I1 covers it; handler tries)
 ///  I8  every job is in a terminal or reachable state; locked == Σ amounts of live jobs
+///  I9  Earn: balanceOf + deployed ≥ accounted holds across deposits, yield, venue losses and recalls (part of I1)
 contract VaultInvariantTest is Test {
     Vault internal vault;
     VerifierRegistry internal registry;
@@ -43,6 +44,10 @@ contract VaultInvariantTest is Test {
         vm.stopPrank();
 
         handler = new VaultHandler(vault, usd, usd2, arbiter, intake, verifier, feeRecipient);
+        vm.startPrank(owner);
+        vault.setEarnVault(address(handler.earns(0)), true);
+        vault.setEarnVault(address(handler.earns(1)), true);
+        vm.stopPrank();
         targetContract(address(handler));
     }
 
@@ -54,7 +59,7 @@ contract VaultInvariantTest is Test {
     function _checkToken(MockUSDC t) internal view {
         uint256 sumBalances = handler.sumBalances(address(t));
         uint256 lockedT = vault.locked(address(t));
-        assertGe(t.balanceOf(address(vault)), sumBalances + lockedT, "I1: insolvent");
+        assertGe(t.balanceOf(address(vault)) + vault.deployed(address(t)), sumBalances + lockedT, "I1: insolvent");
         assertEq(vault.accounted(address(t)), sumBalances + lockedT, "I2: ledger drift");
         assertEq(lockedT, handler.liveLocked(address(t)), "I8: locked != live jobs");
     }
@@ -71,9 +76,17 @@ contract VaultInvariantTest is Test {
         assertEq(handler.badReveals(), 0, "I5: wrong reveal accepted");
     }
 
+    /// Fee is charged once per job on the assets actually returned: never above amount × fee, and exactly that
+    /// for every job whose Earn principal came back in full.
     function invariant_I6_feeOnce() public view {
-        assertEq(vault.balances(address(usd), feeRecipient), handler.expectedFees(address(usd)), "I6: fee drift usd");
-        assertEq(vault.balances(address(usd2), feeRecipient), handler.expectedFees(address(usd2)), "I6: fee drift usd2");
+        _checkFee(address(usd));
+        _checkFee(address(usd2));
+    }
+
+    function _checkFee(address t) internal view {
+        uint256 actual = vault.balances(t, feeRecipient);
+        assertLe(actual, handler.expectedFees(t), "I6: fee above amount x feeBps");
+        assertGe(actual, handler.expectedFeesExact(t), "I6: fee below the exact-recall floor");
     }
 
     function invariant_callSummary() public view {

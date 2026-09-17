@@ -86,6 +86,8 @@ Everything else in §2.3 stays supported but is not marketed until the two wedge
 | F8 | Public job status page + timeline | Chain events visible ≤ 10 s |
 | F9 | Unlinkable settlements (pooled vault + commitments) | README states exactly what is/isn't hidden |
 | F10 | Observability: Sentry, tx audit log, verifier audit log | Every failure has a human-readable error + retry |
+| F11 | **Earn while locked** (Tempo Earn): payer-chosen per job, principal-protected, yield to payer; plus opt-in Earn on idle Available balances | Funded job's principal sits in an allow-listed Earn vault and comes back exactly at settle/refund/resolve with the yield credited to the payer; Moderato tx links; mainnet once a vault allowlists the Vault |
+| F12 | **Private payout via Tempo Zone** (testnet only, flagged): worker withdraws settled funds straight into Zone A by encrypted deposit; stretch: zone-funded jobs via withdrawal callback | Public chain shows only Vault → ZonePortal + amount; recipient and memo encrypted; Moderato tx links; README states it is testnet-only |
 
 ### 3.2 Stretch (after F1–F10)
 - Tempo Private Zone settlement (payouts inside a zone) — this is the real privacy story if time allows.
@@ -200,7 +202,9 @@ IVerifierRegistry public registry;
 | `withdraw(token, amount)` | anyone | from `balances` |
 | admin | owner (2-of-3 Safe on mainnet if time; else EOA, stated) | `setRegistry, setArbiter, setIntake, setFee(≤200), setToken, pause` |
 
-**Invariants (Foundry invariant suite):** `balanceOf(this) ≥ Σbalances + Σlocked` per token; `attest` changes no balance; `autoSettle` reverts if any predicate fails; amounts revealed only with matching commitment; fee charged once; `attributeDeposit` can never push accounted total above real balance.
+**Earn while locked (F11, decided Sept 17).** `Policy.earnVault` (address, 0 = off) names an owner-allow-listed Tempo Earn vault whose `asset()` is the job token. On `fund`, the Vault deposits the locked principal into the Earn vault (`deposit(assets, this, minEarnShares)` with `minEarnShares` from `previewWithdraw` minus an owner-set slippage) and records the job's Earn shares; `deployed[token]` tracks principal held as shares. On settle/autoSettle/resolve/refund the Vault recalls exactly the principal with `withdrawExact(amount, this, jobShares)`; the shares left over are the yield and are credited to the payer's Earn position (`userEarnShares`), which the payer can redeem to balance at any time. If the venue cannot return the full principal, the Vault redeems every job share and charges the shortfall to the payer's Available balance before the worker is short; the residual risk is the payer's own opt-in, disclosed in the UI like the auto-settle cap. Vouch takes no cut of yield. Idle-balance Earn: `depositToEarn` / `redeemFromEarn` (+ `WithSig` twins) move a user's Available balance into and out of an allow-listed vault; the user holds shares, not a balance, meanwhile. Honest note: the Earn vault's own `Deposited` event reveals the deposited amount in the funding transaction, so a payer who opts in gives up the hidden-amount property for that job. Base has no Tempo Earn; the allow-list stays empty there.
+
+**Invariants (Foundry invariant suite):** `balanceOf(this) + deployed ≥ Σbalances + Σlocked` per token (`balanceOf ≥ …` when no Earn vault is allow-listed); `attest` changes no balance; `autoSettle` reverts if any predicate fails; amounts revealed only with matching commitment; fee charged once; `attributeDeposit` can never push accounted total above real balance.
 
 **Events** (all indexed by `jobId`): `Deposited, Attributed, JobCreated, Funded, Submitted, Attested, Settled, AutoSettled, Disputed, Resolved, Refunded, Resubmitted, Withdrawn`.
 
@@ -215,7 +219,9 @@ IVerifierRegistry public registry;
 - **Transfer memos:** any direct TIP-20 transfer to the vault carries `memo = jobId` (32 bytes). The indexer (TIDX) reads memo → intake calls `attributeDeposit(ref=jobId)`. This lets a payer fund from *any* Tempo wallet with a plain transfer.
 - **MPP Charge (agents):** `POST /v1/jobs/:id/fund` on Tempo is wrapped in `mppx.charge({ amount: job.amount, description })` with `recipient = Vault address`, `currency = job.token`. Handler runs only after payment is verified; it calls `attributeDeposit` then `fund` (server-side reveal of amount/salt). One HTTP round-trip: `402 → pay → 200 {status:"Funded", tx}`. **[VERIFY]** that the mppx server context exposes payer address + tx hash to the handler; if not, read the settlement from TIDX by recipient+amount+time and reconcile.
 - **Virtual addresses (stretch):** one TIP-20 virtual deposit address per job so wallet payers don't need memos.
-- **Private Zones (stretch):** payouts to workers executed inside a zone.
+- **Private Zones (F12, decided Sept 17; testnet-only, behind a flag):** first, private payout — `withdrawToZone(token, amount, zoneId, encryptedPayload)` moves a user's Available balance into Zone A through `ZonePortal.depositEncrypted`, so the public chain shows only Vault → ZonePortal and the amount while the recipient and the job memo are encrypted to the zone sequencer. Second, if there is slack after real testers: zone-funded jobs — the Vault implements `IWithdrawalReceiver.onWithdrawalReceived(senderTag, token, amount, callbackData)` so a verifiable Zone withdrawal with `callbackData = (jobId, payer)` funds a job while the sender appears only as a commitment. Zones cannot host contracts and have no explorer; the README labels the whole feature testnet.
+- **Earn (F11):** see §6.1. Vault discovery and APY for the picker come from the Tempo API `GET /v1/earn/vaults?include=apy,capabilities,access` (no key needed for reads), filtered to `verified`, `access: open`, `redeem` + `exactWithdraw`; the on-chain allow-list is the authority. Mainnet vaults are allow-listed by Tempo; ask Sayid (Tempo GTM) to allowlist the Vault address on a PRIME or Sentora vault.
+- **Scheduled settlement (small):** Tempo transactions carry a validity window, so the relayer can pre-sign `autoSettle` valid only after the review window; the job page then shows "settlement already signed, executable from <time>". The cron still submits it.
 - **Discovery:** publish Vouch as an MPP service in the mpp.dev directory so agents can find it. **Resolved Sept 16:** the process is (1) serve an OpenAPI 3.1 discovery document at `/openapi.json` with `x-payment-info.offers[]` and `x-service-info` (done, validated with `mppx/discovery`), (2) register the live URL on MPPScan (one click), (3) open a PR to `tempoxyz/mpp` adding an entry to `schemas/services.ts` using their service PR template; the directory accepts live services only. Draft PR text and entry: `docs/mpp-listing.md`. Do both the day the Vercel deploy is public.
 
 ### 6.4 Base-specific integration
@@ -318,7 +324,7 @@ State animations (the only ones allowed):
 ### 8.4 Screens
 - **S0 Landing:** "Pay when it's delivered. Get paid when it's verified." Two doors: *For people* (Create a job link) · *For agents* (MCP snippet + `npx mppx` funding example). Live "settled jobs" counter from chain. How-it-works: five steps as an animated horizontal timeline that plays once on scroll.
 - **S1 Login:** Privy email/Google. First login → 2-step onboarding (name, role).
-- **S2 New job:** title; scope (template button: Deliverables / Format / Deadline / Out of scope); amount + token (pathUSD/USDC.e on Tempo, USDC on Base); worker (email/address/agent URL, optional); **PolicyPicker** with presets *Manual*, *Trusted* (PASS ≥ 85%, 3 days, ≤ $200), *Autopilot* (PASS ≥ 90%, 1 day, ≤ $50), *Custom*; payment deadline. Success sheet: copy link, WhatsApp, email, "Send to an agent" (MCP snippet with job id).
+- **S2 New job:** title; scope (template button: Deliverables / Format / Deadline / Out of scope); amount + token (pathUSD/USDC.e on Tempo, USDC on Base); worker (email/address/agent URL, optional); **PolicyPicker** with presets *Manual*, *Trusted* (PASS ≥ 85%, 3 days, ≤ $200), *Autopilot* (PASS ≥ 90%, 1 day, ≤ $50), *Custom*; payment deadline. On Tempo, an **Earn while locked** toggle under the picker: "Your locked money earns ~x% via <venue> while the work happens. Yield is yours. If the venue ever returns less than the principal, the difference comes from your balance." Off by default. Success sheet: copy link, WhatsApp, email, "Send to an agent" (MCP snippet with job id).
 - **S3 Job page `/j/{id}`** (public; the most important screen): scope, amount, five-step timeline, "How you're protected" (3 lines), **Pay** (Privy wallet → batched sponsored tx on Tempo; EIP-3009 on Base) with "Pay from any wallet" fallback (address + memo/QR). After funding: deliverable viewer, VerdictCard (pill, confidence bar, scope checklist with evidence, summary, full report link), countdown ring, **Approve & pay** / **Dispute**.
 - **S4 Dashboard:** vault balance (Available / Locked per token), jobs list, FAB.
 - **S5 Job detail (worker):** submit form (FileDrop + links + note, shows sha256 per file), verdict, resubmit, dispute.
@@ -371,6 +377,7 @@ VOUCH_API_URL=  VOUCH_API_KEY=  VOUCH_AGENT_PRIVATE_KEY=  VOUCH_DEFAULT_CHAIN=42
 - Exit: a Claude Code session hires and pays a worker on Tempo mainnet with no human clicks, and ten named people have used a pay link.
 
 **Week 3 (Sept 28–Oct 4) — humans, hardening, usage**
+- F11 Earn while locked: Vault change + tests, curated vault list, picker toggle, job page "Earning" line, Moderato run with the open pathUSD vault; ask Tempo to allowlist the Vault on a mainnet vault. Then F12 private payout on Zone A. (Order fixed Sept 17: Earn first, Zones second, zone-funded jobs only with slack.)
 - Screens S0–S7 with motion system; PolicyPicker; disputes + arbiter; email.
 - Threat model in README; 10 adversarial deliverables in `examples/adversarial`; calibration on 20 real samples; confusion matrix.
 - Real usage continues from week 2 on mainnet: report returning payers, % auto-settled, time-to-settle, disputes. Iterate on what `docs/users.md` says, not on the feature list.
@@ -443,7 +450,9 @@ Fiat rails (v1 spec), verifier marketplace/staking, worker bonds, invoice financ
 | Verifier gamed live | Adversarial suite + demo #4 |
 | "It's just escrow" | Never say it; lead with the agent demo; §2.4 |
 | Dual-track judged by depth (resolved Sept 15) | Base counts only if the integration is deep; we keep x402/EIP-3009 as built and do not chase Base UX. If Base is judged shallow, the submission is a Tempo one and nothing is lost |
-| Feature creep from AI tooling | Scope frozen at F1–F10. Stretch items ship only if a logged tester asked for them (`docs/users.md`) |
+| Feature creep from AI tooling | Scope frozen at F1–F12. Stretch items ship only if a logged tester asked for them (`docs/users.md`) |
+| Earn venue cannot return principal (loss or illiquidity) | Allow-list only `verified` + open + `redeem`/`exactWithdraw` vaults; recall with `withdrawExact`; fallback redeems all and charges the shortfall to the payer's Available balance; feature is opt-in per job and disclosed |
+| Tempo Zones are testnet-only and may break | F12 behind a flag, Moderato only, labelled testnet in README and UI; nothing on mainnet depends on it |
 | Team bandwidth | Order of build is fixed in §3.1; cut S6/S7 polish before cutting F2–F5 |
 
 ---

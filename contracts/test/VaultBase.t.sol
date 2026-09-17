@@ -60,10 +60,14 @@ abstract contract VaultBase is Test {
     // ---------------- helpers ----------------
 
     function manualPolicy() internal pure returns (Vault.Policy memory) {
-        return
-            Vault.Policy({
-                autoRelease: 0, minConfidenceBps: 0, maxAutoAmount: 0, reviewWindow: 0, submitDeadline: 7 days
-            });
+        return Vault.Policy({
+            autoRelease: 0,
+            minConfidenceBps: 0,
+            maxAutoAmount: 0,
+            reviewWindow: 0,
+            submitDeadline: 7 days,
+            earnVault: address(0)
+        });
     }
 
     function trustedPolicy() internal pure returns (Vault.Policy memory) {
@@ -72,7 +76,8 @@ abstract contract VaultBase is Test {
             minConfidenceBps: 8500,
             maxAutoAmount: 200_000_000,
             reviewWindow: 3 days,
-            submitDeadline: 14 days
+            submitDeadline: 14 days,
+            earnVault: address(0)
         });
     }
 
@@ -82,7 +87,8 @@ abstract contract VaultBase is Test {
             minConfidenceBps: 9000,
             maxAutoAmount: 50_000_000,
             reviewWindow: 1 days,
-            submitDeadline: 7 days
+            submitDeadline: 7 days,
+            earnVault: address(0)
         });
     }
 

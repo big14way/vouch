@@ -149,7 +149,7 @@ contract VaultTest is VaultBase {
         vm.expectRevert(Vault.ZeroAmount.selector);
         vault.deposit(address(sink), AMOUNT);
         vm.expectRevert(Vault.ZeroAmount.selector);
-        vault.depositWithAuthorization(address(sink), payer, AMOUNT, 0, block.timestamp + 1, bytes32(0), 0, 0, 0);
+        vault.depositWithAuthorization(address(sink), payer, AMOUNT, 0, vm.getBlockTimestamp() + 1, bytes32(0), 0, 0, 0);
         assertEq(vault.accounted(address(sink)), 0);
     }
 
@@ -180,7 +180,7 @@ contract VaultTest is VaultBase {
     function test_withdrawWithSig() public {
         depositAs(payer, AMOUNT);
         address to = makeAddr("to");
-        uint256 deadline = block.timestamp + 1 hours;
+        uint256 deadline = vm.getBlockTimestamp() + 1 hours;
         bytes memory sig = sign(
             payerKey, keccak256(abi.encode(vault.WITHDRAW_TYPEHASH(), address(usd), AMOUNT, to, uint256(0), deadline))
         );
@@ -197,7 +197,7 @@ contract VaultTest is VaultBase {
 
     function test_sig_expiredAndWrongSigner() public {
         depositAs(payer, AMOUNT);
-        uint256 deadline = block.timestamp + 1;
+        uint256 deadline = vm.getBlockTimestamp() + 1;
         bytes32 sh = keccak256(abi.encode(vault.WITHDRAW_TYPEHASH(), address(usd), AMOUNT, payer, uint256(0), deadline));
         bytes memory good = sign(payerKey, sh);
         bytes memory bad = sign(workerKey, sh);
@@ -231,29 +231,31 @@ contract VaultTest is VaultBase {
 
     function test_depositWithAuthorization_creditsFrom() public {
         bytes32 nonce = keccak256("n1");
-        (uint8 v, bytes32 r, bytes32 s) = _authSig(payerKey, payer, AMOUNT, 0, block.timestamp + 1 days, nonce);
+        (uint8 v, bytes32 r, bytes32 s) = _authSig(payerKey, payer, AMOUNT, 0, vm.getBlockTimestamp() + 1 days, nonce);
         vm.prank(stranger); // any relayer
         vm.expectEmit(true, true, false, true);
         emit Vault.Deposited(address(usd), payer, AMOUNT);
-        vault.depositWithAuthorization(address(usd), payer, AMOUNT, 0, block.timestamp + 1 days, nonce, v, r, s);
+        vault.depositWithAuthorization(address(usd), payer, AMOUNT, 0, vm.getBlockTimestamp() + 1 days, nonce, v, r, s);
         assertEq(vault.balances(address(usd), payer), AMOUNT);
         assertEq(vault.accounted(address(usd)), AMOUNT);
     }
 
     function test_depositWithAuthorization_reverts() public {
         bytes32 nonce = keccak256("n1");
-        (uint8 v, bytes32 r, bytes32 s) = _authSig(payerKey, payer, AMOUNT, 0, block.timestamp + 1 days, nonce);
+        (uint8 v, bytes32 r, bytes32 s) = _authSig(payerKey, payer, AMOUNT, 0, vm.getBlockTimestamp() + 1 days, nonce);
         vm.expectRevert(abi.encodeWithSelector(Vault.TokenNotAllowed.selector, address(0xBEEF)));
-        vault.depositWithAuthorization(address(0xBEEF), payer, AMOUNT, 0, block.timestamp + 1 days, nonce, v, r, s);
+        vault.depositWithAuthorization(
+            address(0xBEEF), payer, AMOUNT, 0, vm.getBlockTimestamp() + 1 days, nonce, v, r, s
+        );
         vm.expectRevert(Vault.ZeroAmount.selector);
-        vault.depositWithAuthorization(address(usd), payer, 0, 0, block.timestamp + 1 days, nonce, v, r, s);
+        vault.depositWithAuthorization(address(usd), payer, 0, 0, vm.getBlockTimestamp() + 1 days, nonce, v, r, s);
         // wrong signer for `from`
         vm.expectRevert(MockUSDC.InvalidSignature.selector);
-        vault.depositWithAuthorization(address(usd), worker, AMOUNT, 0, block.timestamp + 1 days, nonce, v, r, s);
+        vault.depositWithAuthorization(address(usd), worker, AMOUNT, 0, vm.getBlockTimestamp() + 1 days, nonce, v, r, s);
         // replay
-        vault.depositWithAuthorization(address(usd), payer, AMOUNT, 0, block.timestamp + 1 days, nonce, v, r, s);
+        vault.depositWithAuthorization(address(usd), payer, AMOUNT, 0, vm.getBlockTimestamp() + 1 days, nonce, v, r, s);
         vm.expectRevert(MockUSDC.AuthUsed.selector);
-        vault.depositWithAuthorization(address(usd), payer, AMOUNT, 0, block.timestamp + 1 days, nonce, v, r, s);
+        vault.depositWithAuthorization(address(usd), payer, AMOUNT, 0, vm.getBlockTimestamp() + 1 days, nonce, v, r, s);
     }
 
     // ------------------------------------------------------------------
@@ -383,7 +385,7 @@ contract VaultTest is VaultBase {
         assertEq(vault.accounted(address(usd)), AMOUNT);
         Vault.Job memory j = vault.getJob(JOB);
         assertEq(uint8(j.status), uint8(Vault.Status.Funded));
-        assertEq(j.fundedAt, uint40(block.timestamp));
+        assertEq(j.fundedAt, uint40(vm.getBlockTimestamp()));
     }
 
     function test_fund_byIntake() public {
@@ -436,7 +438,7 @@ contract VaultTest is VaultBase {
         Vault.Job memory j = vault.getJob(JOB);
         assertEq(uint8(j.status), uint8(Vault.Status.Submitted));
         assertEq(j.deliverableHash, DELIVERABLE);
-        assertEq(j.submittedAt, uint40(block.timestamp));
+        assertEq(j.submittedAt, uint40(vm.getBlockTimestamp()));
     }
 
     function test_submit_openWorker_firstSubmitterAssigned() public {
@@ -461,7 +463,7 @@ contract VaultTest is VaultBase {
         vm.prank(worker);
         vm.expectRevert(Vault.ZeroHash.selector);
         vault.submit(JOB, bytes32(0));
-        vm.warp(block.timestamp + 7 days + 1);
+        vm.warp(vm.getBlockTimestamp() + 7 days + 1);
         vm.prank(worker);
         vm.expectRevert(Vault.DeadlinePassed.selector);
         vault.submit(JOB, DELIVERABLE);
@@ -477,14 +479,14 @@ contract VaultTest is VaultBase {
         Vault.Policy memory p = manualPolicy();
         p.submitDeadline = 0;
         createAndFund(JOB, worker, AMOUNT, p);
-        vm.warp(block.timestamp + 365 days);
+        vm.warp(vm.getBlockTimestamp() + 365 days);
         submitAs(worker, JOB);
         assertEq(uint8(status(JOB)), uint8(Vault.Status.Submitted));
     }
 
     function test_submitWithSig() public {
         createAndFund(JOB, worker, AMOUNT, manualPolicy());
-        uint256 deadline = block.timestamp + 1 hours;
+        uint256 deadline = vm.getBlockTimestamp() + 1 hours;
         bytes memory sig =
             sign(workerKey, keccak256(abi.encode(vault.SUBMIT_TYPEHASH(), JOB, DELIVERABLE, uint256(0), deadline)));
         vm.prank(stranger);
@@ -596,7 +598,7 @@ contract VaultTest is VaultBase {
     function test_settleWithSig_relayed() public {
         createAndFund(JOB, worker, AMOUNT, manualPolicy());
         submitAs(worker, JOB);
-        uint256 deadline = block.timestamp + 1 hours;
+        uint256 deadline = vm.getBlockTimestamp() + 1 hours;
         bytes memory sig = sign(payerKey, keccak256(abi.encode(vault.SETTLE_TYPEHASH(), JOB, uint256(0), deadline)));
         vm.prank(stranger);
         vault.settleWithSig(JOB, AMOUNT, SCOPE, SALT, payer, deadline, sig);
@@ -623,7 +625,7 @@ contract VaultTest is VaultBase {
 
     function test_autoSettle_happyPath() public {
         _attestedAutopilot(Vault.Verdict.Pass, 9300);
-        vm.warp(block.timestamp + 1 days);
+        vm.warp(vm.getBlockTimestamp() + 1 days);
         (bool ok,) = vault.canAutoSettle(JOB, AMOUNT);
         assertTrue(ok);
         vm.prank(stranger);
@@ -636,7 +638,7 @@ contract VaultTest is VaultBase {
 
     function test_autoSettle_revertsBeforeReviewWindow() public {
         _attestedAutopilot(Vault.Verdict.Pass, 9300);
-        vm.warp(block.timestamp + 1 days - 1);
+        vm.warp(vm.getBlockTimestamp() + 1 days - 1);
         (bool ok, bytes4 reason) = vault.canAutoSettle(JOB, AMOUNT);
         assertFalse(ok);
         assertEq(reason, Vault.ReviewWindowOpen.selector);
@@ -648,14 +650,14 @@ contract VaultTest is VaultBase {
         createAndFund(JOB, worker, AMOUNT, manualPolicy());
         submitAs(worker, JOB);
         attestAs(JOB, Vault.Verdict.Pass, 10_000);
-        vm.warp(block.timestamp + 30 days);
+        vm.warp(vm.getBlockTimestamp() + 30 days);
         vm.expectRevert(Vault.AutoReleaseOff.selector);
         vault.autoSettle(JOB, AMOUNT, SCOPE, SALT);
     }
 
     function test_autoSettle_revertsNeedsReviewUnderPolicy1() public {
         _attestedAutopilot(Vault.Verdict.NeedsReview, 9900);
-        vm.warp(block.timestamp + 2 days);
+        vm.warp(vm.getBlockTimestamp() + 2 days);
         vm.expectRevert(Vault.VerdictNotEligible.selector);
         vault.autoSettle(JOB, AMOUNT, SCOPE, SALT);
     }
@@ -666,21 +668,21 @@ contract VaultTest is VaultBase {
         createAndFund(JOB, worker, AMOUNT, p);
         submitAs(worker, JOB);
         attestAs(JOB, Vault.Verdict.NeedsReview, 9500);
-        vm.warp(block.timestamp + 1 days);
+        vm.warp(vm.getBlockTimestamp() + 1 days);
         vault.autoSettle(JOB, AMOUNT, SCOPE, SALT);
         assertEq(uint8(status(JOB)), uint8(Vault.Status.Settled));
     }
 
     function test_autoSettle_revertsOnFail() public {
         _attestedAutopilot(Vault.Verdict.Fail, 9900);
-        vm.warp(block.timestamp + 2 days);
+        vm.warp(vm.getBlockTimestamp() + 2 days);
         vm.expectRevert(Vault.VerdictNotEligible.selector);
         vault.autoSettle(JOB, AMOUNT, SCOPE, SALT);
     }
 
     function test_autoSettle_revertsLowConfidence() public {
         _attestedAutopilot(Vault.Verdict.Pass, 8999);
-        vm.warp(block.timestamp + 2 days);
+        vm.warp(vm.getBlockTimestamp() + 2 days);
         vm.expectRevert(Vault.ConfidenceTooLow.selector);
         vault.autoSettle(JOB, AMOUNT, SCOPE, SALT);
     }
@@ -690,14 +692,14 @@ contract VaultTest is VaultBase {
         createAndFund(JOB, worker, big, autopilotPolicy());
         submitAs(worker, JOB);
         attestAs(JOB, Vault.Verdict.Pass, 9900);
-        vm.warp(block.timestamp + 2 days);
+        vm.warp(vm.getBlockTimestamp() + 2 days);
         vm.expectRevert(Vault.AmountAboveCap.selector);
         vault.autoSettle(JOB, big, SCOPE, SALT);
     }
 
     function test_autoSettle_revertsWrongStatusAndCommit() public {
         _attestedAutopilot(Vault.Verdict.Pass, 9300);
-        vm.warp(block.timestamp + 2 days);
+        vm.warp(vm.getBlockTimestamp() + 2 days);
         vm.expectRevert(Vault.BadCommit.selector);
         vault.autoSettle(JOB, AMOUNT + 1, SCOPE, SALT);
         vm.prank(payer);
@@ -711,7 +713,7 @@ contract VaultTest is VaultBase {
 
     function test_canAutoSettle_reportsPaused() public {
         _attestedAutopilot(Vault.Verdict.Pass, 9300);
-        vm.warp(block.timestamp + 2 days);
+        vm.warp(vm.getBlockTimestamp() + 2 days);
         vm.prank(owner);
         vault.pause();
         (bool ok, bytes4 reason) = vault.canAutoSettle(JOB, AMOUNT);
@@ -754,7 +756,7 @@ contract VaultTest is VaultBase {
     function test_disputeWithSig() public {
         createAndFund(JOB, worker, AMOUNT, manualPolicy());
         submitAs(worker, JOB);
-        uint256 deadline = block.timestamp + 1 hours;
+        uint256 deadline = vm.getBlockTimestamp() + 1 hours;
         bytes32 reason = keccak256("r");
         bytes memory sig =
             sign(workerKey, keccak256(abi.encode(vault.DISPUTE_TYPEHASH(), JOB, reason, uint256(0), deadline)));
@@ -828,7 +830,7 @@ contract VaultTest is VaultBase {
         createAndFund(JOB, worker, AMOUNT, manualPolicy());
         vm.expectRevert(Vault.DeadlineNotPassed.selector);
         vault.refundExpired(JOB, AMOUNT, SCOPE, SALT);
-        vm.warp(block.timestamp + 7 days + 1);
+        vm.warp(vm.getBlockTimestamp() + 7 days + 1);
         vm.prank(stranger);
         vm.expectEmit(true, false, false, true);
         emit Vault.Refunded(JOB);
@@ -842,20 +844,20 @@ contract VaultTest is VaultBase {
         Vault.Policy memory p = manualPolicy();
         p.submitDeadline = 0;
         createAndFund(JOB, worker, AMOUNT, p);
-        vm.warp(block.timestamp + 365 days);
+        vm.warp(vm.getBlockTimestamp() + 365 days);
         vm.expectRevert(Vault.NoDeadline.selector);
         vault.refundExpired(JOB, AMOUNT, SCOPE, SALT);
 
         bytes32 j2 = keccak256("job-2");
         createAndFund(j2, worker, AMOUNT, manualPolicy());
         submitAs(worker, j2);
-        vm.warp(block.timestamp + 30 days);
+        vm.warp(vm.getBlockTimestamp() + 30 days);
         vm.expectRevert(abi.encodeWithSelector(Vault.WrongStatus.selector, Vault.Status.Submitted));
         vault.refundExpired(j2, AMOUNT, SCOPE, SALT);
 
         bytes32 j3 = keccak256("job-3");
         createAndFund(j3, worker, AMOUNT, manualPolicy());
-        vm.warp(block.timestamp + 30 days);
+        vm.warp(vm.getBlockTimestamp() + 30 days);
         vm.expectRevert(Vault.BadCommit.selector);
         vault.refundExpired(j3, AMOUNT + 1, SCOPE, SALT);
     }
@@ -918,7 +920,7 @@ contract VaultTest is VaultBase {
         createAndFund(JOB, worker, AMOUNT, manualPolicy());
         submitAs(worker, JOB);
         attestAs(JOB, Vault.Verdict.Fail, 9000);
-        uint256 deadline = block.timestamp + 1 hours;
+        uint256 deadline = vm.getBlockTimestamp() + 1 hours;
         bytes32 h2 = keccak256("v2");
         bytes memory sig =
             sign(workerKey, keccak256(abi.encode(vault.RESUBMIT_TYPEHASH(), JOB, h2, uint256(0), deadline)));

@@ -17,7 +17,8 @@ contract VaultFuzzTest is VaultBase {
             minConfidenceBps: uint16(bound(minConf, 0, 10_000)),
             maxAutoAmount: cap,
             reviewWindow: review,
-            submitDeadline: deadline
+            submitDeadline: deadline,
+            earnVault: address(0)
         });
     }
 
@@ -68,7 +69,7 @@ contract VaultFuzzTest is VaultBase {
         createAndFund(JOB, worker, amount, p);
         submitAs(worker, JOB);
         attestAs(JOB, verdict, conf);
-        vm.warp(block.timestamp + elapsed);
+        vm.warp(vm.getBlockTimestamp() + elapsed);
 
         bool expected = _expectedAuto(amount, p, verdict, conf, elapsed);
         (bool ok,) = vault.canAutoSettle(JOB, amount);
@@ -144,7 +145,7 @@ contract VaultFuzzTest is VaultBase {
         Vault.Policy memory p = manualPolicy();
         p.submitDeadline = deadline;
         createAndFund(JOB, worker, AMOUNT, p);
-        uint256 fundedAt = block.timestamp;
+        uint256 fundedAt = vm.getBlockTimestamp();
         vm.warp(fundedAt + elapsed);
         vm.prank(worker);
         if (elapsed > deadline) {

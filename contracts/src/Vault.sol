@@ -10,17 +10,28 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IVerifierRegistry} from "./interfaces/IVerifierRegistry.sol";
 import {IERC3009} from "./interfaces/IERC3009.sol";
+import {IEarnVault} from "./interfaces/IEarnVault.sol";
 
 /// @title Vault
 /// @notice Pooled conditional-settlement vault. One primitive: lock → deliver → verify → settle.
 ///
 /// Money model
 /// - Every token has an internal ledger: `balances[token][user]` (available) and `locked[token]` (held in jobs).
-/// - `accounted[token] == Σ balances + locked`. Invariant: `token.balanceOf(this) >= accounted[token]`.
-/// - Tokens only leave the vault through `withdraw`. `attest` never moves money.
+/// - `accounted[token] == Σ balances + locked`. `deployed[token]` is locked principal currently held as Tempo
+///   Earn shares instead of tokens. Invariant: `token.balanceOf(this) + deployed[token] >= accounted[token]`.
+/// - Tokens only leave the vault through `withdraw` or into an allow-listed Earn vault. `attest` never moves money.
 /// - Per-job amounts are never stored or emitted; jobs carry a commitment
 ///   `keccak256(abi.encode(jobId, payer, worker, token, amount, scopeHash, salt))` and the amount is
 ///   revealed in calldata only by the party that settles/refunds/resolves the job.
+///
+/// Earn while locked (Tempo Earn)
+/// - `Policy.earnVault` (0 = off) names an allow-listed Earn vault. On `fund` the locked principal is deposited
+///   there and the job's Earn shares are recorded. On settle/autoSettle/resolve/refund the Vault recalls exactly
+///   the principal with `withdrawExact`; the shares left over are the yield and go to the payer's Earn position.
+///   If the venue cannot return the full principal, every job share is redeemed and the shortfall is charged to
+///   the payer's available balance before the worker is short. Opt-in per job; the payer carries that risk.
+/// - Idle-balance Earn: `depositToEarn` / `redeemFromEarn` move a user's available balance into / out of an
+///   allow-listed vault; meanwhile the user holds shares (`userEarnShares`), not a balance.
 ///
 /// Roles
 /// - `payer` / `worker`: parties to a job. They act directly or via an EIP-712 signature relayed by anyone.
@@ -29,7 +40,8 @@ import {IERC3009} from "./interfaces/IERC3009.sol";
 /// - `intake`: attributes unaccounted deposits (MPP charges, x402 settlements, memo'd TIP-20 transfers)
 ///   and may create/fund jobs on behalf of a payer from that payer's own balance. It can mis-assign
 ///   surplus and mis-lock a payer's balance into that payer's own job; it can never withdraw.
-/// - `owner`: parameters and pause. Withdraw, dispute, resolve and refundExpired keep working while paused.
+/// - `owner`: parameters, Earn allow-list and pause. Withdraw, dispute, resolve, refundExpired and
+///   redeemFromEarn keep working while paused.
 contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
     using SafeERC20 for IERC20;
 
@@ -63,6 +75,7 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
         uint96 maxAutoAmount; // auto-settle only if amount <= this
         uint32 reviewWindow; // seconds after attestation before autoSettle
         uint32 submitDeadline; // seconds after funding for worker to submit; 0 = no deadline
+        address earnVault; // allow-listed Tempo Earn vault holding the locked principal; 0 = off
     }
 
     struct Job {
@@ -80,6 +93,7 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
         uint40 attestedAt;
         bytes32 deliverableHash;
         bytes32 attestationHash;
+        uint256 earnShares; // Earn shares held for this job's principal
         Policy policy;
     }
 
@@ -89,6 +103,7 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
 
     uint16 public constant BPS = 10_000;
     uint16 public constant MAX_FEE_BPS = 200;
+    uint16 public constant MAX_EARN_SLIPPAGE_BPS = 1_000;
     uint8 public constant MAX_RESUBMITS = 2;
 
     bytes32 public constant SUBMIT_TYPEHASH =
@@ -100,6 +115,10 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
         keccak256("Dispute(bytes32 jobId,bytes32 reasonHash,uint256 nonce,uint256 deadline)");
     bytes32 public constant WITHDRAW_TYPEHASH =
         keccak256("Withdraw(address token,uint256 amount,address to,uint256 nonce,uint256 deadline)");
+    bytes32 public constant EARN_DEPOSIT_TYPEHASH =
+        keccak256("EarnDeposit(address earnVault,uint256 amount,uint256 nonce,uint256 deadline)");
+    bytes32 public constant EARN_REDEEM_TYPEHASH =
+        keccak256("EarnRedeem(address earnVault,uint256 shares,uint256 minAssets,uint256 nonce,uint256 deadline)");
 
     // ------------------------------------------------------------------
     // Storage
@@ -109,11 +128,15 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
     mapping(address token => mapping(address user => uint256)) public balances;
     mapping(address token => uint256) public locked;
     mapping(address token => uint256) public accounted; // Σ balances + locked
+    mapping(address token => uint256) public deployed; // locked principal held as Earn shares
     mapping(address token => bool) public allowedToken;
     mapping(bytes32 ref => bool) public attributedRef;
     mapping(address signer => uint256) public nonces;
+    mapping(address earnVault => bool) public allowedEarnVault;
+    mapping(address user => mapping(address earnVault => uint256)) public userEarnShares;
 
     uint16 public feeBps;
+    uint16 public earnSlippageBps = 50;
     address public feeRecipient;
     address public arbiter;
     address public intake;
@@ -146,11 +169,22 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
     event Resubmitted(bytes32 indexed jobId, bytes32 deliverableHash, uint8 resubmits);
     event Withdrawn(address indexed token, address indexed user, address indexed to, uint256 amount);
 
+    event JobEarnDeposited(bytes32 indexed jobId, address indexed earnVault);
+    event JobEarnSkipped(bytes32 indexed jobId, address indexed earnVault);
+    /// @param exact true when `withdrawExact` returned the full principal; false on the redeem-all fallback
+    /// @param shortfall principal not returned by the venue (charged to the payer's balance where possible)
+    event JobEarnRecalled(bytes32 indexed jobId, address indexed earnVault, bool exact, uint256 shortfall);
+    event EarnYieldCredited(bytes32 indexed jobId, address indexed payer, address indexed earnVault, uint256 shares);
+    event EarnDeposited(address indexed user, address indexed earnVault, address token, uint256 amount, uint256 shares);
+    event EarnRedeemed(address indexed user, address indexed earnVault, address token, uint256 shares, uint256 assets);
+
     event RegistrySet(address registry);
     event ArbiterSet(address arbiter);
     event IntakeSet(address intake);
     event FeeSet(uint16 feeBps, address feeRecipient);
     event TokenSet(address indexed token, bool allowed);
+    event EarnVaultSet(address indexed earnVault, bool allowed);
+    event EarnSlippageSet(uint16 bps);
 
     // ------------------------------------------------------------------
     // Errors
@@ -192,6 +226,10 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
     error ZeroHash();
     error SignatureExpired();
     error BadSignature();
+    error EarnVaultNotAllowed(address earnVault);
+    error EarnAssetMismatch();
+    error InsufficientShares();
+    error SlippageTooHigh();
 
     // ------------------------------------------------------------------
     // Constructor
@@ -221,10 +259,11 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
     }
 
     /// @notice Unaccounted tokens sitting in the vault (direct transfers, MPP charges, x402 settlements).
+    ///         Principal deployed to Earn is expected to be absent, so it is excluded from what must be held.
     function surplus(address token) public view returns (uint256) {
         uint256 bal = IERC20(token).balanceOf(address(this));
-        uint256 acc = accounted[token];
-        return bal > acc ? bal - acc : 0;
+        uint256 expected = accounted[token] - deployed[token];
+        return bal > expected ? bal - expected : 0;
     }
 
     function computeCommit(
@@ -323,6 +362,10 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
         if (commit == bytes32(0)) revert ZeroHash();
         if (!allowedToken[token]) revert TokenNotAllowed(token);
         if (policy.autoRelease > 2 || policy.minConfidenceBps > BPS) revert BadPolicy();
+        if (policy.earnVault != address(0)) {
+            if (!allowedEarnVault[policy.earnVault]) revert EarnVaultNotAllowed(policy.earnVault);
+            if (IEarnVault(policy.earnVault).asset() != token) revert EarnAssetMismatch();
+        }
         Job storage job = _jobs[jobId];
         if (job.status != Status.None) revert JobExists(jobId);
 
@@ -337,7 +380,9 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
     }
 
     /// @notice Move `amount` from the payer's available balance into the job. Reveal must match the commitment.
-    function fund(bytes32 jobId, uint256 amount, bytes32 scopeHash, bytes32 salt) external whenNotPaused {
+    ///         When the policy names an Earn vault, the principal is deposited there (best effort: a paused or
+    ///         reverting vault leaves the job funded without Earn).
+    function fund(bytes32 jobId, uint256 amount, bytes32 scopeHash, bytes32 salt) external whenNotPaused nonReentrant {
         Job storage job = _jobs[jobId];
         if (job.status != Status.Open) revert WrongStatus(job.status);
         if (msg.sender != job.payer && msg.sender != intake) revert NotPayerOrIntake();
@@ -349,6 +394,7 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
         job.status = Status.Funded;
         job.fundedAt = uint40(block.timestamp);
         emit Funded(jobId);
+        _deployToEarn(job, jobId, amount);
     }
 
     function submit(bytes32 jobId, bytes32 deliverableHash) external whenNotPaused {
@@ -388,7 +434,11 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
     }
 
     /// @notice Payer approves: pays the worker `amount - fee`.
-    function settle(bytes32 jobId, uint256 amount, bytes32 scopeHash, bytes32 salt) external whenNotPaused {
+    function settle(bytes32 jobId, uint256 amount, bytes32 scopeHash, bytes32 salt)
+        external
+        whenNotPaused
+        nonReentrant
+    {
         _settle(jobId, msg.sender, amount, scopeHash, salt);
     }
 
@@ -400,19 +450,23 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
         address signer,
         uint256 deadline,
         bytes calldata sig
-    ) external whenNotPaused {
+    ) external whenNotPaused nonReentrant {
         _useSig(signer, deadline, sig, keccak256(abi.encode(SETTLE_TYPEHASH, jobId, nonces[signer], deadline)));
         _settle(jobId, signer, amount, scopeHash, salt);
     }
 
     /// @notice Anyone may settle once every predicate of the payer's policy holds.
-    function autoSettle(bytes32 jobId, uint256 amount, bytes32 scopeHash, bytes32 salt) external whenNotPaused {
+    function autoSettle(bytes32 jobId, uint256 amount, bytes32 scopeHash, bytes32 salt)
+        external
+        whenNotPaused
+        nonReentrant
+    {
         Job storage job = _jobs[jobId];
         if (job.status != Status.Attested) revert WrongStatus(job.status);
         _checkCommit(job, jobId, amount, scopeHash, salt);
         (bool ok, bytes4 reason) = _autoPredicates(job, amount);
         if (!ok) _revertWith(reason);
-        _payout(job, amount, BPS);
+        _payout(job, jobId, amount, BPS);
         job.status = Status.Settled;
         emit AutoSettled(jobId, msg.sender);
     }
@@ -431,26 +485,30 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
     }
 
     /// @notice Arbiter splits a disputed job: `workerBps` of (amount - fee) to the worker, the rest back to the payer.
-    function resolve(bytes32 jobId, uint256 amount, bytes32 scopeHash, bytes32 salt, uint16 workerBps) external {
+    function resolve(bytes32 jobId, uint256 amount, bytes32 scopeHash, bytes32 salt, uint16 workerBps)
+        external
+        nonReentrant
+    {
         if (msg.sender != arbiter) revert NotArbiter();
         if (workerBps > BPS) revert BadSplit();
         Job storage job = _jobs[jobId];
         if (job.status != Status.Disputed) revert WrongStatus(job.status);
         _checkCommit(job, jobId, amount, scopeHash, salt);
-        _payout(job, amount, workerBps);
+        _payout(job, jobId, amount, workerBps);
         job.status = Status.Resolved;
         emit Resolved(jobId, workerBps);
     }
 
     /// @notice Funded job whose worker missed the submit deadline: amount returns to the payer's balance.
-    function refundExpired(bytes32 jobId, uint256 amount, bytes32 scopeHash, bytes32 salt) external {
+    function refundExpired(bytes32 jobId, uint256 amount, bytes32 scopeHash, bytes32 salt) external nonReentrant {
         Job storage job = _jobs[jobId];
         if (job.status != Status.Funded) revert WrongStatus(job.status);
         if (job.policy.submitDeadline == 0) revert NoDeadline();
         if (block.timestamp <= uint256(job.fundedAt) + job.policy.submitDeadline) revert DeadlineNotPassed();
         _checkCommit(job, jobId, amount, scopeHash, salt);
+        uint256 available = _recall(job, jobId, amount);
         locked[job.token] -= amount;
-        balances[job.token][job.payer] += amount;
+        balances[job.token][job.payer] += available;
         job.status = Status.Refunded;
         emit Refunded(jobId);
     }
@@ -498,6 +556,53 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
     }
 
     // ------------------------------------------------------------------
+    // Idle-balance Earn
+    // ------------------------------------------------------------------
+
+    /// @notice Move `amount` of available balance into an allow-listed Earn vault; the caller holds the shares.
+    function depositToEarn(address earnVault, uint256 amount) external whenNotPaused nonReentrant {
+        _depositToEarn(msg.sender, earnVault, amount);
+    }
+
+    function depositToEarnWithSig(
+        address earnVault,
+        uint256 amount,
+        address signer,
+        uint256 deadline,
+        bytes calldata sig
+    ) external whenNotPaused nonReentrant {
+        _useSig(
+            signer,
+            deadline,
+            sig,
+            keccak256(abi.encode(EARN_DEPOSIT_TYPEHASH, earnVault, amount, nonces[signer], deadline))
+        );
+        _depositToEarn(signer, earnVault, amount);
+    }
+
+    /// @notice Redeem Earn shares back into available balance. Works while paused.
+    function redeemFromEarn(address earnVault, uint256 shares, uint256 minAssets) external nonReentrant {
+        _redeemFromEarn(msg.sender, earnVault, shares, minAssets);
+    }
+
+    function redeemFromEarnWithSig(
+        address earnVault,
+        uint256 shares,
+        uint256 minAssets,
+        address signer,
+        uint256 deadline,
+        bytes calldata sig
+    ) external nonReentrant {
+        _useSig(
+            signer,
+            deadline,
+            sig,
+            keccak256(abi.encode(EARN_REDEEM_TYPEHASH, earnVault, shares, minAssets, nonces[signer], deadline))
+        );
+        _redeemFromEarn(signer, earnVault, shares, minAssets);
+    }
+
+    // ------------------------------------------------------------------
     // Admin
     // ------------------------------------------------------------------
 
@@ -529,6 +634,20 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
         if (token == address(0)) revert ZeroAddress();
         allowedToken[token] = allowed;
         emit TokenSet(token, allowed);
+    }
+
+    /// @notice Allow-list an Earn vault. Its asset must be an allowed token.
+    function setEarnVault(address earnVault, bool allowed) external onlyOwner {
+        if (earnVault == address(0)) revert ZeroAddress();
+        if (allowed && !allowedToken[IEarnVault(earnVault).asset()]) revert EarnAssetMismatch();
+        allowedEarnVault[earnVault] = allowed;
+        emit EarnVaultSet(earnVault, allowed);
+    }
+
+    function setEarnSlippage(uint16 bps) external onlyOwner {
+        if (bps > MAX_EARN_SLIPPAGE_BPS) revert SlippageTooHigh();
+        earnSlippageBps = bps;
+        emit EarnSlippageSet(bps);
     }
 
     function pause() external onlyOwner {
@@ -576,17 +695,105 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
         }
     }
 
-    /// @dev Release `amount` from lock; fee once; split (amount - fee) by workerBps.
-    function _payout(Job storage job, uint256 amount, uint16 workerBps) internal {
+    /// @dev Recall principal from Earn (if any), release `amount` from lock; fee once; split by workerBps.
+    function _payout(Job storage job, bytes32 jobId, uint256 amount, uint16 workerBps) internal {
+        uint256 available = _recall(job, jobId, amount);
         address token = job.token;
         locked[token] -= amount;
-        uint256 fee = feeRecipient == address(0) ? 0 : (amount * feeBps) / BPS;
-        uint256 net = amount - fee;
+        uint256 fee = feeRecipient == address(0) ? 0 : (available * feeBps) / BPS;
+        uint256 net = available - fee;
         uint256 toWorker = (net * workerBps) / BPS;
         uint256 toPayer = net - toWorker;
         if (fee != 0) balances[token][feeRecipient] += fee;
         if (toWorker != 0) balances[token][job.worker] += toWorker;
         if (toPayer != 0) balances[token][job.payer] += toPayer;
+    }
+
+    /// @dev Best-effort deposit of a job's principal into its Earn vault.
+    function _deployToEarn(Job storage job, bytes32 jobId, uint256 amount) internal {
+        address ev = job.policy.earnVault;
+        if (ev == address(0)) return;
+        address token = job.token;
+        uint256 minShares = (IEarnVault(ev).previewWithdraw(amount) * (BPS - earnSlippageBps)) / BPS;
+        if (minShares == 0) minShares = 1;
+        IERC20(token).forceApprove(ev, amount);
+        try IEarnVault(ev).deposit(amount, address(this), minShares) returns (uint256 shares) {
+            job.earnShares = shares;
+            deployed[token] += amount;
+            emit JobEarnDeposited(jobId, ev);
+        } catch {
+            IERC20(token).forceApprove(ev, 0);
+            emit JobEarnSkipped(jobId, ev);
+        }
+    }
+
+    /// @dev Bring a job's principal back from Earn. Returns the assets actually available for the payout:
+    ///      `amount` normally; less only when the venue returned less and the payer's balance could not cover it.
+    function _recall(Job storage job, bytes32 jobId, uint256 amount) internal returns (uint256 available) {
+        uint256 shares = job.earnShares;
+        if (shares == 0) return amount;
+        address ev = job.policy.earnVault;
+        address token = job.token;
+        job.earnShares = 0;
+        deployed[token] -= amount;
+
+        if (IEarnVault(ev).previewWithdraw(amount) <= shares) {
+            try IEarnVault(ev).withdrawExact(amount, address(this), shares) returns (uint256 burned) {
+                uint256 yieldShares = shares - burned;
+                if (yieldShares != 0) {
+                    userEarnShares[job.payer][ev] += yieldShares;
+                    emit EarnYieldCredited(jobId, job.payer, ev, yieldShares);
+                }
+                emit JobEarnRecalled(jobId, ev, true, 0);
+                return amount;
+            } catch {}
+        }
+
+        // Fallback: redeem everything; the ledger absorbs the difference against the promised principal.
+        uint256 got = IEarnVault(ev).redeem(shares, address(this), 1);
+        if (got >= amount) {
+            uint256 extra = got - amount;
+            if (extra != 0) {
+                balances[token][job.payer] += extra;
+                accounted[token] += extra;
+            }
+            emit JobEarnRecalled(jobId, ev, false, 0);
+            return amount;
+        }
+        uint256 shortfall = amount - got;
+        uint256 payerBal = balances[token][job.payer];
+        uint256 cover = payerBal < shortfall ? payerBal : shortfall;
+        balances[token][job.payer] = payerBal - cover;
+        accounted[token] -= shortfall;
+        emit JobEarnRecalled(jobId, ev, false, shortfall);
+        return got + cover;
+    }
+
+    function _depositToEarn(address user, address ev, uint256 amount) internal {
+        if (!allowedEarnVault[ev]) revert EarnVaultNotAllowed(ev);
+        if (amount == 0) revert ZeroAmount();
+        address token = IEarnVault(ev).asset();
+        uint256 bal = balances[token][user];
+        if (bal < amount) revert InsufficientBalance();
+        balances[token][user] = bal - amount;
+        accounted[token] -= amount;
+        uint256 minShares = (IEarnVault(ev).previewWithdraw(amount) * (BPS - earnSlippageBps)) / BPS;
+        if (minShares == 0) minShares = 1;
+        IERC20(token).forceApprove(ev, amount);
+        uint256 shares = IEarnVault(ev).deposit(amount, address(this), minShares);
+        userEarnShares[user][ev] += shares;
+        emit EarnDeposited(user, ev, token, amount, shares);
+    }
+
+    function _redeemFromEarn(address user, address ev, uint256 shares, uint256 minAssets) internal {
+        if (shares == 0) revert ZeroAmount();
+        uint256 have = userEarnShares[user][ev];
+        if (have < shares) revert InsufficientShares();
+        userEarnShares[user][ev] = have - shares;
+        address token = IEarnVault(ev).asset();
+        uint256 assets = IEarnVault(ev).redeem(shares, address(this), minAssets == 0 ? 1 : minAssets);
+        _credit(token, user, assets);
+        emit EarnRedeemed(user, ev, token, shares, assets);
     }
 
     function _submit(bytes32 jobId, address worker, bytes32 deliverableHash) internal {
@@ -612,7 +819,7 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
         if (payer != job.payer) revert NotPayer();
         if (job.status != Status.Submitted && job.status != Status.Attested) revert WrongStatus(job.status);
         _checkCommit(job, jobId, amount, scopeHash, salt);
-        _payout(job, amount, BPS);
+        _payout(job, jobId, amount, BPS);
         job.status = Status.Settled;
         emit Settled(jobId);
     }

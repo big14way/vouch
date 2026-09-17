@@ -4,11 +4,14 @@ pragma solidity 0.8.26;
 import {Test, console2} from "forge-std/Test.sol";
 import {Vault} from "../../src/Vault.sol";
 import {MockUSDC} from "../mocks/MockUSDC.sol";
+import {MockEarnVault} from "../mocks/MockEarnVault.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @dev Bounded random actor driving the Vault through every public path with ghost accounting.
 contract VaultHandler is Test {
     Vault public vault;
     MockUSDC[2] public tokens;
+    MockEarnVault[2] public earns;
     address public arbiter;
     address public intake;
     address public verifier;
@@ -28,8 +31,13 @@ contract VaultHandler is Test {
     }
 
     mapping(bytes32 => Ghost) public ghost;
+    /// Fee bounds per token: `expectedFees` assumes every job returned its full principal (upper bound);
+    /// `expectedFeesExact` only sums jobs whose principal was fully returned (lower bound).
     mapping(address token => uint256) public expectedFees;
+    mapping(address token => uint256) public expectedFeesExact;
     uint256 public attestBalanceDrift;
+    /// Σ over jobs that were recalled with a venue shortfall: principal the ledger wrote off (see I2 adjustment).
+    uint256 public writtenOff;
     uint256 public badAutoSettles;
     uint256 public badReveals;
     mapping(bytes32 => uint256) public calls;
@@ -52,6 +60,9 @@ contract VaultHandler is Test {
         intake = intake_;
         verifier = verifier_;
         feeRecipient = feeRecipient_;
+        for (uint256 t; t < 2; ++t) {
+            earns[t] = new MockEarnVault(IERC20(address(tokens[t])));
+        }
         for (uint256 i; i < 6; ++i) {
             address a = makeAddr(string(abi.encodePacked("actor", i)));
             actors.push(a);
@@ -95,6 +106,10 @@ contract VaultHandler is Test {
         console2.log("refundExpired", calls["refundExpired"]);
         console2.log("resubmit", calls["resubmit"]);
         console2.log("withdraw", calls["withdraw"]);
+        console2.log("earnDeposit", calls["earnDeposit"]);
+        console2.log("earnRedeem", calls["earnRedeem"]);
+        console2.log("accrue", calls["accrue"]);
+        console2.log("slash", calls["slash"]);
     }
 
     // ---------------- helpers ----------------
@@ -114,6 +129,16 @@ contract VaultHandler is Test {
 
     function _fee(uint256 amount) internal view returns (uint256) {
         return (amount * vault.feeBps()) / 10_000;
+    }
+
+    /// Record the fee bounds for a job about to be paid out.
+    function _noteFee(bytes32 jobId) internal {
+        Ghost storage g = ghost[jobId];
+        uint256 fee = _fee(g.amount);
+        expectedFees[g.token] += fee;
+        Vault.Job memory j = vault.getJob(jobId);
+        bool full = j.earnShares == 0 || MockEarnVault(j.policy.earnVault).previewRedeem(j.earnShares) >= g.amount;
+        if (full) expectedFeesExact[g.token] += fee;
     }
 
     // ---------------- actions ----------------
@@ -161,6 +186,8 @@ contract VaultHandler is Test {
         policy.minConfidenceBps = uint16(bound(policy.minConfidenceBps, 0, 10_000));
         policy.reviewWindow = uint32(bound(policy.reviewWindow, 0, 7 days));
         policy.submitDeadline = uint32(bound(policy.submitDeadline, 0, 30 days));
+        // ~half the jobs earn while locked
+        policy.earnVault = (uint160(policy.earnVault) % 2 == 0) ? address(earns[tokenSeed % 2]) : address(0);
 
         bytes32 jobId = keccak256(abi.encode("job", nonce++));
         Ghost memory g = Ghost({
@@ -247,10 +274,10 @@ contract VaultHandler is Test {
         try vault.settle(jobId, g.amount + 1, g.scopeHash, g.salt) {
             badReveals++;
         } catch {}
+        _noteFee(jobId);
         vm.prank(g.payer);
         vault.settle(jobId, g.amount, g.scopeHash, g.salt);
         g.live = false;
-        expectedFees[g.token] += _fee(g.amount);
         calls["settle"]++;
     }
 
@@ -260,14 +287,14 @@ contract VaultHandler is Test {
         Vault.Job memory j = vault.getJob(jobId);
         Ghost storage g = ghost[jobId];
         bool predicate = j.status == Vault.Status.Attested && j.policy.autoRelease != 0
-            && block.timestamp >= uint256(j.attestedAt) + j.policy.reviewWindow
+            && vm.getBlockTimestamp() >= uint256(j.attestedAt) + j.policy.reviewWindow
             && (j.verdict == Vault.Verdict.Pass
                 || (j.policy.autoRelease == 2 && j.verdict == Vault.Verdict.NeedsReview))
             && j.confidenceBps >= j.policy.minConfidenceBps && g.amount <= j.policy.maxAutoAmount;
+        if (predicate) _noteFee(jobId);
         try vault.autoSettle(jobId, g.amount, g.scopeHash, g.salt) {
             if (!predicate) badAutoSettles++;
             g.live = false;
-            expectedFees[g.token] += _fee(g.amount);
             calls["autoSettle"]++;
         } catch {
             if (predicate) badAutoSettles++;
@@ -295,10 +322,10 @@ contract VaultHandler is Test {
         try vault.resolve(jobId, g.amount, g.scopeHash, keccak256("wrong"), workerBps) {
             badReveals++;
         } catch {}
+        _noteFee(jobId);
         vm.prank(arbiter);
         vault.resolve(jobId, g.amount, g.scopeHash, g.salt, workerBps);
         g.live = false;
-        expectedFees[g.token] += _fee(g.amount);
         calls["resolve"]++;
     }
 
@@ -307,7 +334,7 @@ contract VaultHandler is Test {
         if (jobId == 0) return;
         Vault.Job memory j = vault.getJob(jobId);
         if (j.status != Vault.Status.Funded || j.policy.submitDeadline == 0) return;
-        if (block.timestamp <= uint256(j.fundedAt) + j.policy.submitDeadline) return;
+        if (vm.getBlockTimestamp() <= uint256(j.fundedAt) + j.policy.submitDeadline) return;
         Ghost storage g = ghost[jobId];
         vault.refundExpired(jobId, g.amount, g.scopeHash, g.salt);
         g.live = false;
@@ -335,7 +362,47 @@ contract VaultHandler is Test {
         calls["withdraw"]++;
     }
 
+    function earnDeposit(uint256 actorSeed, uint256 tokenSeed, uint256 amount) external {
+        address a = _actor(actorSeed);
+        MockEarnVault ev = earns[tokenSeed % 2];
+        uint256 bal = vault.balances(address(_token(tokenSeed)), a);
+        if (bal == 0) return;
+        amount = bound(amount, 1, bal);
+        vm.prank(a);
+        vault.depositToEarn(address(ev), amount);
+        calls["earnDeposit"]++;
+    }
+
+    function earnRedeem(uint256 actorSeed, uint256 tokenSeed, uint256 shares) external {
+        address a = _actor(actorSeed);
+        MockEarnVault ev = earns[tokenSeed % 2];
+        uint256 have = vault.userEarnShares(a, address(ev));
+        if (have == 0) return;
+        shares = bound(shares, 1, have);
+        vm.prank(a);
+        vault.redeemFromEarn(address(ev), shares, 0);
+        calls["earnRedeem"]++;
+    }
+
+    /// Venue yield: up to +5% of the vault's assets appear.
+    function accrue(uint256 tokenSeed, uint256 pct) external {
+        MockEarnVault ev = earns[tokenSeed % 2];
+        uint256 ta = ev.totalAssets();
+        if (ta == 0) return;
+        _token(tokenSeed).mint(address(ev), (ta * bound(pct, 1, 500)) / 10_000);
+        calls["accrue"]++;
+    }
+
+    /// Venue loss: up to -3% of the vault's assets disappear.
+    function slash(uint256 tokenSeed, uint256 pct) external {
+        MockEarnVault ev = earns[tokenSeed % 2];
+        uint256 ta = ev.totalAssets();
+        if (ta == 0) return;
+        ev.slash((ta * bound(pct, 1, 300)) / 10_000, address(0xdead));
+        calls["slash"]++;
+    }
+
     function warp(uint32 by) external {
-        vm.warp(block.timestamp + bound(by, 1, 3 days));
+        vm.warp(vm.getBlockTimestamp() + bound(by, 1, 3 days));
     }
 }
