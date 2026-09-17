@@ -40,6 +40,7 @@ export function createServer(cfg: Config): McpServer {
         worker: z.string().optional().describe("Worker wallet address, email or agent URL. Leave empty to let the first submitter take the job."),
         policyPreset: z.enum(POLICY_PRESET_NAMES).optional().describe("manual | trusted | autopilot | custom"),
         policy: z.object({ autoRelease: z.number().int().min(0).max(2), minConfidenceBps: z.number().int().min(0).max(10000), maxAutoAmount: z.string(), reviewWindow: z.number().int(), submitDeadline: z.number().int() }).optional(),
+        earnVault: z.string().optional().describe("Tempo only: Earn vault address for 'Earn while locked' — the locked principal earns yield for the payer while the work happens. Use vouch_list_earn_vaults to pick one. Omit for off."),
       },
     },
     async (args) => {
@@ -47,7 +48,7 @@ export function createServer(cfg: Config): McpServer {
         const amount = parseAmount(args.amount).toString();
         const r = await client.createJob({
           title: args.title, scopeMd: args.scope, amount, chainId: args.chainId ?? cfg.VOUCH_DEFAULT_CHAIN, token: args.token, worker: args.worker,
-          policyPreset: args.policyPreset, policy: args.policy as Record<string, unknown> | undefined,
+          policyPreset: args.policyPreset, policy: args.policy as Record<string, unknown> | undefined, earnVault: args.earnVault,
         });
         return text({ jobId: r.jobId, shortId: r.shortId, payUrl: r.payUrl, nextStep: `Call vouch_fund_job with jobId ${r.jobId} to lock the funds.`, fundRoutes: r.fundRoutes, job: summarise(r.job) });
       } catch (e) {
@@ -170,6 +171,19 @@ export function createServer(cfg: Config): McpServer {
       try {
         const { jobs } = await client.listJobs(status);
         return text({ count: jobs.length, jobs: jobs.map(summarise) });
+      } catch (e) {
+        return fail(e);
+      }
+    },
+  );
+
+  server.registerTool(
+    "vouch_list_earn_vaults",
+    { title: "List Earn vaults", description: "Tempo Earn vaults a job may use for 'Earn while locked': label, venue, APY, and whether the Vouch vault allow-lists it on-chain.", inputSchema: { chainId: z.number().int().optional() } },
+    async ({ chainId }) => {
+      try {
+        const r = await client.request<{ vaults: unknown[] }>("GET", `/earn/vaults?chainId=${chainId ?? cfg.VOUCH_DEFAULT_CHAIN}`);
+        return text(r);
       } catch (e) {
         return fail(e);
       }

@@ -30,6 +30,7 @@ export function policyWire(job: JobRow): PolicyWire {
     maxAutoAmount: job.maxAutoAmount,
     reviewWindow: job.reviewWindow,
     submitDeadline: job.submitDeadline,
+    earnVault: (job.earnVault ?? "0x0000000000000000000000000000000000000000") as `0x${string}`,
   };
 }
 

@@ -29,6 +29,6 @@ export const GET = withErrors(async (req, ctx: Ctx) => {
   return json({
     chainId: job.chainId, vault: vaultAddress(job.chainId), token: job.token, jobId: job.id, amount: amount.toString(), scopeHash: job.scopeHash, salt,
     worker: job.worker ?? ZERO_ADDRESS,
-    policy: { autoRelease: job.autoRelease, minConfidenceBps: job.minConfidenceBps, maxAutoAmount: job.maxAutoAmount, reviewWindow: job.reviewWindow, submitDeadline: job.submitDeadline },
+    policy: { autoRelease: job.autoRelease, minConfidenceBps: job.minConfidenceBps, maxAutoAmount: job.maxAutoAmount, reviewWindow: job.reviewWindow, submitDeadline: job.submitDeadline, earnVault: job.earnVault ?? ZERO_ADDRESS },
   });
 });

@@ -64,6 +64,7 @@ model Job {
   maxAutoAmount    String // base units as decimal string
   reviewWindow     Int
   submitDeadline   Int
+  earnVault        String? // allow-listed Tempo Earn vault (lowercase) when the payer chose Earn while locked
 
   status        String  @default("Open") // Vault.Status name, plus "Draft" before on-chain creation
   verdict       String? // PASS | NEEDS_REVIEW | FAIL

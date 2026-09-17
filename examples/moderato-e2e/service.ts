@@ -51,9 +51,11 @@ async function main() {
   const created = await payer.createJob({
     title: "Service e2e: 1-page brief", scopeMd: "## Deliverables\n- A one-page brief (≤ 500 words) in brief.md\n\n## Format\n- Markdown", amount: "5000000",
     chainId: CHAIN, policyPreset: "manual", worker: worker.address,
+    earnVault: process.env.EARN_VAULT_42431 || undefined,
   });
   log("created", created.jobId, created.payUrl);
   check(created.job.status === "Open" && created.job.role === "payer", "job Open, caller is payer");
+  if (process.env.EARN_VAULT_42431) check(created.job.policy.earnVault?.toLowerCase() === process.env.EARN_VAULT_42431.toLowerCase(), "job carries the Earn vault (earn while locked)");
   check(created.fundRoutes.some((r) => (r as { kind: string }).kind === "mpp"), "MPP fund route advertised");
 
   // 3. Fund via MPP (402 → mppx pays → 200)

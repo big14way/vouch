@@ -1,8 +1,8 @@
 {
-  "Vault": "0x5787D1C800d9725c391616890fC65358985098D6",
-  "VerifierRegistry": "0x1925a308A335984Ca4FA2F9534348147C8310347",
+  "Vault": "0x932330E6Cc8f9Bb22DB93f46B39cd1be6b58923B",
+  "VerifierRegistry": "0xbFF6Da495F730b8439f0d9550e0C29C046d9F6a6",
   "arbiter": "0x7369C296bE6A46cd1Bb5F9A8e377aC5c9C3d7B4c",
-  "block": 46871294,
+  "block": 46934069,
   "chainId": 84532,
   "intake": "0x5F99D4338230996a1DCE8Be60BCbE8F20F4B01a0",
   "owner": "0x3C343AD077983371b29fee386bdBC8a92E934C51",
@@ -10,18 +10,5 @@
     "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
   ],
   "verifier": "0x1777C03857B8B992aC2Ea3faB859C1A54E584196",
-  "txs": {
-    "VerifierRegistry": "0x60bb54263b85a889b196cd256fc1e1ea14438b67eabb787b5a5f192d0dd6ea95",
-    "setVerifier": "0xc72557477d06cb762b704c1613ef4e3dceaf8499cefeb3b40dcc11e2a81ab423",
-    "Vault": "0x409dbd25ea7f5e16064a05aeb07aecee25e874c969d0edc095c073c79ea2793a",
-    "setFee": "0x8eaeafd2a96198f975522c50dd00a0dc3afc962c8e8f70b4b2c312b99354bff4"
-  },
-  "verification": {
-    "sourcify": {
-      "VerifierRegistry": "https://sourcify.dev/server/v2/contract/84532/0x1925a308A335984Ca4FA2F9534348147C8310347",
-      "Vault": "https://sourcify.dev/server/v2/contract/84532/0x5787D1C800d9725c391616890fC65358985098D6",
-      "match": "exact (runtime + creation)"
-    }
-  },
-  "note": "testnet; deployer is the shared testnet key, other roles are throwaway keys in contracts/.env.base-sepolia"
+  "note": "v2 with Earn while locked (F11), 2026-09-17, exact Sourcify match; v1 (0x5787D1C8\u2026) kept for the Sept 15 evidence"
 }

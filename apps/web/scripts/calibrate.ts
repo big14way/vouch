@@ -50,7 +50,7 @@ async function judge(s: Sample): Promise<{ output: VerdictOutput; adjustments: s
   let raw: VerdictOutput;
   if (useModel) {
     const manifest: DeliveryManifest = { version: 1, jobId: `0x${"0".repeat(64)}`, submittedBy: "0x0000000000000000000000000000000000000001", files: artifacts.map((a) => ({ name: a.name, sha256: (a.sha256 ?? `0x${"0".repeat(64)}`) as `0x${string}`, size: 0, contentType: "text/markdown", url: "" })), links: [], note: "", createdAt: new Date().toISOString() };
-    const content = buildUserContent({ title: s.name, scopeMd: s.scope, policy: { autoRelease: 1, minConfidenceBps: 9000, maxAutoAmount: 50_000_000n, reviewWindow: 86400, submitDeadline: 0 }, manifest, artifacts, previousVerdict: null });
+    const content = buildUserContent({ title: s.name, scopeMd: s.scope, policy: { autoRelease: 1, minConfidenceBps: 9000, maxAutoAmount: 50_000_000n, reviewWindow: 86400, submitDeadline: 0, earnVault: "0x0000000000000000000000000000000000000000" }, manifest, artifacts, previousVerdict: null });
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const res = await client.messages.create({ model: process.env.VERIFIER_MODEL ?? "claude-sonnet-4-6", max_tokens: 4000, temperature: 0, system: SYSTEM_PROMPT, messages: [{ role: "user", content }], tools: [VERDICT_TOOL], tool_choice: { type: "tool", name: VERDICT_TOOL.name } });
     const tool = res.content.find((b) => b.type === "tool_use");

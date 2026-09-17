@@ -1,0 +1,86 @@
+# Earn while locked (F11) on Tempo Moderato, 2026-09-17
+# Vault v2 0x207aAB47e290C0cC23bE7A2415fF52Cce8D72FA5 · demo Earn venue 0xa2D6b710b92416760a05aD13022b7078e398ff9d (MockEarnVault; both Tempo testnet pathUSD vaults reverted deposits with a stale-price error 0x323a44c7)
+# 'simulated yield' = pathUSD transferred to the venue to stand in for venue yield; every other line is the real contract flow.
+
+## Raw contract lifecycle (examples/moderato-e2e/run.ts, SIMULATE_YIELD=1)
+Vault 0x207aAB47e290C0cC23bE7A2415fF52Cce8D72FA5 on Tempo Moderato (https://rpc.moderato.tempo.xyz)
+payer 0xeBCfb9c6E03B5338684A0f96187DD15862cB2202 · worker 0x121636cC839Adaf71FCc3f8BE670874747975a10 · verifier 0x2BA42AaE62a6CCe1cfFAe16BE5Ea9B3a64df35FA · intake 0xe62c6BAdafa9368aeBD23eDcA5fcC32C1279Bd96 · relayer 0xE4a7e5584461D1bc4d61e6e75703a1488e457bBd
+=== Job A: wallet path, Autopilot, autoSettle, withdraw ===
+✔ approve(vault)                     https://explore.moderato.tempo.xyz/tx/0xf47980e3d3959a52d276d6950ffa55cb9be3747f118cc67a1f8c25fc4f457786  gas 32942
+✔ deposit                            https://explore.moderato.tempo.xyz/tx/0x7e853413e3c085f5b04b53a1b729572e9f165b30ccebd575165dc57822b795fb  gas 311284
+   ✓ payer vault balance credited
+✔ createJob                          https://explore.moderato.tempo.xyz/tx/0x3adde760a161109ae1bc189703dd4bd2dbba06ac14fec8f5f1534fadf482fb75  gas 1300875
+✔ fund                               https://explore.moderato.tempo.xyz/tx/0x1d93273ed206365ba784f206c8ab2c349db647eed45dae38774b99ba62e486df  gas 64358
+   ✓ status Funded
+✔ submit (worker)                    https://explore.moderato.tempo.xyz/tx/0x04154f618ada11f59f90b697d6b7b56adbef999b5b66bae693cc867ac467a3ea  gas 294824
+✔ attest PASS 95% (verifier)         https://explore.moderato.tempo.xyz/tx/0x2049ad7e96328319a34bee3104f1f09c8692a9987823fe870680212536f32367  gas 299930
+   ✓ status Attested, PASS, 9500 bps
+   ✓ canAutoSettle is true (autopilot, reviewWindow 0)
+✔ autoSettle (relayer)               https://explore.moderato.tempo.xyz/tx/0x80931fff8312f8382003d2eaf78f8a2ab3e3258530c3b5068b75264119b37307  gas 72542
+   ✓ worker credited 4950000 (amount − 1% fee)
+✔ withdraw (worker)                  https://explore.moderato.tempo.xyz/tx/0x3f83f1cbbb2baaed5965670c14d0485ed62a6fdd2cac5c4968da142757ac600d  gas 47616
+   ✓ worker pathUSD delta 4943150 = payout 4950000 − gas 6850 (fees paid in pathUSD) on the real token
+   ✓ solvency: vault holds 20150000 ≥ accounted 20150000
+=== Job B: memo transfer → intake attribution → open worker → NEEDS_REVIEW → relayed settle ===
+✔ transferWithMemo(vault, memo=jobId) https://explore.moderato.tempo.xyz/tx/0x52df1db54f3060be2aa58b0feea05c11a7cf485ec0011e44c6f039fd9106296d  gas 33815
+   ✓ memo transfer shows as unattributed surplus
+✔ attributeDeposit (intake)          https://explore.moderato.tempo.xyz/tx/0x1eb896f131ea4092443453338bcbff7b2090780ca0421b6c8030251c60affbd7  gas 303727
+   ✓ payer credited from surplus
+✔ createJob on payer's behalf (intake) https://explore.moderato.tempo.xyz/tx/0x749e23c9d9a2f9034299117f1fba76d96fd9ff6aad2c3d51bdbec27421ba14b9  gas 1052582
+✔ fund on payer's behalf (intake)    https://explore.moderato.tempo.xyz/tx/0xf6d9263ffdebaba738010d4e11dfcae9d3e9b942bd51b87f7bc08218b9f78955  gas 313664
+✔ submit (open worker)               https://explore.moderato.tempo.xyz/tx/0x0318da9b7a094b63e0c22aa46df20af6cc6f204ccdd76cf9308d693f77ef0b70  gas 295116
+   ✓ first submitter became the worker
+✔ attest NEEDS_REVIEW 60% (verifier) https://explore.moderato.tempo.xyz/tx/0x996c1b4bbbfb1d2d7dc2567416a8a91daf1a9b1a4105d06a4cd213b8b362cc73  gas 299942
+   ✓ manual policy: autoSettle not permitted
+✔ settleWithSig (relayer, payer signed) https://explore.moderato.tempo.xyz/tx/0x8b428bcf8d7739bcf19005eca8f6179cb8b96867085a9b69e1bc0e5091a0c194  gas 82487
+   ✓ status Settled
+   ✓ payer nonce consumed
+=== Job C: Earn while locked via 0xa2D6b710b92416760a05aD13022b7078e398ff9d ===
+   ✓ Earn vault is allow-listed on the Vouch vault
+✔ approve(vault)                     https://explore.moderato.tempo.xyz/tx/0x699e20332799bae4209f7a3c597609e336909e6c111907fc5eff2a15b1f4004c  gas 277942
+✔ deposit                            https://explore.moderato.tempo.xyz/tx/0x1cdbb4205e6f9bcdd12a8d9fa347ccad1a40f70f250ef036cf9d6d0e95f0279b  gas 66284
+✔ createJob (earnVault set)          https://explore.moderato.tempo.xyz/tx/0xd5faafd47199da8efa20da368bda4b46cb70e1f0c6e79a17f6676105cd1cfcc3  gas 1556736
+✔ fund → deposits into Earn          https://explore.moderato.tempo.xyz/tx/0x97543fea757f53fa2ba39c920f38d75e2f6cb74e4f8faae097da86a67877e6e3  gas 1114200
+   ✓ status Funded
+   ✓ job holds 5000000 Earn shares
+   ✓ deployed principal tracked
+   ✓ principal sits in the Earn vault on the real token
+   ✓ deployed principal is not counted as surplus
+✔ submit (worker)                    https://explore.moderato.tempo.xyz/tx/0x1ae728f2b94642a2a22b881245f2bd7a66682d7cd07419976c9e4f9e05f5cf96  gas 294824
+✔ simulated yield: +1% sent to the venue https://explore.moderato.tempo.xyz/tx/0x36d7e386c0f2b1d1cc6da87e906aa17e0d714dc635a5ebe210d14e411ce8e020  gas 31130
+✔ settle (payer) → withdrawExact from Earn https://explore.moderato.tempo.xyz/tx/0x0d2abdfe829f93a0ac7c9aad2844675f17e6049398dc396a79f2dd4e77de3a07  gas 123341
+   ✓ worker credited exactly amount − fee (principal recalled in full)
+   ✓ deployed back to its previous value
+   ✓ payer holds 49504 yield shares after settlement (simulated 1%)
+   ✓ solvency with Earn: 30150000 + 0 ≥ 30150000
+jobs: A 0x73347cf227e9ee3827ba9a7ce14cd10f3f0f74f5d5a6c5bc5a05bec03c7a98ef
+      B 0x38b0e85546d1590a76369f59962354341a2ec85b1dc4b969b62fdbd780d07806
+      C 0x0e08839af5341f4205b953285484a45c2dca4a401c2b465c9177bc053d87d4ac
+ALL CHECKS PASSED
+
+## Service layer through the API (examples/moderato-e2e/service.ts with earnVault; verifier stage 'failed' = no ANTHROPIC_API_KEY)
+09:21:20 api http://localhost:3000 payer 0xeBCfb9c6E03B5338684A0f96187DD15862cB2202 worker 0x121636cC839Adaf71FCc3f8BE670874747975a10
+   ✓ health: vault configured on 42431
+   ✓ payer got a wallet-bound API key
+09:21:25 created 0xab2c9d30c283553850d42a59462d19af943958b82d333786ddd8cadda67bee0d http://localhost:3000/j/0xab2c9d30c283553850d42a59462d19af943958b82d333786ddd8cadda67bee0d
+   ✓ job Open, caller is payer
+   ✓ job carries the Earn vault (earn while locked)
+   ✓ MPP fund route advertised
+09:21:37 funded Funded route mpp fundTx 0x57cd078ac75a3efc2374a0e114393c13f846a42866106de54f4f71e9b0aab084 paymentTx 0xff65e092ca8887c1fa6607eecfb99817d9025f2ee38ce819d5a7eccf444cc649
+   ✓ status Funded after one round-trip
+   ✓ route was MPP
+   ✓ payment tx recorded
+09:21:40 cron/indexer 200 {"chains":{"42431":{"from":"35674787","to":"35675178","events":30},"84532":{"from":"46934190","to":"46934306","events":0}}}
+   ✓ indexer cron ran
+09:21:44 submitted Submitted tx 0xf07bcec8167d01576a43690a6f43703aa416a6b1ff9ba7d4f9a4358645b19da0 hash 0x3865d3712749db115f41a5e4d46a141394414bfe6c04954ff87285c68d2f0030
+   ✓ status Submitted (relayed submitWithSig)
+09:21:45 cron/verifier 200 {"ran":[],"failed":["cmu5blt540059sefyql5fb09t"]}
+09:21:45 verdict failed null null 
+   ✓ verifier queued/failed cleanly without a model key
+09:21:48 approved Settled tx 0xfc3769541f5daa5bbc83e222d787929a3d8279ff090137ae724b4f71e6360146
+   ✓ status Settled via settleWithSig
+   ✓ worker sees the amount after settlement ($5.00)
+09:21:50 timeline events: 8
+   ✓ timeline has created/funded/submitted/settled
+09:21:51 cron/timelock 200 {"settled":[],"refunded":[],"errors":{}}
+ALL CHECKS PASSED

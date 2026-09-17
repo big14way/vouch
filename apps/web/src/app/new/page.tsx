@@ -10,6 +10,7 @@ import { CopyField } from "@/components/ui/copy-field";
 import { Field, Input, Label, Select, Textarea } from "@/components/ui/field";
 import { Sheet } from "@/components/ui/sheet";
 import { PolicyPicker, defaultPolicyValue } from "@/components/job/policy-picker";
+import { EarnToggle } from "@/components/job/earn-toggle";
 import { jobs, ClientError } from "@/lib/client/api";
 
 const TEMPLATE = `## Deliverables
@@ -39,6 +40,7 @@ export default function NewJob() {
   const [worker, setWorker] = useState("");
   const [deadlineDays, setDeadlineDays] = useState("7");
   const [policy, setPolicy] = useState(defaultPolicyValue());
+  const [earnVault, setEarnVault] = useState<string | null>(null);
   const [errs, setErrs] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [created, setCreated] = useState<{ job: JobDto; payUrl: string; mcpHint: string } | null>(null);
@@ -54,7 +56,7 @@ export default function NewJob() {
     if (!authenticated) return login();
     setBusy(true);
     try {
-      const r = await jobs.create({ title, scopeMd: scope, amount: base.toString(), chainId, token, worker: worker.trim() || undefined, policyPreset: policy.preset === "custom" ? undefined : policy.preset, policy: policy.preset === "custom" ? policy.policy : undefined, paymentDeadline: Number(deadlineDays) * 86400 || undefined });
+      const r = await jobs.create({ title, scopeMd: scope, amount: base.toString(), chainId, token, worker: worker.trim() || undefined, policyPreset: policy.preset === "custom" ? undefined : policy.preset, policy: policy.preset === "custom" ? policy.policy : undefined, earnVault: earnVault ?? undefined, paymentDeadline: Number(deadlineDays) * 86400 || undefined });
       setCreated({ job: r.job, payUrl: r.payUrl, mcpHint: r.mcpHint });
     } catch (x) {
       const ce = x instanceof ClientError ? x : null;
@@ -104,6 +106,9 @@ export default function NewJob() {
         </Field>
         <div className="mb-4">
           <PolicyPicker value={policy} onChange={setPolicy} />
+        </div>
+        <div className="mb-4">
+          <EarnToggle chainId={chainId} value={earnVault} onChange={setEarnVault} />
         </div>
         <Field>
           <Label htmlFor="deadline" hint="days the pay link stays open">Payment deadline</Label>

@@ -37,6 +37,7 @@
 2. **Lock** — `createJob` + `fund` move balance into `locked`. Amount is hidden behind `commit`. On Tempo a wallet can do approve → deposit → createJob → fund in one sponsored batched transaction; server-mediated routes have `intake` create + fund on the payer's behalf from the payer's own balance.
 3. **Deliver** — files are sha256'd and stored; `deliverableHash = keccak256(canonical core)` is signed by the worker (EIP-712 `Submit`) and relayed.
 4. **Verify** — the verifier key calls `attest(jobId, verdict, confidenceBps, attestationHash)`. No funds move.
+2b. **Earn (optional, Tempo)** — if the job's policy names an allow-listed Earn vault, `fund` deposits the locked principal there (`deployed[token]` tracks it) and settlement recalls exactly the principal with `withdrawExact`; leftover shares are the payer's yield. Users can also move idle balances in and out with `depositToEarn` / `redeemFromEarn`.
 5. **Settle** — `settleWithSig` (payer), `autoSettle` (anyone, only if every policy predicate holds, run by the timelock cron), `resolve` (arbiter split), `refundExpired`. Payouts credit balances; `withdraw`/`withdrawWithSig` moves tokens out.
 
 ## Fund routes

@@ -14,7 +14,7 @@ import { jobs, api, ClientError } from "@/lib/client/api";
 import { signReceiveWithAuthorization } from "@/lib/client/wallet";
 import { dur, ease } from "@/components/motion";
 
-type BatchInfo = { chainId: 4217 | 42431; vault: Address; token: Address; jobId: Hex; amount: string; scopeHash: Hex; salt: Hex; worker: Address; policy: { autoRelease: 0 | 1 | 2; minConfidenceBps: number; maxAutoAmount: string; reviewWindow: number; submitDeadline: number } };
+type BatchInfo = { chainId: 4217 | 42431; vault: Address; token: Address; jobId: Hex; amount: string; scopeHash: Hex; salt: Hex; worker: Address; policy: { autoRelease: 0 | 1 | 2; minConfidenceBps: number; maxAutoAmount: string; reviewWindow: number; submitDeadline: number; earnVault: Address } };
 
 /** Pay (S3). Tempo: sponsored batched tx from a Tempo wallet, or pay from any wallet with memo. Base: USDC signature, no ETH. */
 export function PayPanel({ job, onFunded }: { job: JobDto; onFunded: (j: JobDto) => void }) {

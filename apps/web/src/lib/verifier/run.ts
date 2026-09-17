@@ -66,7 +66,7 @@ export async function runVerifier(verdictId: string): Promise<RunOutcome> {
     await stage(verdictId, "writing_report");
     const content = buildUserContent({
       title: job.title, scopeMd: job.scopeMd,
-      policy: { autoRelease: job.autoRelease as 0 | 1 | 2, minConfidenceBps: job.minConfidenceBps, maxAutoAmount: BigInt(job.maxAutoAmount), reviewWindow: job.reviewWindow, submitDeadline: job.submitDeadline },
+      policy: { autoRelease: job.autoRelease as 0 | 1 | 2, minConfidenceBps: job.minConfidenceBps, maxAutoAmount: BigInt(job.maxAutoAmount), reviewWindow: job.reviewWindow, submitDeadline: job.submitDeadline, earnVault: (job.earnVault ?? "0x0000000000000000000000000000000000000000") as `0x${string}` },
       manifest, artifacts, previousVerdict: previous?.report ?? null,
     });
     const promptHash = keccak256(toHex(SYSTEM_PROMPT + JSON.stringify(content.map((b) => (b.type === "text" ? b.text : `[image ${b.source.media_type}]`)))));

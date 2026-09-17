@@ -7,8 +7,8 @@
   },
   "42431": {
     "name": "Tempo Moderato",
-    "Vault": "0x4d5fC080199A36fB451F320c17BC87717C78e8c0",
-    "VerifierRegistry": "0xC3BDa0fff0AcaA0B557F0899B4fE298AAbed9547",
+    "Vault": "0x207aAB47e290C0cC23bE7A2415fF52Cce8D72FA5",
+    "VerifierRegistry": "0xEFe712ba09BA206Ef56E18B2510fF68745c66820",
     "explorer": "https://explore.moderato.tempo.xyz"
   },
   "8453": {
@@ -19,8 +19,8 @@
   },
   "84532": {
     "name": "Base Sepolia",
-    "Vault": "0x5787D1C800d9725c391616890fC65358985098D6",
-    "VerifierRegistry": "0x1925a308A335984Ca4FA2F9534348147C8310347",
+    "Vault": "0x932330E6Cc8f9Bb22DB93f46B39cd1be6b58923B",
+    "VerifierRegistry": "0xbFF6Da495F730b8439f0d9550e0C29C046d9F6a6",
     "explorer": "https://sepolia.basescan.org"
   }
 }

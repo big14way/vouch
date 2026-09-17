@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { m } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import type { JobDto } from "@vouch/shared";
-import { chainMeta, shortAddress } from "@vouch/shared";
+import { chainMeta, earnsWhileLocked, shortAddress } from "@vouch/shared";
 import { Shell } from "@/components/layout/nav";
 import { Card, CardTitle, Muted } from "@/components/ui/card";
 import { Skeleton, EmptyState } from "@/components/ui/skeleton";
@@ -119,6 +119,7 @@ export function JobView({ id }: { id: string }) {
           {job.submitDeadlineAt ? (<><dt className="text-muted">Deliver by</dt><dd>{new Date(job.submitDeadlineAt).toLocaleString()}</dd></>) : null}
           <dt className="text-muted">Release</dt>
           <dd>{job.policy.autoRelease === 0 ? "When the payer approves" : `Automatically at ≥ ${Math.round(job.policy.minConfidenceBps / 100)}% after ${Math.round(job.policy.reviewWindow / 3600)} h`}</dd>
+          {earnsWhileLocked(job.policy) ? (<><dt className="text-muted">Earning</dt><dd>{locked && job.status !== "Settled" && job.status !== "Resolved" && job.status !== "Refunded" ? "Locked money is earning for the payer in a Tempo Earn vault" : "Earned for the payer while locked; principal returned in full at settlement"}</dd></>) : null}
         </dl>
       </Card>
 

@@ -11,6 +11,8 @@ forge script script/Deploy.s.sol --rpc-url base --broadcast --verify
 Testnet funds: `cast rpc tempo_fundAddress <address> --rpc-url https://rpc.moderato.tempo.xyz`. Then `pnpm --filter @vouch/example-moderato-e2e start` proves the deployment end-to-end.
 Copy `deployments/<chainId>.json` addresses into `packages/abi/addresses.json` (or set `VAULT_ADDRESS_<chainId>`).
 
+Earn while locked: allow-list an Earn vault whose `asset()` is a job token — `cast send <Vault> "setEarnVault(address,bool)" <earnVault> true` (owner). The picker only offers allow-listed vaults; discovery and APY come from `GET https://api.tempo.xyz/v1/earn/vaults`.
+
 Fund the server keys: intake/relayer/verifier/feePayer need pathUSD on Tempo (fees are paid in stablecoin) and a little ETH on Base (~0.01).
 
 ## 2. Database

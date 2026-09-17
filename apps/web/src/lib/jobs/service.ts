@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import type { Job as JobRow, Prisma } from "@prisma/client";
 import { getAddress, isAddress, type Address, type Hex } from "viem";
 import {
-  BASE_MAINNET_ID, computeCommit, hashManifest, hashReason, hashScope, isSupportedChain, randomBytes32,
+  BASE_MAINNET_ID, computeCommit, earnsWhileLocked, hashManifest, hashReason, hashScope, isSupportedChain, isTempo, randomBytes32,
   resolvePolicy, shortId, Status, ZERO_ADDRESS, type CreateJobInput, type DeliveryManifest, type ManifestFile,
   type Policy, type SubmitInput, type TimelineEvent, type ChainId,
 } from "@vouch/shared";
@@ -33,6 +33,7 @@ export async function createJob(input: CreateJobInput, p: Principal): Promise<Jo
   if (!token) throw errors.badRequest("That token is not accepted on this chain.", "Use pathUSD or USDC.e on Tempo, USDC on Base.");
   const amount = BigInt(input.amount);
   if (amount <= 0n) throw errors.badRequest("Amount must be greater than zero.");
+  if (input.earnVault && !isTempo(chainId)) throw errors.badRequest("Earn while locked is a Tempo feature.", "Leave earnVault empty on Base.");
   const policy: Policy = resolvePolicy(input);
   if (policy.autoRelease !== 0 && policy.maxAutoAmount > 0n && amount > policy.maxAutoAmount) {
     // Not an error: the job simply never auto-settles. Surface it in the DTO via autoSettleAt = null.
@@ -71,6 +72,7 @@ export async function createJob(input: CreateJobInput, p: Principal): Promise<Jo
       maxAutoAmount: policy.maxAutoAmount.toString(),
       reviewWindow: policy.reviewWindow,
       submitDeadline: policy.submitDeadline,
+      earnVault: earnsWhileLocked(policy) ? policy.earnVault.toLowerCase() : null,
       status: "Open",
       feeBps,
       paymentDeadlineAt: input.paymentDeadline ? new Date(Date.now() + input.paymentDeadline * 1000) : null,
@@ -110,7 +112,7 @@ export async function ensureOnChain(job: JobRow, payer: Address): Promise<JobRow
   if (onChain.status === Status.None) {
     const { hash } = await vault.createJobOnChain(chainId, {
       jobId: row.id as Hex, commit: row.commit as Hex, payer, worker, token: row.token as Address,
-      policy: { autoRelease: row.autoRelease as 0 | 1 | 2, minConfidenceBps: row.minConfidenceBps, maxAutoAmount: BigInt(row.maxAutoAmount), reviewWindow: row.reviewWindow, submitDeadline: row.submitDeadline },
+      policy: { autoRelease: row.autoRelease as 0 | 1 | 2, minConfidenceBps: row.minConfidenceBps, maxAutoAmount: BigInt(row.maxAutoAmount), reviewWindow: row.reviewWindow, submitDeadline: row.submitDeadline, earnVault: (row.earnVault ?? ZERO_ADDRESS) as Address },
     });
     await setTx(row.id, "created", hash);
   }

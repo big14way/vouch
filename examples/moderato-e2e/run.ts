@@ -47,7 +47,7 @@ let failures = 0;
 const gasPaid = new Map<Address, bigint>();
 const check = (cond: boolean, msg: string) => { if (!cond) { failures++; console.log(`   ✗ ${msg}`); } else console.log(`   ✓ ${msg}`); };
 
-async function tx(label: string, account: ReturnType<typeof privateKeyToAccount>, address: Address, abi: typeof vaultAbi | typeof tip20Abi, functionName: string, args: unknown[], gas = 1_500_000n): Promise<Hex> {
+async function tx(label: string, account: ReturnType<typeof privateKeyToAccount>, address: Address, abi: typeof vaultAbi | typeof tip20Abi, functionName: string, args: unknown[], gas = 3_000_000n): Promise<Hex> {
   const hash = await wallet(account).writeContract({ address, abi: abi as never, functionName: functionName as never, args: args as never, gas });
   const r = await pub.waitForTransactionReceipt({ hash });
   // Tempo debits ceil(gasUsed × effectiveGasPrice / 1e12) pathUSD base units per transaction.
@@ -136,12 +136,59 @@ async function jobB() {
   return jobId;
 }
 
+/** Job C — Earn while locked: principal into the allow-listed Earn vault at fund, exact recall at settle, yield shares to the payer. */
+async function jobC() {
+  const EARN = (process.env.EARN_VAULT_42431 ?? "0x0e30ef43cfb7c4cab5ec690a45a6550588325fb0") as Address;
+  console.log(`\n=== Job C: Earn while locked via ${EARN} ===`);
+  const allowed = await read<boolean>("allowedEarnVault", [EARN]);
+  check(allowed, "Earn vault is allow-listed on the Vouch vault");
+  if (!allowed) return null;
+  const jobId = randomBytes32();
+  const salt = randomBytes32();
+  const scopeHash = hashScope("## Deliverables\n- earn demo");
+  const policy: Policy = { ...POLICY_PRESETS.manual, earnVault: EARN };
+  const commit = computeCommit({ jobId, payer: payer.address, worker: worker.address, token: PATHUSD, amount: AMOUNT, scopeHash, salt });
+  const deployedBefore = await read<bigint>("deployed", [PATHUSD]);
+  const earnBalBefore = await tokenBal(EARN);
+
+  await tx("approve(vault)", payer, PATHUSD, tip20Abi, "approve", [VAULT, AMOUNT], 400_000n);
+  await tx("deposit", payer, VAULT, vaultAbi, "deposit", [PATHUSD, AMOUNT]);
+  await tx("createJob (earnVault set)", payer, VAULT, vaultAbi, "createJob", [jobId, commit, payer.address, worker.address, PATHUSD, policy]);
+  await tx("fund → deposits into Earn", payer, VAULT, vaultAbi, "fund", [jobId, AMOUNT, scopeHash, salt], 2_500_000n);
+  const jobAfterFund = await read<{ status: number; earnShares: bigint }>("getJob", [jobId]);
+  check(jobAfterFund.status === 2, "status Funded");
+  check(jobAfterFund.earnShares > 0n, `job holds ${jobAfterFund.earnShares} Earn shares`);
+  check((await read<bigint>("deployed", [PATHUSD])) - deployedBefore === AMOUNT, "deployed principal tracked");
+  check((await tokenBal(EARN)) - earnBalBefore === AMOUNT, "principal sits in the Earn vault on the real token");
+  check((await read<bigint>("surplus", [PATHUSD])) === 0n, "deployed principal is not counted as surplus");
+
+  await tx("submit (worker)", worker, VAULT, vaultAbi, "submit", [jobId, keccak256(toHex("manifest C"))]);
+  if (process.env.SIMULATE_YIELD === "1") {
+    // Demo venue only: pretend the venue earned 1% by sending pathUSD to it (labelled as simulated in the log).
+    await tx("simulated yield: +1% sent to the venue", payer, PATHUSD, tip20Abi, "transfer", [EARN, AMOUNT / 100n], 400_000n);
+  }
+  const workerCreditBefore = await read<bigint>("balances", [PATHUSD, worker.address]);
+  await tx("settle (payer) → withdrawExact from Earn", payer, VAULT, vaultAbi, "settle", [jobId, AMOUNT, scopeHash, salt], 2_500_000n);
+  const fee = AMOUNT / 100n;
+  check((await read<bigint>("balances", [PATHUSD, worker.address])) - workerCreditBefore === AMOUNT - fee, "worker credited exactly amount − fee (principal recalled in full)");
+  check((await read<bigint>("deployed", [PATHUSD])) === deployedBefore, "deployed back to its previous value");
+  const payerShares = await read<bigint>("userEarnShares", [payer.address, EARN]);
+  if (process.env.SIMULATE_YIELD === "1") check(payerShares > 0n, `payer holds ${payerShares} yield shares after settlement (simulated 1%)`);
+  else console.log(`   payer yield shares after settlement: ${payerShares} (0 expected when the venue paid no yield)`);
+  const vaultBal = await tokenBal(VAULT);
+  const accounted = await read<bigint>("accounted", [PATHUSD]);
+  const deployedNow = await read<bigint>("deployed", [PATHUSD]);
+  check(vaultBal + deployedNow >= accounted, `solvency with Earn: ${vaultBal} + ${deployedNow} ≥ ${accounted}`);
+  return jobId;
+}
+
 async function main() {
   console.log(`Vault ${VAULT} on Tempo Moderato (${RPC})`);
   console.log(`payer ${payer.address} · worker ${worker.address} · verifier ${verifier.address} · intake ${intake.address} · relayer ${relayer.address}`);
   const a = await jobA();
   const b = await jobB();
-  console.log(`\njobs: A ${a}\n      B ${b}`);
+  const c = await jobC();
+  console.log(`\njobs: A ${a}\n      B ${b}\n      C ${c}`);
   console.log(failures === 0 ? "\nALL CHECKS PASSED" : `\n${failures} CHECK(S) FAILED`);
   process.exit(failures === 0 ? 0 : 1);
 }

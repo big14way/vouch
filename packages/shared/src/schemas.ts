@@ -22,6 +22,8 @@ export const CreateJobInputSchema = z.object({
   worker: z.string().max(200).optional(),
   policyPreset: z.enum(POLICY_PRESET_NAMES).optional(),
   policy: PolicyWireSchema.optional(),
+  /** Tempo only: allow-listed Earn vault for "Earn while locked" (GET /earn/vaults). Omit for off. */
+  earnVault: AddressSchema.optional(),
   /** Seconds the pay link stays valid before the job is considered abandoned (off-chain only). */
   paymentDeadline: z.number().int().min(300).max(90 * 86_400).optional(),
 });
@@ -36,6 +38,24 @@ export const FundRouteSchema = z.object({
   memo: Bytes32Schema.optional(),
 });
 export type FundRoute = z.infer<typeof FundRouteSchema>;
+
+export const EarnVaultDtoSchema = z.object({
+  address: AddressSchema,
+  chainId: ChainIdSchema,
+  label: z.string(),
+  asset: AddressSchema,
+  assetSymbol: z.string(),
+  venue: z.string().nullable(),
+  engineType: z.string().nullable(),
+  /** Net APY as a decimal string ("0.035"), null when the API has no measurement yet. */
+  apy: z.string().nullable(),
+  tvl: z.string().nullable(),
+  verified: z.boolean(),
+  access: z.string(),
+  /** On-chain allow-list state in the Vouch Vault: the only thing that decides whether a job may use it. */
+  allowed: z.boolean(),
+});
+export type EarnVaultDto = z.infer<typeof EarnVaultDtoSchema>;
 
 export const JobDtoSchema = z.object({
   id: Bytes32Schema,
