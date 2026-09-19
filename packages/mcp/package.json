@@ -6,7 +6,7 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "bin": { "vouch-mcp": "./bin/vouch-mcp.js" },
+  "bin": { "vouch-mcp": "bin/vouch-mcp.js" },
   "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
   "files": ["dist", "bin", "README.md"],
   "keywords": ["mcp", "tempo", "x402", "mpp", "agents", "payments", "escrow-free", "verification"],
@@ -29,5 +29,8 @@
     "typescript": "^5.9.3",
     "vitest": "^4.1.0"
   },
-  "publishConfig": { "access": "public" }
+  "publishConfig": { "access": "public" },
+  "repository": { "type": "git", "url": "git+https://github.com/big14way/vouch.git", "directory": "packages/mcp" },
+  "homepage": "https://vouch-rouge.vercel.app",
+  "bugs": { "url": "https://github.com/big14way/vouch/issues" }
 }
