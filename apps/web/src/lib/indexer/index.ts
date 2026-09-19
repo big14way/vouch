@@ -16,6 +16,8 @@ import { attributeMemoTransfer } from "../jobs/service";
 const MAX_RANGE = 2_000n;
 /** One cron invocation keeps walking windows until the head or this budget is spent (the route's maxDuration is 60 s). */
 const POLL_BUDGET_MS = 40_000;
+/** Pause between windows during a backfill so public RPCs (sepolia.base.org) do not rate-limit the run. */
+const WINDOW_PAUSE_MS = 250;
 
 const STATUS_BY_EVENT: Record<string, string | undefined> = {
   JobCreated: "Open",
@@ -56,14 +58,22 @@ export async function pollChain(chainId: number, deadline = Date.now() + POLL_BU
   let events = 0;
   for (;;) {
     to = from + MAX_RANGE - 1n < head ? from + MAX_RANGE - 1n : head;
-    const [vaultLogs, memoLogs] = await Promise.all([
-      pub.getLogs({ address: vault, fromBlock: from, toBlock: to }),
-      pub.getLogs({ address: tokens, event: memoEvent, args: { to: vault } as never, fromBlock: from, toBlock: to }),
-    ]);
-    events += (await processVaultLogs(chainId, vaultLogs)) + (await processMemoLogs(chainId, memoLogs));
+    try {
+      const [vaultLogs, memoLogs] = await Promise.all([
+        pub.getLogs({ address: vault, fromBlock: from, toBlock: to }),
+        pub.getLogs({ address: tokens, event: memoEvent, args: { to: vault } as never, fromBlock: from, toBlock: to }),
+      ]);
+      events += (await processVaultLogs(chainId, vaultLogs)) + (await processMemoLogs(chainId, memoLogs));
+    } catch (e) {
+      // Public RPCs rate-limit a fast backfill. Keep the windows already persisted and let the next run continue;
+      // only the very first window of a run surfaces the error.
+      if (from > start) { to = from - 1n; break; }
+      throw e;
+    }
     await db.indexerCursor.upsert({ where: { chainId }, create: { chainId, lastBlock: to }, update: { lastBlock: to } });
     if (to >= head || Date.now() >= deadline) break;
     from = to + 1n;
+    await new Promise((r) => setTimeout(r, WINDOW_PAUSE_MS));
   }
   return { from: start, to, events };
 }
