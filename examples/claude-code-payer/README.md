@@ -4,7 +4,7 @@ Two agents, no humans: a payer agent creates and funds a job (MPP on Tempo / x40
 
 ```bash
 pnpm install
-export VOUCH_API_URL=http://localhost:3000        # or https://vouch.dev
+export VOUCH_API_URL=http://localhost:3000        # or https://vouch-rouge.vercel.app
 export VOUCH_DEFAULT_CHAIN=42431                  # Tempo testnet; 4217 for mainnet
 export PAYER_PRIVATE_KEY=0x…                      # holds pathUSD (Tempo) / USDC (Base)
 export WORKER_PRIVATE_KEY=0x…

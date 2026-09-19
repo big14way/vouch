@@ -1,0 +1,29 @@
+name: cron
+# Vercel's Hobby plan runs crons at most once a day, so this workflow drives the three cron routes instead.
+# Every 5 minutes (GitHub's minimum; runs can be delayed under load). On a Pro plan, put the schedules back
+# into apps/web/vercel.json and delete this file.
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+concurrency:
+  group: vouch-cron
+  cancel-in-progress: false
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      APP_URL: ${{ vars.VOUCH_APP_URL || 'https://vouch-rouge.vercel.app' }}
+    steps:
+      - name: indexer, verifier, timelock
+        run: |
+          set -u
+          fail=0
+          for route in indexer verifier timelock; do
+            code=$(curl -sS -o /tmp/$route.json -w '%{http_code}' --max-time 300 \
+              -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "$APP_URL/api/cron/$route")
+            echo "$route -> $code $(head -c 400 /tmp/$route.json)"
+            [ "$code" = "200" ] || fail=1
+          done
+          exit $fail

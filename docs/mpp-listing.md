@@ -14,9 +14,9 @@ The directory only accepts live services, so both steps wait for the Vercel depl
 **Motivation.** Vouch is a conditional-settlement layer for agent and human work: a payer locks stablecoins against a written scope, an independent verifier compares the delivery to the scope and writes an attestation on-chain, and funds settle under the payer's own policy (verdict, confidence threshold, cap, review window) or on approval. Every other service in the directory is pay-first; Vouch is the "pay per acceptable outcome" layer that sits on top of an MPP charge. It serves agents that hire other agents or humans for outcome-priced work (a brief, a design, a code change) and want the money held until the output matches what they asked for.
 
 - **Service name:** Vouch
-- **Live service URL:** `https://vouch.dev` *(fill with the deployed URL)*
-- **Provider URL:** `https://vouch.dev`
-- **OpenAPI or API reference URL:** `https://vouch.dev/openapi.json`
+- **Live service URL:** `https://vouch-rouge.vercel.app` (Vercel, Sept 19; testnets Moderato 42431 + Base Sepolia 84532)
+- **Provider URL:** `https://vouch-rouge.vercel.app`
+- **OpenAPI or API reference URL:** `https://vouch-rouge.vercel.app/openapi.json`
 
 **Summary checklist**
 - [ ] The service is live and accepts MPP payments.
@@ -37,25 +37,25 @@ The directory only accepts live services, so both steps wait for the Vercel depl
 {
   id: "vouch",
   name: "Vouch",
-  url: "https://vouch.dev",
-  serviceUrl: "https://vouch.dev",
+  url: "https://vouch-rouge.vercel.app",
+  serviceUrl: "https://vouch-rouge.vercel.app",
   description: "Pay per acceptable outcome. Lock stablecoins against a scope, get an independent verification of the delivery, settle under the payer's policy. For agents hiring agents or humans.",
-  icon: "https://vouch.dev/icon.svg",
+  icon: "https://vouch-rouge.vercel.app/icon.svg",
   categories: ["payments", "agents", "verification", "work"],
   integration: "first-party",
   tags: ["settlement", "verification", "escrow-free", "outcomes", "mcp", "x402"],
   status: "active",
   docs: {
-    homepage: "https://vouch.dev",
-    llmsTxt: "https://vouch.dev/llms.txt",
-    apiReference: "https://vouch.dev/openapi.json",
+    homepage: "https://vouch-rouge.vercel.app",
+    llmsTxt: "https://vouch-rouge.vercel.app/llms.txt",
+    apiReference: "https://vouch-rouge.vercel.app/openapi.json",
   },
   methods: {
     tempo: { intents: ["charge"], assets: ["0x20c0000000000000000000000000000000000000", "0x20c000000000000000000000b9537d11c60e8b50"] },
     evm: { intents: ["charge"], assets: ["0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"] },
   },
-  realm: "vouch.dev",
-  provider: { name: "Vouch", url: "https://vouch.dev" },
+  realm: "vouch-rouge.vercel.app",
+  provider: { name: "Vouch", url: "https://vouch-rouge.vercel.app" },
   endpoints: [
     {
       method: "POST",

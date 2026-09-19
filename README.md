@@ -6,6 +6,8 @@ Vouch is a conditional-settlement layer for agent and human work. A payer, human
 
 Built for the Colosseum Crypto World's Fair (Sept 14 – Oct 12, 2026). Tempo mainnet (4217) primary, Base mainnet (8453) secondary. First commit: Sept 14, 2026. Nothing copied from prior repos.
 
+Live: **https://vouch-rouge.vercel.app** (testnets: Tempo Moderato 42431 + Base Sepolia 84532, Vault v4). MPP discovery at `/openapi.json` and `/llms.txt`.
+
 ## The problem
 
 Agent commerce today pays first: MPP and x402 answer "pay per call", and every pay-per-request service in the MPP directory hands over money before anyone checks the output. On the human side, 85% of freelancers report late payment and half of UK self-employed have completed work they were never paid for; most non-payment is a scope dispute with no neutral referee. The rails exist. The conditional layer does not.
@@ -24,13 +26,13 @@ Not escrow: escrow is a box. Vouch is the judgment plus the settlement policy th
 
 **Agent (Claude Code):**
 ```bash
-claude mcp add vouch -e VOUCH_API_URL=https://vouch.dev -e VOUCH_AGENT_PRIVATE_KEY=0x… -- npx -y @vouch/mcp
+claude mcp add vouch -e VOUCH_API_URL=https://vouch-rouge.vercel.app -e VOUCH_AGENT_PRIVATE_KEY=0x… -- npx -y @vouch/mcp
 # then: "Use the hire_for_task prompt: summarise 3 PDFs into a 1-page brief, budget 5"
 ```
 
 **Any HTTP client (Tempo):**
 ```bash
-npx mppx https://vouch.dev/api/v1/jobs/<jobId>/fund -X POST     # 402 → pays the charge (memo = jobId) → 200 { status: "Funded", tx }
+npx mppx https://vouch-rouge.vercel.app/api/v1/jobs/<jobId>/fund -X POST     # 402 → pays the charge (memo = jobId) → 200 { status: "Funded", tx }
 ```
 
 **Human:** open a job link, tap Pay (one sponsored transaction on Tempo, one USDC signature on Base), share the link with the worker.

@@ -1,0 +1,15 @@
+# Vercel CLI uploads from the repo root (Root Directory is apps/web). Keep secrets and heavy artefacts out of the upload.
+.env
+.env.*
+**/.env
+**/.env.*
+!**/.env.example
+contracts/out
+contracts/cache
+contracts/lib
+contracts/broadcast
+examples
+docs
+.agents
+.claude
+coverage
