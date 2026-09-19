@@ -12,7 +12,10 @@ import { attributeMemoTransfer } from "../jobs/service";
  *  - webhooks (Alchemy on Base) that push logs
  * Every event is stored once (unique on chain+tx+logIndex) and applied to the Job row idempotently.
  */
+/** Blocks per eth_getLogs call. */
 const MAX_RANGE = 2_000n;
+/** One cron invocation keeps walking windows until the head or this budget is spent (the route's maxDuration is 60 s). */
+const POLL_BUDGET_MS = 40_000;
 
 const STATUS_BY_EVENT: Record<string, string | undefined> = {
   JobCreated: "Open",
@@ -34,38 +37,51 @@ const TX_KEY_BY_EVENT: Record<string, string | undefined> = {
 
 const ORDER = ["Open", "Funded", "Submitted", "Attested", "Settled", "Disputed", "Resolved", "Refunded"];
 
-export async function pollChain(chainId: number): Promise<{ from: bigint; to: bigint; events: number }> {
+export async function pollChain(chainId: number, deadline = Date.now() + POLL_BUDGET_MS): Promise<{ from: bigint; to: bigint; events: number }> {
   if (!isVaultConfigured(chainId)) return { from: 0n, to: 0n, events: 0 };
   const pub = publicClient(chainId);
   const head = await pub.getBlockNumber();
   const cursor = await db.indexerCursor.findUnique({ where: { chainId } });
   // First run: start at INDEXER_START_BLOCK_<chainId> (the Vault's deployment block) so nothing before the cursor is skipped.
   const startEnv = process.env[`INDEXER_START_BLOCK_${chainId}`];
-  const from = cursor ? cursor.lastBlock + 1n : startEnv && /^\d+$/.test(startEnv) ? BigInt(startEnv) : head;
-  if (from > head) return { from, to: head, events: 0 };
-  const to = from + MAX_RANGE - 1n < head ? from + MAX_RANGE - 1n : head;
+  const start = cursor ? cursor.lastBlock + 1n : startEnv && /^\d+$/.test(startEnv) ? BigInt(startEnv) : head;
+  if (start > head) return { from: start, to: head, events: 0 };
   const vault = vaultAddress(chainId);
   const tokens = TOKENS[chainId as ChainId].map((t) => t.address);
+  const memoEvent = tip20Abi.find((x) => x.type === "event" && x.name === "TransferWithMemo") as never;
 
-  const [vaultLogs, memoLogs] = await Promise.all([
-    pub.getLogs({ address: vault, fromBlock: from, toBlock: to }),
-    pub.getLogs({ address: tokens, event: tip20Abi.find((x) => x.type === "event" && x.name === "TransferWithMemo") as never, args: { to: vault } as never, fromBlock: from, toBlock: to }),
-  ]);
-  const n = (await processVaultLogs(chainId, vaultLogs)) + (await processMemoLogs(chainId, memoLogs));
-  await db.indexerCursor.upsert({ where: { chainId }, create: { chainId, lastBlock: to }, update: { lastBlock: to } });
-  return { from, to, events: n };
+  // Walk MAX_RANGE windows until the head or the time budget; the cursor is persisted after each window so a killed run loses nothing.
+  let from = start;
+  let to = start;
+  let events = 0;
+  for (;;) {
+    to = from + MAX_RANGE - 1n < head ? from + MAX_RANGE - 1n : head;
+    const [vaultLogs, memoLogs] = await Promise.all([
+      pub.getLogs({ address: vault, fromBlock: from, toBlock: to }),
+      pub.getLogs({ address: tokens, event: memoEvent, args: { to: vault } as never, fromBlock: from, toBlock: to }),
+    ]);
+    events += (await processVaultLogs(chainId, vaultLogs)) + (await processMemoLogs(chainId, memoLogs));
+    await db.indexerCursor.upsert({ where: { chainId }, create: { chainId, lastBlock: to }, update: { lastBlock: to } });
+    if (to >= head || Date.now() >= deadline) break;
+    from = to + 1n;
+  }
+  return { from: start, to, events };
 }
 
+/** Polls every enabled chain concurrently under one shared time budget. */
 export async function pollAll(): Promise<Record<number, { from: string; to: string; events: number } | { error: string }>> {
+  const deadline = Date.now() + POLL_BUDGET_MS;
   const out: Record<number, { from: string; to: string; events: number } | { error: string }> = {};
-  for (const c of enabledChains()) {
-    try {
-      const r = await pollChain(c);
-      out[c] = { from: r.from.toString(), to: r.to.toString(), events: r.events };
-    } catch (e) {
-      out[c] = { error: e instanceof Error ? e.message : String(e) };
-    }
-  }
+  await Promise.all(
+    enabledChains().map(async (c) => {
+      try {
+        const r = await pollChain(c, deadline);
+        out[c] = { from: r.from.toString(), to: r.to.toString(), events: r.events };
+      } catch (e) {
+        out[c] = { error: e instanceof Error ? e.message : String(e) };
+      }
+    }),
+  );
   return out;
 }
 

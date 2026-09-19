@@ -33,3 +33,4 @@ docs/*.wav
 .agents/
 .claude/
 skills-lock.json
+.neon

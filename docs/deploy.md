@@ -20,7 +20,7 @@ Fund the server keys: intake/relayer/verifier/feePayer need pathUSD on Tempo (fe
 
 ## 2. Database
 ```
-cd apps/web && pnpm db:deploy       # applies prisma/migrations to DATABASE_URL (Neon)
+cd apps/web && pnpm db:deploy       # applies prisma/migrations to DATABASE_URL (Neon); on Vercel this runs in the build step instead
 ```
 
 ## Go-live checklist (what to gather before step 3)
@@ -28,7 +28,7 @@ cd apps/web && pnpm db:deploy       # applies prisma/migrations to DATABASE_URL 
 | Item | Where to get it | Used for |
 |---|---|---|
 | Vercel project | From the repo root: `vercel link --yes --project vouch`, then set **Root Directory `apps/web`**, framework Next.js, Node 22.x and the build command `cd ../.. && pnpm -r --filter "./packages/**" build && pnpm --filter @vouch/web build` (dashboard → Settings, or `PATCH api.vercel.com/v9/projects/vouch`; the glob must be quoted). `.vercelignore` keeps env files and Foundry artefacts out of the upload. | hosting |
-| `DATABASE_URL` | neon.tech → project → pooled connection string (`?sslmode=require`); then `pnpm db:deploy` once | Postgres |
+| `DATABASE_URL`, `DATABASE_URL_UNPOOLED` | neon.tech → project → pooled + direct connection strings (`neon link --project-id <id> --branch production -y` writes both into `.env.local`). Migrations run inside the Vercel build (`prisma migrate deploy` over the direct URL, see below), because outbound port 5432 is blocked from some networks, including this dev machine | Postgres |
 | `NEXT_PUBLIC_PRIVY_APP_ID`, `PRIVY_APP_SECRET` | dashboard.privy.io → app → Settings; add the Vercel domain under Allowed origins; enable embedded wallets; add chains 42431 / 84532 (4217 / 8453 for mainnet) | login + embedded wallets |
 | `JOB_SECRETS_KEY`, `MPP_SECRET_KEY`, `CRON_SECRET` | `openssl rand -hex 32` each; `JOB_SECRETS_KEY` needs the `0x` prefix (`0x` + 64 hex) or every API route fails env validation | job salts, MPP challenge binding, cron auth |
 | Role keys | `RELAYER_PRIVATE_KEY`, `INTAKE_PRIVATE_KEY`, `VERIFIER_PRIVATE_KEY`, `TEMPO_FEEPAYER_PRIVATE_KEY` (+ `_84532` overrides); fund them (pathUSD on Tempo, ETH on Base) | relays, attribution, attestations, sponsorship |
@@ -39,7 +39,7 @@ cd apps/web && pnpm db:deploy       # applies prisma/migrations to DATABASE_URL 
 | `RESEND_API_KEY`, `EMAIL_FROM` | resend.com | worker/payer emails (optional) |
 | `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN` | sentry.io | error reporting (optional) |
 
-Then, from the repo root: `scripts/vercel-env.sh apps/web/.env.production && vercel deploy --prod --yes` (env changes need a redeploy; `vercel deploy` alone gives a preview without the production env). Check `https://<app>/api/v1/health` (vault reachable, indexer lag, relayer balances); `vercel logs <domain> --since 10m --json` shows the failing validation when it 500s.
+Then, from the repo root: `scripts/vercel-env.sh apps/web/.env.production && vercel deploy --prod --yes` (env changes need a redeploy; `vercel deploy` alone gives a preview without the production env). The build command runs `prisma migrate deploy` against `DATABASE_URL_UNPOOLED` before `next build` when that variable is set, so a production deploy applies pending migrations; previews without a database skip the step. Check `https://<app>/api/v1/health` (vault reachable, indexer lag, relayer balances); `vercel logs <domain> --since 10m --json` shows the failing validation when it 500s.
 
 **Crons on the Hobby plan.** Vercel Hobby allows two crons per project, once a day each, so `apps/web/vercel.json` carries no schedules and `.github/workflows/cron.yml` calls the three routes every 5 minutes instead (`gh secret set CRON_SECRET`, `gh variable set VOUCH_APP_URL`). Submissions still verify inline through `after()`; the workflow only drains retries, polls the indexer and runs the timelock. On a Pro plan, put `* * * * *` / `*/5 * * * *` schedules back into `vercel.json` and delete the workflow.
 
