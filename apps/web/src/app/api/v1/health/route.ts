@@ -4,13 +4,16 @@ import { db } from "@/lib/db";
 import { enabledChains, env } from "@/lib/env";
 import { withErrors } from "@/lib/errors";
 import { json } from "@/lib/http";
+import { nudge } from "@/lib/nudge";
 import { accountFor, hasRole, isVaultConfigured, publicClient } from "@/lib/chain/clients";
 import { readTokenBalance } from "@/lib/chain/vault";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 /** GET /api/v1/health — chain heads, relayer balances (with low-balance flag), verifier queue depth, indexer lag. */
 export const GET = withErrors(async () => {
+  nudge();
   const e = env();
   const chains: Record<string, unknown> = {};
   for (const chainId of enabledChains()) {

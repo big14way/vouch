@@ -79,8 +79,8 @@ export async function pollChain(chainId: number, deadline = Date.now() + POLL_BU
 }
 
 /** Polls every enabled chain concurrently under one shared time budget. */
-export async function pollAll(): Promise<Record<number, { from: string; to: string; events: number } | { error: string }>> {
-  const deadline = Date.now() + POLL_BUDGET_MS;
+export async function pollAll(budgetMs = POLL_BUDGET_MS): Promise<Record<number, { from: string; to: string; events: number } | { error: string }>> {
+  const deadline = Date.now() + budgetMs;
   const out: Record<number, { from: string; to: string; events: number } | { error: string }> = {};
   await Promise.all(
     enabledChains().map(async (c) => {
