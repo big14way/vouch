@@ -1,0 +1,13 @@
+name,email,signup_date
+ Ada Lovelace ,Ada@Example.com,03/01/2024
+Grace Hopper,grace.hopper@navy.mil,15/02/2024
+Linus Torvalds,linus@kernel,20/02/2024
+Ada Lovelace,ada@example.com,04/01/2024
+Margaret Hamilton,margaret@mit.edu ,01/03/2024
+Tim Berners-Lee,timbl@w3.org,07/03/2024
+Ken Thompson,ken@@bell-labs.com,09/03/2024
+Dennis Ritchie,DMR@Bell-Labs.com,09/03/2024
+Barbara Liskov,liskov@csail.mit.edu,12/03/2024
+Dennis Ritchie,dmr@bell-labs.com,10/03/2024
+Radia Perlman,radia@example.org,18/03/2024
+Guido van Rossum,guido@python.org,25/03/2024

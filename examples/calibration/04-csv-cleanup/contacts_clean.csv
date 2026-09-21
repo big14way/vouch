@@ -1,0 +1,9 @@
+name,email,signup_date
+Ada Lovelace,ada@example.com,2024-01-03
+Grace Hopper,grace.hopper@navy.mil,2024-02-15
+Margaret Hamilton,margaret@mit.edu,2024-03-01
+Tim Berners-Lee,timbl@w3.org,2024-03-07
+Dennis Ritchie,dmr@bell-labs.com,2024-03-09
+Barbara Liskov,liskov@csail.mit.edu,2024-03-12
+Radia Perlman,radia@example.org,2024-03-18
+Guido van Rossum,guido@python.org,2024-03-25

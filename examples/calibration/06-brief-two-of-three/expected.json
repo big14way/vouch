@@ -1,0 +1,5 @@
+{
+  "expected": "NEEDS_REVIEW",
+  "note": "Two of three sections delivered in full; the third is a placeholder. A payer would want the missing section before releasing.",
+  "origin": "synthetic, written 2026-09-21 to fill the PASS row; replace with a field sample"
+}

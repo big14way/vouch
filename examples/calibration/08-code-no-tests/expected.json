@@ -1,0 +1,5 @@
+{
+  "expected": "NEEDS_REVIEW",
+  "note": "The implementation meets the rules but the required test file is missing.",
+  "origin": "synthetic, written 2026-09-21 to fill the PASS row; replace with a field sample"
+}

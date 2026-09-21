@@ -1,0 +1,5 @@
+{
+  "expected": "PASS",
+  "note": "Every rule applied, the four counts are consistent with the raw file, dates in ISO format.",
+  "origin": "synthetic, written 2026-09-21 to fill the PASS row; replace with a field sample"
+}

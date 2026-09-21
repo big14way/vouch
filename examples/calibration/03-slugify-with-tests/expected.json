@@ -1,0 +1,5 @@
+{
+  "expected": "PASS",
+  "note": "Implementation meets every rule, eight unittest cases cover all six required areas, stdlib only, typed and documented.",
+  "origin": "synthetic, written 2026-09-21 to fill the PASS row; replace with a field sample"
+}

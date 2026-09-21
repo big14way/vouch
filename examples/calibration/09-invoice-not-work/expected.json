@@ -1,0 +1,5 @@
+{
+  "expected": "FAIL",
+  "note": "No part of the scope was delivered; the file is an invoice asking for payment before the work.",
+  "origin": "synthetic, written 2026-09-21 to fill the PASS row; replace with a field sample"
+}

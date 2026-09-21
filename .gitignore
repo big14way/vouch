@@ -34,3 +34,5 @@ docs/*.wav
 .claude/
 skills-lock.json
 .neon
+# python
+__pycache__/

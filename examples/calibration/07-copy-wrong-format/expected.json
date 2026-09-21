@@ -1,0 +1,5 @@
+{
+  "expected": "NEEDS_REVIEW",
+  "note": "Content is there but delivered as one .txt instead of copy.md plus alt.md, with exclamation marks the scope forbade and a 4-word CTA plus 'now'.",
+  "origin": "synthetic, written 2026-09-21 to fill the PASS row; replace with a field sample"
+}
