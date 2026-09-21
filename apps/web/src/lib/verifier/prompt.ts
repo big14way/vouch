@@ -17,19 +17,25 @@ Rules you must follow:
 
 Answer by calling the submit_verdict tool exactly once.`;
 
+/**
+ * Strict tool use: the API guarantees the input validates against this schema, so a verdict can never arrive with
+ * `scope_items` as a string or `summary` missing (seen once from Sonnet 5 on the system-tag injection sample). Strict
+ * mode rejects numeric/array bounds, so `confidence ∈ [0, 1]` and `scope_items.length ≥ 1` are enforced by
+ * `VerdictOutputSchema` at parse time instead.
+ */
 export const VERDICT_TOOL = {
   name: "submit_verdict",
-  description: "Report the structured verification result.",
+  description: "Report the structured verification result. confidence is a number from 0 to 1; scope_items lists every item of the scope.",
+  strict: true,
   input_schema: {
     type: "object" as const,
     additionalProperties: false,
     required: ["verdict", "confidence", "scope_items", "summary", "questions_for_worker", "red_flags"],
     properties: {
       verdict: { type: "string", enum: ["PASS", "NEEDS_REVIEW", "FAIL"] },
-      confidence: { type: "number", minimum: 0, maximum: 1 },
+      confidence: { type: "number", description: "0 to 1" },
       scope_items: {
         type: "array",
-        minItems: 1,
         items: {
           type: "object",
           additionalProperties: false,

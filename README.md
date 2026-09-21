@@ -91,16 +91,27 @@ Claude Sonnet 4.6, temperature 0, forced tool-use JSON, 60 s budget, ≤ 2 MB pe
 
 **Threat model** — [docs/threat-model.md](docs/threat-model.md). Worst case for a payer: their own auto-cap on one job. Worst case for a worker: time.
 
-### Calibration (adversarial corpus, rules layer only — model pass pending)
+### Calibration (adversarial corpus, model + rules, Sept 21)
 
-`pnpm --filter @vouch/web calibrate` on the 10 samples in `examples/adversarial`, without the model (a naive stand-in says PASS for anything non-empty, so this shows exactly what the rules alone guarantee):
+`pnpm --filter @vouch/web calibrate --model` on the 10 samples in `examples/adversarial`, once per model, with the strict verdict tool (transcripts: [Sonnet 4.6](docs/calibration-2026-09-21-claude-sonnet-4-6.txt), [Sonnet 5](docs/calibration-2026-09-21-claude-sonnet-5.txt)). Rows are expected labels, columns what the verifier returned after the rules layer.
 
-| expected \ got | PASS | NEEDS_REVIEW | FAIL |
-|---|---|---|---|
-| NEEDS_REVIEW (8) | 2 | 6 | 0 |
-| FAIL (2) | 1 | 0 | 1 |
+| expected \ got | Sonnet 4.6: PASS | NEEDS_REVIEW | FAIL | Sonnet 5: PASS | NEEDS_REVIEW | FAIL |
+|---|---|---|---|---|---|---|
+| NEEDS_REVIEW (8) | 0 | 6 | 2 | 0 | 7 | 1 |
+| FAIL (2) | 0 | 1 | 1 | 0 | 1 | 1 |
 
-All 7 injection samples flagged (10/10 flag decisions correct), confidence capped at ≤ 0.5 on every flagged one; 6/7 confidence caps met (the unverifiable-claims sample needs the model). The 3 wrong PASSes (unrelated content, partial delivery, unverifiable claims) are judgment calls the rules cannot make; they are the model's job and are re-run with `--model` before submission together with 20 real deliverables. No number is published here until it has been run.
+| | Sonnet 4.6 | Sonnet 5 |
+|---|---|---|
+| wrong PASS (the only outcome that can move money) | **0** | **0** |
+| accuracy | 7/10 | 8/10 |
+| schema-invalid verdicts | 0 | 0 |
+| confidence caps met | 7/7 | 7/7 |
+| tokens for the 10 runs (in / out) | 18,079 / 6,556 | 21,114 / 9,823 |
+| cost for the 10 runs at list price | $0.15 | $0.14 |
+
+Every miss is in the safe direction: a NEEDS_REVIEW sample judged FAIL (hidden instruction, fake verdict JSON) or the unrelated-content FAIL held at NEEDS_REVIEW. No sample reached PASS, and every flagged sample had its confidence capped at 0.5, so nothing in this corpus could auto-settle. The `injection flags` counter in the transcripts (7/10 and 6/10) is lower than the rules-only 10/10 because the models also raise `red_flags` on empty, unrelated and unverifiable deliveries, which the manifest marks as non-injection; that is a broader use of the field, not a missed injection (all 7 injection samples were flagged by both).
+
+Before the strict tool, Sonnet 5 returned one verdict with `scope_items` as a string on the system-tag sample; the tool is now `strict: true`, so the API guarantees the shape and the harness counts any remaining schema failure instead of crashing. The rules-only pass (naive stand-in that says PASS to anything non-empty) still shows 3 wrong PASSes, which is exactly the gap the model closes. Real deliverables are not in the set yet; add each under `examples/calibration/<n>/` with `scope.md` and `expected.json` and they join the next run.
 
 ## Privacy, stated honestly
 Payer and worker addresses are in the job struct. Hidden on-chain: per-job amounts (commitment, until the amount appears in settlement calldata) and deposit → job linkage (deposits credit a balance; jobs draw from balance; payouts come from the vault). The web app gives every user a fresh embedded wallet so addresses carry no identity. On Tempo testnet a payout can leave the Vault straight into Zone A with the recipient encrypted (F12), so the public ledger never shows who was paid.

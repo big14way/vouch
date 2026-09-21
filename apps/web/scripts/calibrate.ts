@@ -19,6 +19,8 @@ interface Sample { name: string; scope: string; files: { name: string; bytes: Bu
 const root = resolve(import.meta.dirname, "../../..");
 const useModel = process.argv.includes("--model");
 const usage = { input: 0, output: 0 };
+/** The model returned a tool input the verdict schema rejects; in production the verdict stage reports `failed` and the job waits for the payer. */
+class InvalidVerdict extends Error {}
 
 async function loadAdversarial(): Promise<Sample[]> {
   const dir = join(root, "examples/adversarial");
@@ -57,7 +59,9 @@ async function judge(s: Sample): Promise<{ output: VerdictOutput; adjustments: s
     const res = await client.messages.create({ model, max_tokens: 4000, ...modelSampling(model), system: SYSTEM_PROMPT, messages: [{ role: "user", content }], tools: [VERDICT_TOOL], tool_choice: { type: "tool", name: VERDICT_TOOL.name } });
     usage.input += res.usage.input_tokens; usage.output += res.usage.output_tokens;
     const tool = res.content.find((b) => b.type === "tool_use");
-    raw = VerdictOutputSchema.parse(tool && tool.type === "tool_use" ? tool.input : {});
+    const parsed = VerdictOutputSchema.safeParse(tool && tool.type === "tool_use" ? tool.input : {});
+    if (!parsed.success) throw new InvalidVerdict(parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "));
+    raw = parsed.data;
   } else {
     // Rules-only stand-in for the model: a naive "everything met at 0.95" judgement, so the run shows exactly what the rules alone guarantee.
     const empty = !accessible || text.trim().length === 0;
@@ -73,8 +77,17 @@ async function main() {
   const matrix: Record<Label, Record<Label, number>> = { PASS: { PASS: 0, NEEDS_REVIEW: 0, FAIL: 0 }, NEEDS_REVIEW: { PASS: 0, NEEDS_REVIEW: 0, FAIL: 0 }, FAIL: { PASS: 0, NEEDS_REVIEW: 0, FAIL: 0 } };
   let flagOk = 0, flagTotal = 0, capOk = 0, capTotal = 0;
   console.log(`mode: ${useModel ? "model + rules" : "rules only"} · ${samples.length} samples · scope hash ${hashScope(samples[0]?.scope ?? "").slice(0, 10)}…\n`);
+  let invalid = 0;
   for (const s of samples) {
-    const r = await judge(s);
+    let r: Awaited<ReturnType<typeof judge>>;
+    try {
+      r = await judge(s);
+    } catch (e) {
+      if (!(e instanceof InvalidVerdict)) throw e;
+      invalid++;
+      console.log(`✗ ${s.name.padEnd(34)} expected ${s.expected.padEnd(12)} got INVALID      (schema: ${e.message.slice(0, 80)})`);
+      continue;
+    }
     matrix[s.expected][r.output.verdict]++;
     const flagged = r.output.red_flags.length > 0;
     if (s.flag !== undefined) { flagTotal++; if (flagged === s.flag) flagOk++; }
@@ -86,7 +99,7 @@ async function main() {
   console.log("| expected \\ got | PASS | NEEDS_REVIEW | FAIL |\n|---|---|---|---|");
   for (const e of labels) console.log(`| ${e} | ${matrix[e].PASS} | ${matrix[e].NEEDS_REVIEW} | ${matrix[e].FAIL} |`);
   const correct = labels.reduce((n, l) => n + matrix[l][l], 0);
-  console.log(`\naccuracy ${correct}/${samples.length} · injection flags ${flagOk}/${flagTotal} · confidence caps ${capOk}/${capTotal}`);
+  console.log(`\naccuracy ${correct}/${samples.length} · invalid verdicts ${invalid} · injection flags ${flagOk}/${flagTotal} · confidence caps ${capOk}/${capTotal}`);
   const wrongPass = matrix.NEEDS_REVIEW.PASS + matrix.FAIL.PASS;
   console.log(`wrong PASS (the only outcome that can move money): ${wrongPass}${useModel ? "" : "  (rules-only mode: the naive stand-in says PASS for anything non-empty; unrelated/partial/unverifiable need the model)"}`);
   if (useModel) console.log(`model ${process.env.VERIFIER_MODEL ?? "claude-sonnet-4-6"} · tokens in ${usage.input} out ${usage.output}`);
