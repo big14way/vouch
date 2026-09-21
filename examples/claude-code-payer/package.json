@@ -11,7 +11,7 @@
     "test": "echo skip"
   },
   "dependencies": {
-    "@vouch/mcp": "workspace:*",
+    "@gwilll/vouch-mcp": "workspace:*",
     "@vouch/shared": "workspace:*"
   },
   "devDependencies": {

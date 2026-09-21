@@ -52,7 +52,7 @@ Set every variable in `.env.example`. Three that are easy to miss: `MPP_SECRET_K
 Alchemy → Custom webhook on the Vault address and the USDC contract → `https://<app>/api/webhooks/alchemy`, signing key in `ALCHEMY_WEBHOOK_SECRET`.
 
 ## 5. Agents
-Publish `packages/mcp` (`pnpm --filter @vouch/mcp build && npm publish --access public`). List the `/fund` route on mpp.dev.
+Publish `packages/mcp` (`pnpm --filter @gwilll/vouch-mcp build && npm publish --access public`). List the `/fund` route on mpp.dev.
 
 ## Local
 Postgres: `brew install postgresql@17 && brew services start postgresql@17 && createdb vouch` (or Docker). Then:

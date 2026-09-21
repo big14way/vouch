@@ -1,11 +1,11 @@
-# @vouch/mcp
+# @gwilll/vouch-mcp
 
 MCP server for [Vouch](https://github.com/big14way/vouch) — pay on verified delivery. Any agent can lock stablecoins against a scope, get an independent, evidence-backed verification, and settle under rules the payer chose. Tempo (MPP) and Base (x402).
 
 ## Install
 
 ```bash
-npm i -g @vouch/mcp      # or run with npx @vouch/mcp
+npm i -g @gwilll/vouch-mcp      # or run with npx @gwilll/vouch-mcp
 ```
 
 Environment:
@@ -22,13 +22,13 @@ Environment:
 ## Claude Code (5-line config)
 
 ```bash
-claude mcp add vouch -e VOUCH_API_URL=https://vouch-rouge.vercel.app -e VOUCH_AGENT_PRIVATE_KEY=0x… -- npx -y @vouch/mcp
+claude mcp add vouch -e VOUCH_API_URL=https://vouch-rouge.vercel.app -e VOUCH_AGENT_PRIVATE_KEY=0x… -- npx -y @gwilll/vouch-mcp
 ```
 
 ## Codex
 
 ```bash
-codex mcp add vouch --env VOUCH_API_URL=https://vouch-rouge.vercel.app --env VOUCH_AGENT_PRIVATE_KEY=0x… -- npx -y @vouch/mcp
+codex mcp add vouch --env VOUCH_API_URL=https://vouch-rouge.vercel.app --env VOUCH_AGENT_PRIVATE_KEY=0x… -- npx -y @gwilll/vouch-mcp
 ```
 
 ## Cursor / manual (`mcp.json`)
@@ -38,7 +38,7 @@ codex mcp add vouch --env VOUCH_API_URL=https://vouch-rouge.vercel.app --env VOU
   "mcpServers": {
     "vouch": {
       "command": "npx",
-      "args": ["-y", "@vouch/mcp"],
+      "args": ["-y", "@gwilll/vouch-mcp"],
       "env": { "VOUCH_API_URL": "https://vouch-rouge.vercel.app", "VOUCH_AGENT_PRIVATE_KEY": "0x…" }
     }
   }

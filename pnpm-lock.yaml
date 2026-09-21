@@ -137,7 +137,7 @@ importers:
 
   examples/claude-code-payer:
     dependencies:
-      '@vouch/mcp':
+      '@gwilll/vouch-mcp':
         specifier: workspace:*
         version: link:../../packages/mcp
       '@vouch/shared':
@@ -156,12 +156,12 @@ importers:
 
   examples/moderato-e2e:
     dependencies:
+      '@gwilll/vouch-mcp':
+        specifier: workspace:*
+        version: link:../../packages/mcp
       '@vouch/abi':
         specifier: workspace:*
         version: link:../../packages/abi
-      '@vouch/mcp':
-        specifier: workspace:*
-        version: link:../../packages/mcp
       '@vouch/shared':
         specifier: workspace:*
         version: link:../../packages/shared

@@ -4,7 +4,7 @@
  AGENTS                                   HUMANS
  Claude Code / Codex / Cursor             Web app (Next.js 15, PWA)
  ┌───────────┐ ┌───────────┐ ┌─────────┐  ┌──────────────────────────┐
- │ @vouch/mcp│ │ mppx      │ │ x402    │  │ Privy (email/Google →    │
+ │ @gwilll/vouch-mcp│ │ mppx      │ │ x402    │  │ Privy (email/Google →    │
  │ (stdio /  │ │ client    │ │ client  │  │ embedded wallet)         │
  │  http)    │ │           │ │         │  │ Tempo Wallet (batched tx)│
  └─────┬─────┘ └─────┬─────┘ └────┬────┘  └────────────┬─────────────┘

@@ -1,5 +1,5 @@
 {
-  "name": "@vouch/mcp",
+  "name": "@gwilll/vouch-mcp",
   "version": "0.1.0",
   "description": "MCP server for Vouch — let any agent lock stablecoins against a scope, get an independent verification, and settle on Tempo or Base.",
   "license": "MIT",

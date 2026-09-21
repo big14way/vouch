@@ -13,7 +13,7 @@
 import { readFileSync, writeFileSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { VouchClient, loadConfig } from "@vouch/mcp";
+import { VouchClient, loadConfig } from "@gwilll/vouch-mcp";
 import { formatAmount } from "@vouch/shared";
 
 for (const f of ["../../contracts/.env.moderato", "../../apps/web/.env"]) {

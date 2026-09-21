@@ -49,7 +49,7 @@ const ServerEnvSchema = z.object({
   SUPPORT_EMAIL: z.string().default("support@vouch.dev"),
 
   ANTHROPIC_API_KEY: z.string().optional(),
-  VERIFIER_MODEL: z.string().default("claude-sonnet-4-6"),
+  VERIFIER_MODEL: z.string().default("claude-sonnet-5"),
   VERIFIER_TIMEOUT_MS: z.coerce.number().default(60_000),
   VERIFIER_MAX_ARTIFACT_BYTES: z.coerce.number().default(2 * 1024 * 1024),
 

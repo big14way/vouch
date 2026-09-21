@@ -11,7 +11,7 @@
 import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { VouchClient, loadConfig } from "@vouch/mcp";
+import { VouchClient, loadConfig } from "@gwilll/vouch-mcp";
 import { formatAmount, parseAmount } from "@vouch/shared";
 
 const log = (...a: unknown[]) => console.log(new Date().toISOString().slice(11, 19), ...a);

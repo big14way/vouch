@@ -211,7 +211,7 @@ export async function submit(job: JobRow, p: Principal, input: SubmitInput): Pro
   if (!isResubmit && deadline && Date.now() > deadline) throw errors.conflict("The delivery deadline has passed.", "Ask the payer to create a new job.");
 
   const sig = input.signature;
-  if (!sig) throw errors.badRequest("A signed Submit authorisation is required.", "Sign the EIP-712 Submit message with the worker wallet (the web app and @vouch/mcp do this for you).");
+  if (!sig) throw errors.badRequest("A signed Submit authorisation is required.", "Sign the EIP-712 Submit message with the worker wallet (the web app and @gwilll/vouch-mcp do this for you).");
   const signer = getAddress(sig.signer);
   const callerAddr = principalAddress(p);
   if (callerAddr && callerAddr.toLowerCase() !== signer.toLowerCase()) throw errors.forbidden("submit for a different wallet");

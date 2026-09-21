@@ -26,7 +26,7 @@ Not escrow: escrow is a box. Vouch is the judgment plus the settlement policy th
 
 **Agent (Claude Code):**
 ```bash
-claude mcp add vouch -e VOUCH_API_URL=https://vouch-rouge.vercel.app -e VOUCH_AGENT_PRIVATE_KEY=0x… -- npx -y @vouch/mcp
+claude mcp add vouch -e VOUCH_API_URL=https://vouch-rouge.vercel.app -e VOUCH_AGENT_PRIVATE_KEY=0x… -- npx -y @gwilll/vouch-mcp
 # then: "Use the hire_for_task prompt: summarise 3 PDFs into a 1-page brief, budget 5"
 ```
 
@@ -46,7 +46,7 @@ npx mppx https://vouch-rouge.vercel.app/api/v1/jobs/<jobId>/fund -X POST     # 4
 | [`contracts/`](contracts) | `Vault.sol`, `VerifierRegistry.sol`, Foundry unit/fuzz/invariant suites (100% line/branch), deploy script |
 | [`packages/abi`](packages/abi) | ABIs, per-chain `addresses.json` |
 | [`packages/shared`](packages/shared) | Types, zod schemas, policy presets, commitment/manifest/report hashing, EIP-712 types |
-| [`packages/mcp`](packages/mcp) | `@vouch/mcp` — 8 tools, resources, `hire_for_task` prompt |
+| [`packages/mcp`](packages/mcp) | `@gwilll/vouch-mcp` — 8 tools, resources, `hire_for_task` prompt |
 | [`apps/web`](apps/web) | Next.js service: REST `/api/v1`, MPP + x402 fund routes, verifier agent, indexer, relayer, timelock, web app S0–S7 |
 | [`examples/`](examples) | Unattended payer demo, adversarial corpus, calibration harness |
 | [`docs/`](docs) | [Architecture](docs/architecture.md) · [Threat model](docs/threat-model.md) · [Deploy](docs/deploy.md) |
@@ -64,7 +64,7 @@ Addresses are committed to `packages/abi/addresses.json` the day they are deploy
 
 **Two agents, no humans, Sept 17:** [`docs/e2e-agent-payer-moderato-2026-09-17.txt`](docs/e2e-agent-payer-moderato-2026-09-17.txt) is `examples/claude-code-payer` run unattended against the service on Moderato: the payer agent creates a $5 job and pays the 402 with an MPP charge, the worker agent submits the pinned deliverable, all in 27 seconds and three transactions. The verifier stage reports `failed` in that run because no model key is configured yet, so the job waits for payer review instead of auto-settling.
 
-**Service layer live on Moderato, Sept 16:** [`docs/e2e-service-moderato-2026-09-16.txt`](docs/e2e-service-moderato-2026-09-16.txt) drives the REST API with the `@vouch/mcp` client: wallet-bound API key → `POST /jobs` → `POST /fund` answered with a 402, paid by mppx as a Tempo charge with `memo = jobId`, attributed and funded by intake in the same round-trip → worker's relayed `submitWithSig` → payer's relayed `settleWithSig` → timeline, indexer and timelock crons. The indexer backfilled every Vault event since deployment (72 events, 13 kinds) and linked the job's four. The verifier stage reports `failed: ANTHROPIC_API_KEY not configured` in that run, as designed without a model key.
+**Service layer live on Moderato, Sept 16:** [`docs/e2e-service-moderato-2026-09-16.txt`](docs/e2e-service-moderato-2026-09-16.txt) drives the REST API with the `@gwilll/vouch-mcp` client: wallet-bound API key → `POST /jobs` → `POST /fund` answered with a 402, paid by mppx as a Tempo charge with `memo = jobId`, attributed and funded by intake in the same round-trip → worker's relayed `submitWithSig` → payer's relayed `settleWithSig` → timeline, indexer and timelock crons. The indexer backfilled every Vault event since deployment (72 events, 13 kinds) and linked the job's four. The verifier stage reports `failed: ANTHROPIC_API_KEY not configured` in that run, as designed without a model key.
 
 **Live on Moderato, Sept 15:** [`docs/e2e-moderato-2026-09-15.txt`](docs/e2e-moderato-2026-09-15.txt) is a full run of `examples/moderato-e2e` against the deployed contracts, 15 transactions with explorer links: wallet-path job (approve → deposit → createJob → fund → submit → attest PASS → autoSettle → withdraw of real pathUSD) and memo-path job (`transferWithMemo` into the vault → intake attribution → job created and funded on the payer's behalf → open worker submits → NEEDS_REVIEW → payer-signed, relayer-sent `settleWithSig`). Tempo deploy notes (gas per byte, 30M cap, `--network tempo` fork caveat) are in [contracts/README.md](contracts/README.md).
 
@@ -125,7 +125,7 @@ See [docs/deploy.md](docs/deploy.md). In short: `pnpm install`, build `packages/
 |---|---|---|
 | F1 | Vault + registry, 100% branch coverage, invariants | done (60 unit · 6 fuzz · 6 invariants × 10k calls) |
 | F2 | Funding rails: Tempo batched, MPP charge, Base EIP-3009, x402 | implemented; contracts live on Moderato and Base Sepolia (Sept 15); mainnets pending |
-| F3 | `@vouch/mcp` | implemented, stdio + HTTP; its client drove the live service run on Moderato; npm publish pending |
+| F3 | `@gwilll/vouch-mcp` | implemented, stdio + HTTP; its client drove the live service run on Moderato; npm publish pending |
 | F4 | Verifier + on-chain attestation | implemented |
 | F5 | Settlement policy on-chain | done; autoSettle and settleWithSig exercised live on Moderato |
 | F6 | Web app S0–S7 + motion system | implemented; Lighthouse run pending |

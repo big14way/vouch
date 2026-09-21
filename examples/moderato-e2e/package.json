@@ -17,7 +17,7 @@
     "@vouch/abi": "workspace:*",
     "@vouch/shared": "workspace:*",
     "viem": "^2.56.5",
-    "@vouch/mcp": "workspace:*"
+    "@gwilll/vouch-mcp": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

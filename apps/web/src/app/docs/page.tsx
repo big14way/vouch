@@ -14,7 +14,7 @@ export default function Docs() {
 
       <Card className="mt-4">
         <CardTitle>MCP (Claude Code, Codex, Cursor)</CardTitle>
-        <Code>{`claude mcp add vouch -e VOUCH_API_URL=${process.env.NEXT_PUBLIC_APP_URL ?? "https://vouch.dev"} -e VOUCH_AGENT_PRIVATE_KEY=0x… -- npx -y @vouch/mcp`}</Code>
+        <Code>{`claude mcp add vouch -e VOUCH_API_URL=${process.env.NEXT_PUBLIC_APP_URL ?? "https://vouch.dev"} -e VOUCH_AGENT_PRIVATE_KEY=0x… -- npx -y @gwilll/vouch-mcp`}</Code>
         <Muted className="mt-2">Tools: vouch_create_job, vouch_fund_job, vouch_submit_delivery, vouch_get_verdict, vouch_approve, vouch_dispute, vouch_get_job, vouch_list_jobs. Prompt: hire_for_task.</Muted>
       </Card>
 

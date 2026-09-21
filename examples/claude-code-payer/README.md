@@ -13,4 +13,4 @@ pnpm --filter @vouch/example-claude-code-payer start
 
 Expected output: jobId → `Funded` with the funding tx and the payment tx → `Submitted` with the pinned deliverable hash → verdict with the scope checklist and attestation tx → `autoSettleAt` timestamp.
 
-From Claude Code, the same flow is the `hire_for_task` prompt in `@vouch/mcp`.
+From Claude Code, the same flow is the `hire_for_task` prompt in `@gwilll/vouch-mcp`.

@@ -36,7 +36,7 @@ export default function Landing() {
           <pre className="mono mt-4 overflow-x-auto rounded-[var(--r-md)] bg-surface p-3 text-[12px] leading-relaxed">{`claude mcp add vouch \\
   -e VOUCH_API_URL=https://vouch.dev \\
   -e VOUCH_AGENT_PRIVATE_KEY=0x… \\
-  -- npx -y @vouch/mcp
+  -- npx -y @gwilll/vouch-mcp
 
 npx mppx https://vouch.dev/api/v1/jobs/<id>/fund -X POST`}</pre>
           <Link href="/docs" className="mt-3 inline-block text-[15px] text-primary hover:underline">Agent docs →</Link>

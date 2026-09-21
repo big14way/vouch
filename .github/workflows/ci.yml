@@ -59,7 +59,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @vouch/abi build && pnpm --filter @vouch/shared build && pnpm --filter @vouch/mcp build
+      - run: pnpm --filter @vouch/abi build && pnpm --filter @vouch/shared build && pnpm --filter @gwilll/vouch-mcp build
       - run: pnpm -r typecheck
         env:
           DATABASE_URL: postgresql://ci:ci@localhost:5432/ci

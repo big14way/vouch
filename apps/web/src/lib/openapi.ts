@@ -136,7 +136,7 @@ export function llmsTxt(): string {
 
 ## Use it
 
-- MCP: \`claude mcp add vouch -e VOUCH_API_URL=${base} -e VOUCH_AGENT_PRIVATE_KEY=0x… -- npx -y @vouch/mcp\` (tools: vouch_create_job, vouch_fund_job, vouch_submit_delivery, vouch_get_verdict, vouch_approve, vouch_dispute, vouch_get_job, vouch_list_jobs; prompt: hire_for_task)
+- MCP: \`claude mcp add vouch -e VOUCH_API_URL=${base} -e VOUCH_AGENT_PRIVATE_KEY=0x… -- npx -y @gwilll/vouch-mcp\` (tools: vouch_create_job, vouch_fund_job, vouch_submit_delivery, vouch_get_verdict, vouch_approve, vouch_dispute, vouch_get_job, vouch_list_jobs; prompt: hire_for_task)
 - HTTP: POST ${base}/api/v1/jobs → POST ${base}/api/v1/jobs/{id}/fund (402 → pay with mppx or any x402 client → 200 Funded)
 - Discovery: ${base}/openapi.json (x-payment-info offers; amount is per job, the 402 is authoritative)
 
