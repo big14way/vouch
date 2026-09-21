@@ -95,25 +95,28 @@ Claude Sonnet 4.6, temperature 0, forced tool-use JSON, 60 s budget, ≤ 2 MB pe
 
 ### Calibration (19 samples, model + rules, Sept 21)
 
-`pnpm --filter @vouch/web calibrate --model` over the 10 adversarial samples in `examples/adversarial` plus 9 job samples in `examples/calibration` (5 acceptable deliveries: a sourced brief, landing copy, a Python function with tests, a CSV clean-up, a French translation; 3 realistic near-misses; 1 invoice sent instead of the work). The 9 are **synthetic**, written by the team on Sept 21 so the PASS row is not empty; field samples replace them as testers' jobs come in. Transcripts with the model's reasoning: [Sonnet 4.6](docs/calibration-2026-09-21-claude-sonnet-4-6.txt), [Sonnet 5](docs/calibration-2026-09-21-claude-sonnet-5.txt). Rows are the human label, columns what the verifier returned after the rules layer.
+`pnpm --filter @vouch/web calibrate --model` over the 10 adversarial samples in `examples/adversarial` plus 9 job samples in `examples/calibration` (5 acceptable deliveries: a sourced brief, landing copy, a Python function with tests, a CSV clean-up, a French translation; 3 realistic near-misses; 1 invoice sent instead of the work). The 9 are **synthetic**, written by the team on Sept 21 so the PASS row is not empty; field samples replace them as testers' jobs come in. Three configurations were run over all 19, then each three more times over the 9 job samples to check the result is stable ([repeat runs](docs/calibration-2026-09-21-repeats.md)). Transcripts with the model's reasoning: [Sonnet 4.6](docs/calibration-2026-09-21-claude-sonnet-4-6.txt), [Sonnet 5, thinking off](docs/calibration-2026-09-21-claude-sonnet-5.txt), [Sonnet 5, adaptive thinking](docs/calibration-2026-09-21-claude-sonnet-5-adaptive.txt). Rows are the human label, columns what the verifier returned after the rules layer.
 
-| expected \ got | Sonnet 4.6: PASS | NEEDS_REVIEW | FAIL | Sonnet 5: PASS | NEEDS_REVIEW | FAIL |
-|---|---|---|---|---|---|---|
-| PASS (5) | **5** | 0 | 0 | **3** | 2 | 0 |
-| NEEDS_REVIEW (11) | 0 | 9 | 2 | 0 | 8 | 3 |
-| FAIL (3) | 0 | 1 | 2 | 0 | 1 | 2 |
+| expected \ got | Sonnet 4.6: PASS | NEEDS_REVIEW | FAIL | Sonnet 5 (thinking off): PASS | NEEDS_REVIEW | FAIL | **Sonnet 5 + adaptive thinking (production):** PASS | NEEDS_REVIEW | FAIL |
+|---|---|---|---|---|---|---|---|---|---|
+| PASS (5) | 5 | 0 | 0 | 3 | 2 | 0 | **4** | 1 | 0 |
+| NEEDS_REVIEW (11) | 0 | 9 | 2 | 0 | 8 | 3 | 0 | 8 | 3 |
+| FAIL (3) | 0 | 1 | 2 | 0 | 1 | 2 | 0 | 1 | 2 |
 
-| | Sonnet 4.6 | Sonnet 5 |
-|---|---|---|
-| wrong PASS (the only outcome that can move money) | **0** | **0** |
-| good deliveries released at ≥ 0.90 confidence (auto-release path) | **5/5** | 3/5 |
-| accuracy | 16/19 | 13/19 |
-| injection samples flagged | 7/7 | 7/7 |
-| schema-invalid verdicts | 0 | 0 |
-| tokens for the 19 runs (in / out) | 41,956 / 12,436 | 50,355 / 16,727 |
-| cost for the 19 runs at list price | $0.31 | $0.27 |
+| | Sonnet 4.6 | Sonnet 5, thinking off | **Sonnet 5, adaptive thinking** |
+|---|---|---|---|
+| wrong PASS (the only outcome that can move money) | **0** | **0** | **0** |
+| good deliveries released at ≥ 0.90, full run | 5/5 | 3/5 | 4/5 |
+| good deliveries released, three repeat runs on the 9 job samples | 4/5, 4/5, 4/5 | 2/5, 2/5, 3/5 | 4/5, 4/5, 4/5 |
+| accuracy, full run | 16/19 | 13/19 | 14/19 |
+| injection samples flagged | 7/7 | 7/7 | 7/7 |
+| schema-invalid verdicts | 0 | 0 | 0 |
+| tokens for the 19 runs (in / out) | 41,956 / 12,436 | 50,355 / 16,727 | 50,355 / 14,977 |
+| cost for the 19 runs at list price | $0.31 | $0.27 | $0.25 |
 
-Every miss on both models is in the safe direction: a NEEDS_REVIEW sample judged FAIL, the unrelated-content FAIL held at NEEDS_REVIEW, or (Sonnet 5 only) a good delivery held for review. Sonnet 5 held back the landing copy at 0.55 and the CSV clean-up at 0.40 on details of its own (a headline-placement requirement the scope does not contain, and a row count it got wrong); Sonnet 4.6 released all five at 0.95 or above. On this set Sonnet 4.6 is the better verifier for the release path at equal safety.
+No configuration produced a wrong PASS in any of the twelve runs. Every miss is in the safe direction: a NEEDS_REVIEW sample judged FAIL, the unrelated-content FAIL held at NEEDS_REVIEW, or a good delivery held for review. Sonnet 4.6 and Sonnet 5 with thinking on behave the same on the release path (four of five, stable across repeats; the 5/5 in the 4.6 full run did not repeat); Sonnet 5 with thinking off holds two or three of five, on a row count it gets wrong. **Production runs Sonnet 5 with adaptive thinking at medium effort** (`VERIFIER_THINKING=adaptive`, `VERIFIER_EFFORT=medium`): same release rate and safety as 4.6, current generation, a third cheaper per token, about 15 s per verification.
+
+The one good delivery every configuration holds is the landing copy, whose scope sets word limits: the models miscount or add a limit the scope does not state, and the rules turn that into a hold at 0.60. Scopes with tight word or character limits are where verification is least reliable, and the failure mode is a review, never a release.
 
 Two harness defects were found and fixed on the way, both worth knowing: the first synthetic run had Sonnet 5 flag every good delivery because the harness built a manifest declaring each file as 0 bytes, and the model correctly noticed the contradiction (production manifests carry real sizes); and `red_flags` had no definition, so the model used it for any concern, which the rules layer treats as manipulation. The field now says manipulation and fraud only, and the prompt tells the verifier not to add requirements the scope does not state. The rules-only pass (naive stand-in that says PASS to anything non-empty) shows 7 wrong PASSes on the same set, which is the gap the model closes.
 

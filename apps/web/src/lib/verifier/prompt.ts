@@ -107,6 +107,12 @@ export function buildUserContent(input: PromptInput): ContentBlock[] {
  * parameters with a 400 and thinks adaptively unless told not to, so it gets thinking disabled instead — the verdict is
  * a forced tool call either way, and both runs stay comparable in the calibration matrix.
  */
-export function modelSampling(model: string): { temperature?: number; thinking?: { type: "disabled" } } {
-  return /-4-\d/.test(model) ? { temperature: 0 } : { thinking: { type: "disabled" } };
+export function modelSampling(model: string): { temperature?: number; thinking?: { type: "disabled" } | { type: "adaptive" }; output_config?: { effort: "low" | "medium" | "high" } } {
+  if (/-4-\d/.test(model)) return { temperature: 0 };
+  // Claude 5: thinking off by default (deterministic, cheap). VERIFIER_THINKING=adaptive turns it on with VERIFIER_EFFORT (default medium).
+  if (process.env.VERIFIER_THINKING === "adaptive") {
+    const effort = (process.env.VERIFIER_EFFORT as "low" | "medium" | "high" | undefined) ?? "medium";
+    return { thinking: { type: "adaptive" }, output_config: { effort } };
+  }
+  return { thinking: { type: "disabled" } };
 }
