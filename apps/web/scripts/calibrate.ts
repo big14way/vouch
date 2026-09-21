@@ -10,7 +10,7 @@ import { join, resolve } from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
 import { VerdictOutputSchema, hashScope, type DeliveryManifest, type VerdictOutput } from "@vouch/shared";
 import { bytesToArtifact, type Artifact } from "../src/lib/verifier/content";
-import { buildUserContent, SYSTEM_PROMPT, VERDICT_TOOL } from "../src/lib/verifier/prompt";
+import { buildUserContent, modelSampling, SYSTEM_PROMPT, VERDICT_TOOL } from "../src/lib/verifier/prompt";
 import { applyRules, detectInjection } from "../src/lib/verifier/rules";
 
 type Label = "PASS" | "NEEDS_REVIEW" | "FAIL";
@@ -18,6 +18,7 @@ interface Sample { name: string; scope: string; files: { name: string; bytes: Bu
 
 const root = resolve(import.meta.dirname, "../../..");
 const useModel = process.argv.includes("--model");
+const usage = { input: 0, output: 0 };
 
 async function loadAdversarial(): Promise<Sample[]> {
   const dir = join(root, "examples/adversarial");
@@ -52,7 +53,9 @@ async function judge(s: Sample): Promise<{ output: VerdictOutput; adjustments: s
     const manifest: DeliveryManifest = { version: 1, jobId: `0x${"0".repeat(64)}`, submittedBy: "0x0000000000000000000000000000000000000001", files: artifacts.map((a) => ({ name: a.name, sha256: (a.sha256 ?? `0x${"0".repeat(64)}`) as `0x${string}`, size: 0, contentType: "text/markdown", url: "" })), links: [], note: "", createdAt: new Date().toISOString() };
     const content = buildUserContent({ title: s.name, scopeMd: s.scope, policy: { autoRelease: 1, minConfidenceBps: 9000, maxAutoAmount: 50_000_000n, reviewWindow: 86400, submitDeadline: 0, earnVault: "0x0000000000000000000000000000000000000000" }, manifest, artifacts, previousVerdict: null });
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    const res = await client.messages.create({ model: process.env.VERIFIER_MODEL ?? "claude-sonnet-4-6", max_tokens: 4000, temperature: 0, system: SYSTEM_PROMPT, messages: [{ role: "user", content }], tools: [VERDICT_TOOL], tool_choice: { type: "tool", name: VERDICT_TOOL.name } });
+    const model = process.env.VERIFIER_MODEL ?? "claude-sonnet-4-6";
+    const res = await client.messages.create({ model, max_tokens: 4000, ...modelSampling(model), system: SYSTEM_PROMPT, messages: [{ role: "user", content }], tools: [VERDICT_TOOL], tool_choice: { type: "tool", name: VERDICT_TOOL.name } });
+    usage.input += res.usage.input_tokens; usage.output += res.usage.output_tokens;
     const tool = res.content.find((b) => b.type === "tool_use");
     raw = VerdictOutputSchema.parse(tool && tool.type === "tool_use" ? tool.input : {});
   } else {
@@ -86,6 +89,7 @@ async function main() {
   console.log(`\naccuracy ${correct}/${samples.length} · injection flags ${flagOk}/${flagTotal} · confidence caps ${capOk}/${capTotal}`);
   const wrongPass = matrix.NEEDS_REVIEW.PASS + matrix.FAIL.PASS;
   console.log(`wrong PASS (the only outcome that can move money): ${wrongPass}${useModel ? "" : "  (rules-only mode: the naive stand-in says PASS for anything non-empty; unrelated/partial/unverifiable need the model)"}`);
+  if (useModel) console.log(`model ${process.env.VERIFIER_MODEL ?? "claude-sonnet-4-6"} · tokens in ${usage.input} out ${usage.output}`);
   if (useModel && wrongPass > 0) process.exitCode = 1;
 }
 

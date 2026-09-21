@@ -9,7 +9,7 @@ import { notify } from "../email";
 import * as vaultChain from "../chain/vault";
 import { keys, putObject } from "../storage";
 import { loadArtifacts, type Artifact } from "./content";
-import { buildUserContent, SYSTEM_PROMPT, VERDICT_TOOL } from "./prompt";
+import { buildUserContent, SYSTEM_PROMPT, VERDICT_TOOL, modelSampling } from "./prompt";
 import { applyRules, detectInjection } from "./rules";
 
 type Stage = "reading_scope" | "checking_files" | "writing_report" | "attesting" | "done" | "failed";
@@ -18,7 +18,7 @@ async function stage(verdictId: string, s: Stage, extra: Prisma.VerdictUpdateInp
   await db.verdict.update({ where: { id: verdictId }, data: { stage: s, ...extra } });
 }
 
-/** Model call with structured output via forced tool use. Temperature 0, JSON only, 60 s budget. */
+/** Model call with structured output via forced tool use. Deterministic sampling per model family, JSON only, 60 s budget. */
 async function callModel(system: string, content: ReturnType<typeof buildUserContent>): Promise<{ raw: unknown; responseText: string; model: string }> {
   const e = env();
   if (!e.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY not configured");
@@ -26,7 +26,7 @@ async function callModel(system: string, content: ReturnType<typeof buildUserCon
   const res = await client.messages.create({
     model: e.VERIFIER_MODEL,
     max_tokens: 4000,
-    temperature: 0,
+    ...modelSampling(e.VERIFIER_MODEL),
     system,
     messages: [{ role: "user", content }],
     tools: [VERDICT_TOOL],

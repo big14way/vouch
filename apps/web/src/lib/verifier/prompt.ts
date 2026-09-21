@@ -95,3 +95,12 @@ export function buildUserContent(input: PromptInput): ContentBlock[] {
   blocks.push({ type: "text", text: "Now compare the DELIVERY to the SCOPE and call submit_verdict." });
   return blocks;
 }
+
+/**
+ * Per-model sampling options. Claude 4.x accepts `temperature: 0`; Claude 5 (Sonnet 5, Opus 5) rejects sampling
+ * parameters with a 400 and thinks adaptively unless told not to, so it gets thinking disabled instead — the verdict is
+ * a forced tool call either way, and both runs stay comparable in the calibration matrix.
+ */
+export function modelSampling(model: string): { temperature?: number; thinking?: { type: "disabled" } } {
+  return /-4-\d/.test(model) ? { temperature: 0 } : { thinking: { type: "disabled" } };
+}
