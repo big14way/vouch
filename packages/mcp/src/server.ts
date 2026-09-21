@@ -21,7 +21,7 @@ function summarise(job: { id: string; shortId: string; title: string; status: st
 
 export function createServer(cfg: Config): McpServer {
   const client = new VouchClient(cfg);
-  const server = new McpServer({ name: "vouch", version: "0.1.0" });
+  const server = new McpServer({ name: "vouch", version: "0.1.1" });
 
   // ------------------------------------------------------------------ tools
 

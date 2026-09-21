@@ -1,17 +1,35 @@
 {
   "name": "@gwilll/vouch-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "MCP server for Vouch — let any agent lock stablecoins against a scope, get an independent verification, and settle on Tempo or Base.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "bin": { "vouch-mcp": "bin/vouch-mcp.js" },
-  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
-  "files": ["dist", "bin", "README.md"],
-  "keywords": ["mcp", "tempo", "x402", "mpp", "agents", "payments", "escrow-free", "verification"],
+  "bin": {
+    "vouch-mcp": "bin/vouch-mcp.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md"
+  ],
+  "keywords": [
+    "mcp",
+    "tempo",
+    "x402",
+    "mpp",
+    "agents",
+    "payments",
+    "escrow-free",
+    "verification"
+  ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js --external:@modelcontextprotocol/sdk --external:mppx --external:viem --external:zod --external:ox --log-level=warning",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "echo skip",
     "test": "vitest run",
@@ -19,18 +37,28 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
-    "@vouch/shared": "workspace:*",
     "mppx": "^0.9.3",
+    "ox": "0.14.44",
     "viem": "^2.56.5",
     "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
+    "@vouch/shared": "workspace:*",
+    "esbuild": "^0.28.2",
     "typescript": "^5.9.3",
     "vitest": "^4.1.0"
   },
-  "publishConfig": { "access": "public" },
-  "repository": { "type": "git", "url": "git+https://github.com/big14way/vouch.git", "directory": "packages/mcp" },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/big14way/vouch.git",
+    "directory": "packages/mcp"
+  },
   "homepage": "https://vouch-rouge.vercel.app",
-  "bugs": { "url": "https://github.com/big14way/vouch/issues" }
+  "bugs": {
+    "url": "https://github.com/big14way/vouch/issues"
+  }
 }
