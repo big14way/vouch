@@ -1,0 +1,25 @@
+12:20:57 api https://vouch-rouge.vercel.app payer 0xeBCfb9c6E03B5338684A0f96187DD15862cB2202 worker 0x121636cC839Adaf71FCc3f8BE670874747975a10
+   ✓ health: vault configured on 42431
+   ✓ payer got a wallet-bound API key
+12:21:07 created 0xc116004cc5eaad86fce7c8b3497ca0c4b201c3f880142cb272994706ed6226fe https://vouch-rouge.vercel.app/j/0xc116004cc5eaad86fce7c8b3497ca0c4b201c3f880142cb272994706ed6226fe
+   ✓ job Open, caller is payer
+   ✓ job carries the Earn vault (earn while locked)
+   ✓ MPP fund route advertised
+12:21:22 funded Funded route mpp fundTx 0x4f81794967cf161103a7de3fc07ae765800246a410e7c1d9fa6438b5c3b52a46 paymentTx 0xe734c846eaebcd0d514c1f432c91123a3330799584be9172f506d02f5a1bde85
+   ✓ status Funded after one round-trip
+   ✓ route was MPP
+   ✓ payment tx recorded
+12:21:23 cron/indexer 200 {"chains":{"42431":{"from":"36268529","to":"36268563","events":5},"84532":{"from":"47112487","to":"47112497","events":0}}}
+   ✓ indexer cron ran
+12:21:27 submitted Submitted tx 0xf66632ca2d4a6bb8f474f722b0161cef73cbd33c4e572f1d4edd75daf143ff25 hash 0x77b13db2e602789a2a91a46ba08207a62b358308b529cbe81d0795d7f001ae51
+   ✓ status Submitted (relayed submitWithSig)
+12:21:28 cron/verifier 200 {"ran":[],"failed":[]}
+12:21:40 verdict done NEEDS_REVIEW 0.55 0x6e4534db257dda674bdb2ee70344765d13e7a14910e63658910c6b13d2a347b6
+   ✓ verifier attested on-chain
+12:21:43 approved Settled tx 0xe2b7a9398f5382a385d4f52b08f5ee7766730c90a8fe35afdc433e3ccde58959
+   ✓ status Settled via settleWithSig
+   ✓ worker sees the amount after settlement ($5.00)
+12:21:44 timeline events: 10
+   ✓ timeline has created/funded/submitted/settled
+12:21:47 cron/timelock 200 {"settled":[],"refunded":[],"errors":{}}
+ALL CHECKS PASSED
