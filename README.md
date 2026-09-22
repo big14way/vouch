@@ -135,7 +135,7 @@ See [docs/deploy.md](docs/deploy.md). In short: `pnpm install`, build `packages/
 | F3 | `@gwilll/vouch-mcp` | published (0.1.1, `npx -y @gwilll/vouch-mcp`); stdio + HTTP; its client drove the live service runs on Moderato and on the public deployment |
 | F4 | Verifier + on-chain attestation | implemented |
 | F5 | Settlement policy on-chain | done; autoSettle and settleWithSig exercised live on Moderato |
-| F6 | Web app S0–S7 + motion system | implemented; landing redesigned Sept 22 (live job-card demo, proof section, photos); Lighthouse mobile on the production build: landing 83 perf / 96 a11y / 100 best-practices / 100 SEO; job page 37 perf / 96 a11y (client-rendered behind the wallet provider, CLS 0.78: the next fix) |
+| F6 | Web app S0–S7 + motion system | implemented; landing redesigned Sept 22 (live job-card demo, proof section, photos); Lighthouse mobile against the live deployment (Sept 22): landing 75 perf / 100 a11y / 96 best-practices / 100 SEO; job page 51 perf / 100 a11y (still client-rendered behind the wallet provider, LCP 15 s on a cold fetch: the next fix) |
 | F7 | Disputes + arbiter | implemented |
 | F8 | Public job page + timeline | implemented; indexer proven on Moderato (backfill from deployment block, events linked to jobs); SSE ≤ 2 s after the service writes |
 | F9 | Unlinkable settlements | pooled vault + commitments; documented above |
