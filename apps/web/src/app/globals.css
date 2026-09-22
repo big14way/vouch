@@ -1,7 +1,32 @@
 @import "tailwindcss";
 
-/* Design tokens (spec §8.2). Light by default; dark inverts bg/surface/text. */
+/* Design tokens (spec §8.2 palette). Dark is the product's theme; `data-theme="light"` re-scopes a subtree
+   (the hero's product card, print). Success/warn/danger/info are tuned per theme for AA contrast on their surfaces. */
+:root,
+[data-theme="dark"] {
+  --bg: #0b1220;
+  --surface: #131a2a;
+  --border: #232c3d;
+  --text: #f3f5f8;
+  --muted: #9aa4b2;
+  --primary: #2fb182;
+  --primary-fg: #06201a;
+  --accent: #f2b705;
+  --success: #22c55e;
+  --warn: #f59e0b;
+  --danger: #f87171;
+  --info: #60a5fa;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+
 :root {
+  --r-lg: 12px;
+  --r-md: 10px;
+  --r-pill: 999px;
+}
+
+[data-theme="light"] {
   --bg: #ffffff;
   --surface: #f6f7f9;
   --border: #e4e7ec;
@@ -10,31 +35,12 @@
   --primary: #0a6c4e;
   --primary-fg: #ffffff;
   --accent: #f2b705;
-  --success: #15803d; /* spec #16a34a is 3.3:1 on white; this keeps the hue at 4.8:1 for 13-17px text */
-  --warn: #b45309; /* spec #d97706 is 3.2:1 on white; 4.6:1 */
+  --success: #15803d;
+  --warn: #b45309;
   --danger: #dc2626;
   --info: #2563eb;
   --shadow: 0 1px 2px rgba(11, 18, 32, 0.04), 0 8px 24px -12px rgba(11, 18, 32, 0.12);
-  --r-lg: 12px;
-  --r-md: 10px;
-  --r-pill: 999px;
   color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0b1220;
-    --surface: #131a2a;
-    --border: #232c3d;
-    --text: #f3f5f8;
-    --muted: #9aa4b2;
-    --primary: #2fb182;
-    --primary-fg: #06201a;
-    --success: #22c55e;
-    --warn: #f59e0b;
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
-    color-scheme: dark;
-  }
 }
 
 @theme inline {

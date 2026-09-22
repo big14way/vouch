@@ -40,7 +40,10 @@ export default function Landing() {
     <Shell wide>
       {/* Hero */}
       <section className="relative grid items-center gap-10 pt-10 sm:pt-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14 lg:pt-20" aria-labelledby="hero">
-        <div aria-hidden className="pointer-events-none absolute -top-10 left-1/2 -z-10 h-[520px] w-[min(1200px,120vw)] -translate-x-1/2 bg-[radial-gradient(50%_60%_at_20%_10%,rgba(10,108,78,0.10),transparent_70%),radial-gradient(40%_50%_at_85%_30%,rgba(242,183,5,0.12),transparent_70%)]" />
+        <div aria-hidden className="pointer-events-none absolute -top-16 left-1/2 -z-10 h-[640px] w-[min(1400px,140vw)] -translate-x-1/2">
+          <div className="absolute inset-0 bg-[radial-gradient(45%_55%_at_22%_18%,rgba(47,177,130,0.26),transparent_70%),radial-gradient(35%_45%_at_82%_28%,rgba(242,183,5,0.12),transparent_70%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.09)_1px,transparent_1px)] bg-[size:22px_22px] [mask-image:radial-gradient(55%_55%_at_50%_35%,black,transparent)]" />
+        </div>
         <div>
           <p className="inline-flex items-center gap-2 rounded-[var(--r-pill)] border border-border bg-surface px-3 py-1 text-[13px] text-muted">
             <span className="size-1.5 rounded-full bg-primary" aria-hidden />
@@ -65,7 +68,9 @@ export default function Landing() {
           <LiveCounter className="mt-6 flex flex-wrap gap-x-5 gap-y-1" />
         </div>
         <div className="mx-auto w-full max-w-[460px] lg:max-w-none">
-          <HeroDemo />
+          <div data-theme="light" className="text-text">
+            <HeroDemo />
+          </div>
           <p className="mt-5 text-center text-[13px] text-muted">
             The real job card, playing its five states.{" "}
             <a href={LIVE_JOB} className="text-primary hover:underline" target="_blank" rel="noreferrer">
@@ -79,12 +84,12 @@ export default function Landing() {
       <section className="mt-24 grid items-center gap-10 sm:mt-32 lg:grid-cols-2 lg:gap-16" aria-labelledby="problem">
         <div className="relative order-2 lg:order-1">
           <Reveal>
-            <div className="relative overflow-hidden rounded-[var(--r-lg)] shadow-[var(--shadow)]">
+            <div className="relative overflow-hidden rounded-[var(--r-lg)] border border-border shadow-[var(--shadow)]">
               <Image src={workerDesk} alt="A freelancer working at a desk on a laptop" sizes="(min-width: 1024px) 520px, 100vw" placeholder="blur" className="aspect-[3/2] w-full object-cover" />
             </div>
           </Reveal>
           <Reveal delay={0.12} className="absolute -bottom-6 right-0 w-[46%] max-w-[240px] lg:-right-6">
-            <div className="overflow-hidden rounded-[var(--r-lg)] border-4 border-bg shadow-[var(--shadow)]">
+            <div className="overflow-hidden rounded-[var(--r-lg)] border-4 border-bg shadow-[var(--shadow)] ring-1 ring-border">
               <Image src={workerWriting} alt="A worker writing notes beside a laptop" sizes="240px" placeholder="blur" className="aspect-[4/5] w-full object-cover" />
             </div>
           </Reveal>
@@ -125,6 +130,7 @@ export default function Landing() {
           <article className="flex h-full flex-col overflow-hidden rounded-[var(--r-lg)] border border-border bg-bg shadow-[var(--shadow)]">
             <div className="relative">
               <Image src={paidPhone} alt="A man smiling at a payment notification on his phone" sizes="(min-width: 1024px) 540px, 100vw" placeholder="blur" className="aspect-[16/9] w-full object-cover" />
+              <div aria-hidden className="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-bg to-transparent" />
               <span className="absolute left-4 top-4 rounded-[var(--r-pill)] bg-bg/90 px-2.5 py-1 text-[13px] font-medium backdrop-blur">For people</span>
             </div>
             <div className="flex flex-1 flex-col p-5 sm:p-6">
@@ -189,8 +195,8 @@ export default function Landing() {
         </div>
         <Reveal delay={0.1} className="mx-auto w-full max-w-[380px]">
           <div className="relative">
-            <div aria-hidden className="absolute -inset-8 -z-10 rounded-[40px] bg-[radial-gradient(60%_60%_at_50%_40%,rgba(10,108,78,0.12),transparent_70%)]" />
-            <div className="overflow-hidden rounded-[32px] border-[6px] border-[#0b1220] bg-[#0b1220] shadow-[0_30px_60px_-20px_rgba(11,18,32,0.45)]">
+            <div aria-hidden className="absolute -inset-10 -z-10 rounded-[48px] bg-[radial-gradient(60%_60%_at_50%_40%,rgba(47,177,130,0.22),transparent_70%)]" />
+            <div className="overflow-hidden rounded-[32px] border-[6px] border-[#1c2740] bg-[#1c2740] shadow-[0_40px_80px_-24px_rgba(0,0,0,0.7)]">
               <Image src={productJob} alt="The public job page for a settled job: paid, five steps complete, and the independent check with its scope items" sizes="380px" placeholder="blur" className="w-full rounded-[26px]" />
             </div>
           </div>
@@ -223,15 +229,15 @@ export default function Landing() {
       {/* Final call */}
       <section className="mt-24 sm:mt-32" aria-labelledby="cta">
         <Reveal>
-          <div className="relative overflow-hidden rounded-[var(--r-lg)] bg-[#0b1220] px-6 py-12 text-center text-[#f3f5f8] sm:px-12 sm:py-16">
-            <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_80%_at_50%_0%,rgba(47,177,130,0.28),transparent_70%)]" />
+          <div className="relative overflow-hidden rounded-[var(--r-lg)] bg-[linear-gradient(135deg,#0a6c4e_0%,#12805e_100%)] px-6 py-12 text-center text-white sm:px-12 sm:py-16">
+            <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_80%_at_50%_0%,rgba(255,255,255,0.16),transparent_70%)]" />
             <h2 id="cta" className="relative text-[28px] font-semibold leading-[1.15] tracking-[-0.01em] sm:text-[40px]">Lock the first job in under a minute.</h2>
-            <p className="relative mx-auto mt-3 max-w-[520px] text-[17px] text-[#9aa4b2]">No fees to lock. A 1% fee on what gets paid out. Open source, with every settlement on a public chain.</p>
+            <p className="relative mx-auto mt-3 max-w-[520px] text-[17px] text-white/85">No fees to lock. A 1% fee on what gets paid out. Open source, with every settlement on a public chain.</p>
             <div className="relative mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-              <Link href="/new" className={cn(buttonVariants({ size: "lg" }), "w-full bg-[#2fb182] text-[#06201a] hover:brightness-105 sm:w-auto")}>
+              <Link href="/new" className={cn(buttonVariants({ size: "lg" }), "w-full bg-[#0b1220] text-white hover:bg-[#131a2a] sm:w-auto")}>
                 Create a job link <ArrowRight className="size-4" aria-hidden />
               </Link>
-              <a href={REPO} className={cn(buttonVariants({ size: "lg", variant: "secondary" }), "w-full border-[#2a3650] bg-transparent text-[#f3f5f8] hover:bg-[#131a2a] sm:w-auto")} target="_blank" rel="noreferrer">
+              <a href={REPO} className={cn(buttonVariants({ size: "lg", variant: "secondary" }), "w-full border-white/30 bg-transparent text-white hover:bg-white/10 sm:w-auto")} target="_blank" rel="noreferrer">
                 Read the code <ArrowUpRight className="size-4" aria-hidden />
               </a>
             </div>

@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Pay when it's delivered. Get paid when it's verified.",
     start_url: "/dashboard",
     display: "standalone",
-    background_color: "#FFFFFF",
-    theme_color: "#0A6C4E",
+    background_color: "#0b1220",
+    theme_color: "#0b1220",
     icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" }],
   };
 }

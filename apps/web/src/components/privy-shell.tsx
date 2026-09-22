@@ -39,7 +39,7 @@ export function PrivyShell({ appId, children }: { appId: string; children: React
       appId={appId}
       config={{
         loginMethods: ["email", "google"],
-        appearance: { theme: "light", accentColor: "#0A6C4E", logo: "/icon.svg" },
+        appearance: { theme: "dark", accentColor: "#2fb182", logo: "/icon.svg" },
         embeddedWallets: { ethereum: { createOnLogin: "users-without-wallets" } },
         supportedChains: CHAINS,
         defaultChain,

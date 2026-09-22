@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: "Vouch", statusBarStyle: "default" },
 };
 
-export const viewport: Viewport = { themeColor: "#0A6C4E", width: "device-width", initialScale: 1, viewportFit: "cover" };
+export const viewport: Viewport = { themeColor: "#0b1220", width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

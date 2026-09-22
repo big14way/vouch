@@ -1,14 +1,18 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import type { JobDto, VerdictDto } from "@vouch/shared";
+import type { JobDto, TimelineEvent, VerdictDto } from "@vouch/shared";
 import { jobs, me as meApi, type JobResponse } from "./api";
 
-export function useJob(id: string) {
+/** Server-loaded public snapshot; marked stale so the first client fetch adds the viewer's role. */
+export type JobSnapshot = { job: JobDto; verdict: VerdictDto; timeline: TimelineEvent[] };
+
+export function useJob(id: string, initial?: JobSnapshot | null) {
   const qc = useQueryClient();
-  const q = useQuery({ queryKey: ["job", id], queryFn: () => jobs.get(id), refetchInterval: 15_000 });
-  const v = useQuery({ queryKey: ["verdict", id], queryFn: () => jobs.verdict(id), refetchInterval: 15_000 });
-  const t = useQuery({ queryKey: ["timeline", id], queryFn: () => jobs.timeline(id), refetchInterval: 20_000 });
+  const seed = initial ? { initialDataUpdatedAt: 0 } : {};
+  const q = useQuery({ queryKey: ["job", id], queryFn: () => jobs.get(id), refetchInterval: 15_000, initialData: initial ? { job: initial.job } : undefined, ...seed });
+  const v = useQuery({ queryKey: ["verdict", id], queryFn: () => jobs.verdict(id), refetchInterval: 15_000, initialData: initial?.verdict, ...seed });
+  const t = useQuery({ queryKey: ["timeline", id], queryFn: () => jobs.timeline(id), refetchInterval: 20_000, initialData: initial ? { events: initial.timeline } : undefined, ...seed });
   const es = useRef<EventSource | null>(null);
   useEffect(() => {
     // Live updates: SSE snapshots overwrite the cached queries; reconnects after the server closes (~55 s).

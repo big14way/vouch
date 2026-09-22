@@ -1,15 +1,17 @@
 {
   "name": "@gwilll/vouch-mcp",
   "version": "0.1.1",
-  "description": "MCP server for Vouch — let any agent lock stablecoins against a scope, get an independent verification, and settle on Tempo or Base.",
+  "description": "MCP server for Vouch \u2014 let any agent lock stablecoins against a scope, get an independent verification, and settle on Tempo or Base.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "bin": {
     "vouch-mcp": "bin/vouch-mcp.js"
   },
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
   },
@@ -29,7 +31,7 @@
     "verification"
   ],
   "scripts": {
-    "build": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js --external:@modelcontextprotocol/sdk --external:mppx --external:viem --external:zod --external:ox --log-level=warning",
+    "build": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js --external:@modelcontextprotocol/sdk --external:mppx --external:viem --external:zod --external:ox --log-level=warning && tsc -p tsconfig.json --declaration --emitDeclarationOnly --outDir dist",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "echo skip",
     "test": "vitest run",

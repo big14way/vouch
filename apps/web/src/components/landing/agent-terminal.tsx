@@ -25,8 +25,8 @@ export function AgentTerminal({ appUrl }: { appUrl: string }) {
     }
   };
   return (
-    <div className="max-w-full overflow-hidden rounded-[var(--r-lg)] border border-[#1f2a3d] bg-[#0b1220] text-[#e6edf3] shadow-[var(--shadow)]">
-      <div className="flex items-center gap-2 border-b border-[#1f2a3d] px-2 pt-2">
+    <div className="max-w-full overflow-hidden rounded-[var(--r-lg)] border border-[#232c3d] bg-[#060b16] text-[#e6edf3] shadow-[var(--shadow)]">
+      <div className="flex items-center gap-2 border-b border-[#232c3d] px-2 pt-2">
         <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto" role="tablist" aria-label="Integration">
           {tabs.map((t) => (
             <button key={t.id} role="tab" aria-selected={t.id === active} onClick={() => setActive(t.id)} className={cn("min-h-9 shrink-0 whitespace-nowrap rounded-t-md px-3 text-[13px] transition-colors", t.id === active ? "border-b-2 border-[#2fb182] text-[#e6edf3]" : "text-[#9aa4b2] hover:text-[#e6edf3]")}>

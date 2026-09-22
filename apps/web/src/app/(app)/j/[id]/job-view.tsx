@@ -16,15 +16,17 @@ import { VerdictCard } from "@/components/job/verdict-card";
 import { CountdownRing } from "@/components/job/countdown-ring";
 import { Padlock } from "@/components/job/padlock";
 import { dur, ease, useMotion } from "@/components/motion";
-import { useJob } from "@/lib/client/hooks";
+import { useJob, type JobSnapshot } from "@/lib/client/hooks";
+
+export type JobInitial = JobSnapshot;
 
 // Wallet-touching panels load only when the viewer can act, keeping the public job page light.
 const PayPanel = dynamic(() => import("@/components/job/pay-panel").then((m) => m.PayPanel), { ssr: false, loading: () => <Skeleton className="h-40" /> });
 const DeliverForm = dynamic(() => import("@/components/job/deliver-form").then((m) => m.DeliverForm), { ssr: false, loading: () => <Skeleton className="h-64" /> });
 const JobActions = dynamic(() => import("@/components/job/actions").then((m) => m.JobActions), { ssr: false });
 
-export function JobView({ id }: { id: string }) {
-  const { job, verdict, timeline, loading, error } = useJob(id);
+export function JobView({ id, initial }: { id: string; initial?: JobInitial | null }) {
+  const { job, verdict, timeline, loading, error } = useJob(id, initial);
   const qc = useQueryClient();
   const mo = useMotion();
   const [justLocked, setJustLocked] = useState(false);
