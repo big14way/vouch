@@ -14,3 +14,27 @@ Tx: https://explore.moderato.tempo.xyz/tx/0x23f60cc6ea2c66df798231a852d8c446d6ec
 **Lesson worth sharing.** The Zone A portal is an older build than the current viem release assumes: a 4-argument `depositEncrypted`, and a sequencer that derives the AES key without the sender binding viem added in July. A payload built the new way is accepted on-chain but never credited. The Vault now carries a legacy flag per portal and the client builds the matching payload. Cost: one $2 test deposit.
 
 Vault v4 is live on Moderato (`0xaD15409d1B7EFA36a9898107fa9757E58a36442D`) and Base Sepolia (Sourcify verified), 96 Foundry tests green. Next: a public URL and the first testers, then mainnet.
+
+## #4 — Sept 19 — Public URL, real database, and an indexer that survives public RPCs
+
+Vouch is live at https://vouch-rouge.vercel.app (Vercel Hobby + Neon Postgres). Health: https://vouch-rouge.vercel.app/api/v1/health shows both vaults reachable, indexer lag and relayer balances.
+
+**What it took.** Outbound Postgres is blocked from my machine, so migrations run inside the Vercel build over the direct Neon URL. Hobby crons fire twice a day, which is useless for a verifier, so a GitHub Actions schedule drives indexer, verifier and timelock every five minutes, and because GitHub's schedule is best-effort the API also runs a short indexer tick after a job read when nothing has ticked for 20 s. The indexer now walks 2 000-block windows until caught up inside a 40 s budget, polls both chains concurrently, and keeps its persisted progress when sepolia.base.org rate-limits it.
+
+Next: the MCP package on npm, then calibration of the verifier on real deliverables.
+
+## #5 — Sept 21 — `npx -y @gwilll/vouch-mcp`, a settlement on the public deployment in 50 s, and a verifier decision made on repeats
+
+**Agents can hire through Vouch from Claude Code now.** `claude mcp add vouch -e VOUCH_API_URL=https://vouch-rouge.vercel.app -e VOUCH_AGENT_PRIVATE_KEY=0x… -- npx -y @gwilll/vouch-mcp` (npm: https://www.npmjs.com/package/@gwilll/vouch-mcp). Lesson: 0.1.0 shipped `workspace:*` dependencies and could not be installed outside the monorepo; 0.1.1 bundles the shared package with esbuild. Verified from a clean directory against the live API.
+
+**End to end on the public deployment.** Create, fund over MPP, deliver, verdict, approve: settled in 50 s, every step on chain. Job: https://vouch-rouge.vercel.app/j/0xc116004cc5eaad86fce7c8b3497ca0c4b201c3f880142cb272994706ed6226fe. Log: `docs/e2e-service-public-2026-09-21.txt`.
+
+**Verifier model, decided on repeats.** Three repeat runs per configuration over 9 job samples (5 that should release, 3 near-misses, 1 non-delivery) plus 10 adversarial samples. Zero wrong releases in all 12 runs. Sonnet 4.6 released 4 of 5 good deliveries every run; Sonnet 5 with thinking off held 2 to 3 of 5; Sonnet 5 with adaptive thinking released 4 of 5 every run and is what production runs now. The honest weak spot: every configuration holds a word-limit scope because models miscount words, so the safe direction, "needs review", wins. Lesson from the day: a manifest with `size: 0` made the model red-flag every good delivery; the harness now sends real sizes and types. Runs: `docs/calibration-2026-09-21-repeats.md`.
+
+## #6 — Sept 22 — Vault v5 hardening, and a landing page that shows the product instead of describing it
+
+**Contracts.** The two items queued from the Slither triage are in: every path that reaches an Earn venue now writes the terminal job status and releases the lock before the venue is called (checks-effects-interactions even without the re-entrancy guard), and the constructor and setters reject a zero arbiter or intake. A new test venue inspects the Vault mid-call on every payout path and tries to re-enter; 103 tests green. Commit `02ebbce`.
+
+**Landing.** The hero is the real job card playing its five states on a loop (lock, deliver, verify, verdict, paid), the five steps draw in on a rail, the two doors (people, agents) carry a terminal with copyable snippets, and a proof section links every claim to its transaction, report or code, next to a screenshot of a job that settled on the public deployment. Photos are Unsplash-licensed and credited in the repo. A link-preview image is generated for this feed and for chats.
+
+**Found on the way.** Every page was client-rendered because the wallet provider was loaded with server rendering disabled and the whole app sat inside it. The public pages (landing, docs, legal) now render on the server without the wallet SDK; Lighthouse mobile on the landing went from 70 to 83 performance with SEO 100. The job page still renders behind the wallet provider (37 performance, layout shift 0.78) and is the next fix.

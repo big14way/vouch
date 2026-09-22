@@ -130,12 +130,12 @@ See [docs/deploy.md](docs/deploy.md). In short: `pnpm install`, build `packages/
 
 | # | Feature | State |
 |---|---|---|
-| F1 | Vault + registry, 100% branch coverage, invariants | done (60 unit · 6 fuzz · 6 invariants × 10k calls) |
+| F1 | Vault + registry, invariants, v5 hardening | done (103 Foundry tests: 91 unit incl. Earn, Zone and venue re-entry paths · 6 fuzz · 6 invariants × 10k calls; 99% branch coverage, the gap is instrumentation on `pause`/`_revertWith`) |
 | F2 | Funding rails: Tempo batched, MPP charge, Base EIP-3009, x402 | implemented; contracts live on Moderato and Base Sepolia (Sept 15); mainnets pending |
-| F3 | `@gwilll/vouch-mcp` | implemented, stdio + HTTP; its client drove the live service run on Moderato; npm publish pending |
+| F3 | `@gwilll/vouch-mcp` | published (0.1.1, `npx -y @gwilll/vouch-mcp`); stdio + HTTP; its client drove the live service runs on Moderato and on the public deployment |
 | F4 | Verifier + on-chain attestation | implemented |
 | F5 | Settlement policy on-chain | done; autoSettle and settleWithSig exercised live on Moderato |
-| F6 | Web app S0–S7 + motion system | implemented; Lighthouse run pending |
+| F6 | Web app S0–S7 + motion system | implemented; landing redesigned Sept 22 (live job-card demo, proof section, photos); Lighthouse mobile on the production build: landing 83 perf / 96 a11y / 100 best-practices / 100 SEO; job page 37 perf / 96 a11y (client-rendered behind the wallet provider, CLS 0.78: the next fix) |
 | F7 | Disputes + arbiter | implemented |
 | F8 | Public job page + timeline | implemented; indexer proven on Moderato (backfill from deployment block, events linked to jobs); SSE ≤ 2 s after the service writes |
 | F9 | Unlinkable settlements | pooled vault + commitments; documented above |

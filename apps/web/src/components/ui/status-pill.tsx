@@ -3,10 +3,10 @@ import { cn } from "@/lib/utils";
 const TONE: Record<string, string> = {
   "Awaiting payment": "bg-surface text-muted border-border",
   Locked: "bg-primary/10 text-primary border-primary/20",
-  Delivered: "bg-info/10 text-info border-info/20",
-  Verified: "bg-success/10 text-success border-success/20",
+  Delivered: "bg-info/5 text-info border-info/20",
+  Verified: "bg-success/5 text-success border-success/20",
   "Needs review": "bg-accent/15 text-warn border-accent/30",
-  Paid: "bg-success/10 text-success border-success/20",
+  Paid: "bg-success/5 text-success border-success/20",
   Disputed: "bg-danger/10 text-danger border-danger/20",
   Refunded: "bg-surface text-muted border-border",
   Expired: "bg-surface text-muted border-border",
