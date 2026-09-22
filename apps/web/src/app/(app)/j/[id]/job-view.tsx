@@ -59,6 +59,7 @@ export function JobView({ id, initial }: { id: string; initial?: JobInitial | nu
   }
 
   const locked = job.status !== "Open";
+  const verdictArrivedLive = !(initial?.verdict?.stage != null && verdict?.attestationHash === initial.verdict.attestationHash && verdict?.stage === initial.verdict.stage);
   const disputed = job.status === "Disputed";
   const showDeliver = (job.role === "worker" || (job.role === "public" && !job.worker)) && job.status === "Funded";
   const showResubmit = job.role === "worker" && job.status === "Attested" && job.verdict === "FAIL" && job.resubmits < 2;
@@ -101,8 +102,9 @@ export function JobView({ id, initial }: { id: string; initial?: JobInitial | nu
       {showResubmit ? <div className="mt-4"><DeliverForm job={job} resubmit onDone={onChange} /></div> : null}
 
       {verdict && verdict.stage ? (
-        <m.div className="mt-4" variants={mo.enterUp} initial="hidden" animate="show">
-          <VerdictCard verdict={verdict} chainId={job.chainId} entrance={!(initial?.verdict?.stage === "done" && verdict?.attestationHash === initial.verdict.attestationHash)} />
+        // The card slides up when a verdict lands live; a page that arrives with one already recorded shows it at once.
+        <m.div className="mt-4" variants={mo.enterUp} initial={verdictArrivedLive ? "hidden" : false} animate="show">
+          <VerdictCard verdict={verdict} chainId={job.chainId} entrance={verdictArrivedLive} />
         </m.div>
       ) : null}
 
