@@ -102,7 +102,7 @@ export function JobView({ id, initial }: { id: string; initial?: JobInitial | nu
 
       {verdict && verdict.stage ? (
         <m.div className="mt-4" variants={mo.enterUp} initial="hidden" animate="show">
-          <VerdictCard verdict={verdict} chainId={job.chainId} />
+          <VerdictCard verdict={verdict} chainId={job.chainId} entrance={!(initial?.verdict?.stage === "done" && verdict?.attestationHash === initial.verdict.attestationHash)} />
         </m.div>
       ) : null}
 

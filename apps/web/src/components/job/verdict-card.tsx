@@ -18,8 +18,12 @@ const STAGE_COPY: Record<string, string> = {
 const ITEM_TONE: Record<string, string> = { met: "text-success", partial: "text-warn", missing: "text-danger", unverifiable: "text-muted" };
 const ITEM_MARK: Record<string, string> = { met: "✓", partial: "◐", missing: "✕", unverifiable: "?" };
 
-/** Verifying state: real stages, thin indeterminate sweep. Verdict reveal: confidence bar grows, items stagger in. */
-export function VerdictCard({ verdict, chainId }: { verdict: VerdictDto | null; chainId: number }) {
+/**
+ * Verifying state: real stages, thin indeterminate sweep. Verdict reveal: confidence bar grows, items stagger in.
+ * `entrance={false}` renders the final state at once: used when the page arrives with the verdict already recorded,
+ * so server-rendered text is visible before hydration (the reveal is for a verdict landing live, not for a reload).
+ */
+export function VerdictCard({ verdict, chainId, entrance = true }: { verdict: VerdictDto | null; chainId: number; entrance?: boolean }) {
   const mo = useMotion();
   if (!verdict || verdict.stage === null) return null;
   const running = verdict.stage !== "done";
@@ -45,7 +49,7 @@ export function VerdictCard({ verdict, chainId }: { verdict: VerdictDto | null; 
           <CardTitle className={cn("flex items-center gap-2", tone)}>
             {v === "PASS" && !mo.reduced ? (
               <m.svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-                <m.path d="M4 10.5l4 4 8-9" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: dur.slow, ease: ease.out }} />
+                <m.path d="M4 10.5l4 4 8-9" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" initial={entrance ? { pathLength: 0 } : false} animate={{ pathLength: 1 }} transition={{ duration: dur.slow, ease: ease.out }} />
               </m.svg>
             ) : null}
             {label}
@@ -55,11 +59,11 @@ export function VerdictCard({ verdict, chainId }: { verdict: VerdictDto | null; 
         <span className={cn("mono text-[22px] font-semibold", tone)}>{pct}%</span>
       </div>
       <div className="mt-3 h-1.5 overflow-hidden rounded bg-surface" aria-label={`Confidence ${pct}%`} role="img">
-        <m.div className={cn("h-full rounded", v === "PASS" ? "bg-success" : v === "FAIL" ? "bg-danger" : "bg-accent")} initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={mo.reduced ? { duration: dur.fast } : { duration: dur.slow, ease: ease.out }} />
+        <m.div className={cn("h-full rounded", v === "PASS" ? "bg-success" : v === "FAIL" ? "bg-danger" : "bg-accent")} initial={entrance ? { width: 0 } : false} animate={{ width: `${pct}%` }} transition={mo.reduced ? { duration: dur.fast } : { duration: dur.slow, ease: ease.out }} />
       </div>
-      {v === "NEEDS_REVIEW" && !mo.reduced ? <m.div className="mt-1 h-0.5 rounded bg-accent" initial={{ scaleX: 0, originX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: dur.slow, ease: ease.out }} aria-hidden /> : null}
+      {v === "NEEDS_REVIEW" && !mo.reduced ? <m.div className="mt-1 h-0.5 rounded bg-accent" initial={entrance ? { scaleX: 0, originX: 0 } : false} animate={{ scaleX: 1 }} transition={{ duration: dur.slow, ease: ease.out }} aria-hidden /> : null}
 
-      <m.ul className="mt-4 space-y-2" variants={v === "FAIL" ? undefined : mo.stagger} initial="hidden" animate="show" aria-label="Scope checklist">
+      <m.ul className="mt-4 space-y-2" variants={v === "FAIL" ? undefined : mo.stagger} initial={entrance ? "hidden" : false} animate="show" aria-label="Scope checklist">
         {(verdict.scope_items ?? []).map((it, i) => (
           <m.li key={i} variants={v === "FAIL" ? undefined : mo.enterUp} className="rounded-[var(--r-md)] border border-border p-3">
             <div className="flex items-start gap-2">
