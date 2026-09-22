@@ -33,6 +33,14 @@ contract VaultTest is VaultBase {
         new Vault(owner, address(0), arbiter, intake, t);
     }
 
+    function test_constructor_revertsZeroArbiterOrIntake() public {
+        address[] memory t = new address[](0);
+        vm.expectRevert(Vault.ZeroAddress.selector);
+        new Vault(owner, address(registry), address(0), intake, t);
+        vm.expectRevert(Vault.ZeroAddress.selector);
+        new Vault(owner, address(registry), arbiter, address(0), t);
+    }
+
     function test_constructor_revertsZeroToken() public {
         address[] memory t = new address[](1);
         vm.expectRevert(Vault.ZeroAddress.selector);
@@ -80,6 +88,10 @@ contract VaultTest is VaultBase {
         vm.startPrank(owner);
         vm.expectRevert(Vault.ZeroAddress.selector);
         vault.setRegistry(address(0));
+        vm.expectRevert(Vault.ZeroAddress.selector);
+        vault.setArbiter(address(0));
+        vm.expectRevert(Vault.ZeroAddress.selector);
+        vault.setIntake(address(0));
         vm.expectRevert(Vault.FeeTooHigh.selector);
         vault.setFee(201, feeRecipient);
         vm.expectRevert(Vault.ZeroAddress.selector);

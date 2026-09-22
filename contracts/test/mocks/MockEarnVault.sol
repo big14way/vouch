@@ -4,9 +4,16 @@ pragma solidity 0.8.26;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+/// @dev Test hook: a venue that calls back into the test while the Vault is mid-call.
+interface IVenueObserver {
+    function onVenueCall(bytes4 selector) external;
+}
+
 /// @dev Tempo EarnVault look-alike: ERC-4626-style share math over the asset balance it holds.
 ///      Yield is simulated by minting/transferring asset to the vault; loss by `slash`.
 ///      Mirrors the real vault's non-zero-minimum rule and can be told to refuse `withdrawExact`.
+///      An optional observer is called at the start of every action so a test can inspect the
+///      Vault's state (or try to re-enter it) exactly when a venue would.
 contract MockEarnVault {
     using SafeERC20 for IERC20;
 
@@ -15,6 +22,7 @@ contract MockEarnVault {
     uint256 public totalEarnShares;
     bool public depositsPaused;
     bool public failWithdrawExact;
+    address public observer;
 
     error ZeroMinimumEarnShares();
     error ZeroMinimumAssets();
@@ -36,6 +44,14 @@ contract MockEarnVault {
 
     function setFailWithdrawExact(bool v) external {
         failWithdrawExact = v;
+    }
+
+    function setObserver(address o) external {
+        observer = o;
+    }
+
+    function _observe() internal {
+        if (observer != address(0)) IVenueObserver(observer).onVenueCall(msg.sig);
     }
 
     /// Simulate a venue loss: move assets out.
@@ -69,6 +85,7 @@ contract MockEarnVault {
 
     // ---- actions ----
     function deposit(uint256 assets, address receiver, uint256 minEarnShares) external returns (uint256 earnShares) {
+        _observe();
         if (minEarnShares == 0) revert ZeroMinimumEarnShares();
         if (depositsPaused) revert DepositsPaused();
         uint256 ta = totalAssets();
@@ -80,6 +97,7 @@ contract MockEarnVault {
     }
 
     function redeem(uint256 earnShares, address receiver, uint256 minAssets) external returns (uint256 assets) {
+        _observe();
         if (minAssets == 0) revert ZeroMinimumAssets();
         if (shares[msg.sender] < earnShares) revert NoEarnShares();
         assets = previewRedeem(earnShares);
@@ -90,6 +108,7 @@ contract MockEarnVault {
     }
 
     function withdrawExact(uint256 assets, address receiver, uint256 maxEarnShares) external returns (uint256 burned) {
+        _observe();
         if (failWithdrawExact) revert WithdrawExactDisabled();
         burned = previewWithdraw(assets);
         if (burned > maxEarnShares) revert ExceedsMaxEarnShares();

@@ -257,7 +257,7 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
         Ownable(initialOwner)
         EIP712("Vouch Vault", "1")
     {
-        if (registry_ == address(0)) revert ZeroAddress();
+        if (registry_ == address(0) || arbiter_ == address(0) || intake_ == address(0)) revert ZeroAddress();
         registry = IVerifierRegistry(registry_);
         arbiter = arbiter_;
         intake = intake_;
@@ -484,8 +484,8 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
         _checkCommit(job, jobId, amount, scopeHash, salt);
         (bool ok, bytes4 reason) = _autoPredicates(job, amount);
         if (!ok) _revertWith(reason);
-        _payout(job, jobId, amount, BPS);
         job.status = Status.Settled;
+        _payout(job, jobId, amount, BPS);
         emit AutoSettled(jobId, msg.sender);
     }
 
@@ -512,8 +512,8 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
         Job storage job = _jobs[jobId];
         if (job.status != Status.Disputed) revert WrongStatus(job.status);
         _checkCommit(job, jobId, amount, scopeHash, salt);
-        _payout(job, jobId, amount, workerBps);
         job.status = Status.Resolved;
+        _payout(job, jobId, amount, workerBps);
         emit Resolved(jobId, workerBps);
     }
 
@@ -524,10 +524,10 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
         if (job.policy.submitDeadline == 0) revert NoDeadline();
         if (block.timestamp <= uint256(job.fundedAt) + job.policy.submitDeadline) revert DeadlineNotPassed();
         _checkCommit(job, jobId, amount, scopeHash, salt);
-        uint256 available = _recall(job, jobId, amount);
-        locked[job.token] -= amount;
-        balances[job.token][job.payer] += available;
         job.status = Status.Refunded;
+        locked[job.token] -= amount;
+        uint256 available = _recall(job, jobId, amount);
+        balances[job.token][job.payer] += available;
         emit Refunded(jobId);
     }
 
@@ -677,11 +677,13 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
     }
 
     function setArbiter(address arbiter_) external onlyOwner {
+        if (arbiter_ == address(0)) revert ZeroAddress();
         arbiter = arbiter_;
         emit ArbiterSet(arbiter_);
     }
 
     function setIntake(address intake_) external onlyOwner {
+        if (intake_ == address(0)) revert ZeroAddress();
         intake = intake_;
         emit IntakeSet(intake_);
     }
@@ -769,11 +771,12 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
         }
     }
 
-    /// @dev Recall principal from Earn (if any), release `amount` from lock; fee once; split by workerBps.
+    /// @dev Release `amount` from lock, recall principal from Earn (if any); fee once; split by workerBps.
+    ///      Callers write the terminal `job.status` first, so the job is closed before any venue is called.
     function _payout(Job storage job, bytes32 jobId, uint256 amount, uint16 workerBps) internal {
-        uint256 available = _recall(job, jobId, amount);
         address token = job.token;
         locked[token] -= amount;
+        uint256 available = _recall(job, jobId, amount);
         uint256 fee = feeRecipient == address(0) ? 0 : (available * feeBps) / BPS;
         uint256 net = available - fee;
         uint256 toWorker = (net * workerBps) / BPS;
@@ -918,8 +921,8 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
         if (payer != job.payer) revert NotPayer();
         if (job.status != Status.Submitted && job.status != Status.Attested) revert WrongStatus(job.status);
         _checkCommit(job, jobId, amount, scopeHash, salt);
-        _payout(job, jobId, amount, BPS);
         job.status = Status.Settled;
+        _payout(job, jobId, amount, BPS);
         emit Settled(jobId);
     }
 
