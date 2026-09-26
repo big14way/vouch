@@ -36,3 +36,8 @@ skills-lock.json
 .neon
 # python
 __pycache__/
+docs/video/clips/
+docs/video/.build/
+docs/video/out/
+docs/video/*.mp4
+docs/video/.sessions/

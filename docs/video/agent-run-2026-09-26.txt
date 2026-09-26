@@ -1,0 +1,16 @@
+
+> @vouch/example-claude-code-payer@0.1.0 start /Users/gwill/Developer/vouch/examples/claude-code-payer
+> tsx run.ts
+
+19:24:31 payer  0xeBCfb9c6E03B5338684A0f96187DD15862cB2202 worker 0x121636cC839Adaf71FCc3f8BE670874747975a10 chain 42431
+19:24:33 created 0x2777f1339086b91ac386e0d5c20adc88f85f3712550c28916614dd99da850df7 → https://vouch-rouge.vercel.app/j/0x2777f1339086b91ac386e0d5c20adc88f85f3712550c28916614dd99da850df7
+19:24:41 funded   Funded route mpp fundTx 0x1779815f63b8c04767c407d1fb9e3f84736af7d640c5373ec37e1608ae7861ea paymentTx 0x527957d00ed1c3c3f21a4cd56d3938810c0da64e078151d57885796047f3a1d4
+19:24:47 submitted Submitted tx 0xb6c9997acb579721a9e44d0e74d982e53c37c6b14f4b2220f2b245473b012e32 deliverableHash 0x858a55d14e6b3d8182fb9c8ab1beadfb7a4d34305d8acae8d5a68c821aec5ef0
+19:25:00 verdict  PASS confidence 0.9 attestation 0x051db619162f75122e933a1e8b82fa7863220d34083944267891aa8b81e79e3f
+19:25:00     met          Single Markdown file named brief.md
+19:25:00     met          Brief ≤ 500 words covering three topics
+19:25:00     met          Each topic has a heading
+19:25:00     met          Each topic has three bullet findings
+19:25:00     met          Each topic has one recommendation
+19:25:00 status   Attested autoSettleAt 2026-09-27T19:24:55.083Z
+19:25:00 done: $5.00 locked → delivered → PASS. Pays automatically at 2026-09-27T19:24:55.083Z

@@ -1,0 +1,506 @@
+{
+ "base": "https://vouch-rouge.vercel.app",
+ "viewport": [
+  1440,
+  810
+ ],
+ "window": [
+  1440,
+  900
+ ],
+ "video": [
+  1920,
+  1080
+ ],
+ "out": "clips",
+ "accent": "#22c55e",
+ "scenes": [
+  {
+   "name": "landing",
+   "steps": [
+    [
+     "goto",
+     "/",
+     "h1#hero"
+    ],
+    [
+     "moveTo",
+     [
+      1400,
+      780
+     ],
+     400
+    ],
+    [
+     "wait",
+     19000
+    ]
+   ]
+  },
+  {
+   "name": "job_pass",
+   "steps": [
+    [
+     "goto",
+     "/j/0x2777f1339086b91ac386e0d5c20adc88f85f3712550c28916614dd99da850df7",
+     "h1"
+    ],
+    [
+     "wait",
+     3000
+    ],
+    [
+     "zoom",
+     "text=Pays automatically",
+     1.6,
+     900,
+     3200
+    ],
+    [
+     "unzoom",
+     700
+    ],
+    [
+     "scrollBy",
+     520,
+     1800
+    ],
+    [
+     "wait",
+     2200
+    ],
+    [
+     "scrollBy",
+     420,
+     1500
+    ],
+    [
+     "wait",
+     2000
+    ]
+   ]
+  },
+  {
+   "name": "job_attack",
+   "steps": [
+    [
+     "goto",
+     "/j/0x0669b9cc7d50705c6180f08a000f0d6c0d67a1cc0c4419ef02fb8843b732eb9e",
+     "h1"
+    ],
+    [
+     "wait",
+     2500
+    ],
+    [
+     "scrollTo",
+     "text=Flags",
+     260,
+     1800
+    ],
+    [
+     "wait",
+     800
+    ],
+    [
+     "zoom",
+     "text=Flags",
+     1.55,
+     900,
+     4200
+    ],
+    [
+     "unzoom",
+     700
+    ],
+    [
+     "moveTo",
+     "text=Recorded on chain",
+     800
+    ],
+    [
+     "wait",
+     1800
+    ]
+   ]
+  },
+  {
+   "name": "term_agent",
+   "terminal": {
+    "title": "payer agent hires a worker agent \u00b7 Tempo testnet \u00b7 live, Sept 26",
+    "schedule": "schedules/agent.json",
+    "end": 15
+   }
+  },
+  {
+   "name": "term_attack",
+   "terminal": {
+    "title": "prompt injection \u00b7 live on the public deployment, Sept 26",
+    "schedule": "schedules/attack.json",
+    "end": 16
+   }
+  },
+  {
+   "name": "ui_create",
+   "storageState": ".sessions/state-payer.json",
+   "steps": [
+    [
+     "goto",
+     "/new",
+     "#title"
+    ],
+    [
+     "waitFor",
+     "button:has-text(\"Create job link\")",
+     90000
+    ],
+    [
+     "wait",
+     1200
+    ],
+    [
+     "moveTo",
+     "#title",
+     700
+    ],
+    [
+     "click"
+    ],
+    [
+     "type",
+     "Brand identity for Kora Coffee",
+     30
+    ],
+    [
+     "moveTo",
+     "#scope",
+     700
+    ],
+    [
+     "click"
+    ],
+    [
+     "type",
+     "## Deliverables\n- A logo for Kora Coffee as an SVG file named logo.svg, with the wordmark KORA.\n- A one-page brand guide named brand.md: a palette of exactly 3 colours as hex codes, 2 typefaces (headings and body), and 3 usage rules.\n\n## Format\n- logo.svg and brand.md",
+     5
+    ],
+    [
+     "moveTo",
+     "#amount",
+     700
+    ],
+    [
+     "click"
+    ],
+    [
+     "type",
+     "20",
+     120
+    ],
+    [
+     "wait",
+     500
+    ],
+    [
+     "scrollTo",
+     "text=When it pays",
+     90,
+     1000
+    ],
+    [
+     "moveTo",
+     "button[aria-pressed=\"true\"]",
+     700
+    ],
+    [
+     "wait",
+     700
+    ],
+    [
+     "moveTo",
+     "button:has-text(\"Create job link\")",
+     800
+    ],
+    [
+     "click"
+    ],
+    [
+     "wait",
+     3200
+    ],
+    [
+     "moveTo",
+     "button:has-text(\"WhatsApp\")",
+     700
+    ],
+    [
+     "wait",
+     1000
+    ],
+    [
+     "moveTo",
+     "button:has-text(\"Open job and lock payment\")",
+     700
+    ],
+    [
+     "click"
+    ],
+    [
+     "waitFor",
+     "button:has-text(\"from your balance\")",
+     90000
+    ],
+    [
+     "wait",
+     1500
+    ],
+    [
+     "saveVar",
+     "job",
+     "location.pathname"
+    ],
+    [
+     "moveTo",
+     "button:has-text(\"from your balance\")",
+     800
+    ],
+    [
+     "click"
+    ],
+    [
+     "waitFor",
+     "text=Payment locked",
+     60000
+    ],
+    [
+     "wait",
+     4500
+    ]
+   ]
+  },
+  {
+   "name": "ui_deliver",
+   "storageState": ".sessions/state-worker.json",
+   "steps": [
+    [
+     "goto",
+     "{{job}}",
+     "h1"
+    ],
+    [
+     "waitFor",
+     "button:has-text(\"Sign and deliver\"):not([disabled])",
+     120000
+    ],
+    [
+     "wait",
+     1800
+    ],
+    [
+     "scrollTo",
+     "text=Deliver your work",
+     90,
+     1200
+    ],
+    [
+     "upload",
+     "input#files",
+     "assets/logo.svg"
+    ],
+    [
+     "wait",
+     700
+    ],
+    [
+     "upload",
+     "input#files",
+     "assets/brand.md"
+    ],
+    [
+     "wait",
+     900
+    ],
+    [
+     "moveTo",
+     "#note",
+     700
+    ],
+    [
+     "click"
+    ],
+    [
+     "type",
+     "Logo and brand guide attached. Palette, typefaces and usage rules are in brand.md.",
+     14
+    ],
+    [
+     "moveTo",
+     "button:has-text(\"Sign and deliver\")",
+     700
+    ],
+    [
+     "click"
+    ],
+    [
+     "waitFor",
+     "button:has-text(\"Sign and continue\")",
+     30000
+    ],
+    [
+     "wait",
+     900
+    ],
+    [
+     "moveTo",
+     "button:has-text(\"Sign and continue\")",
+     700
+    ],
+    [
+     "click"
+    ],
+    [
+     "wait",
+     2500
+    ],
+    [
+     "scrollTo",
+     "h1",
+     140,
+     1000
+    ],
+    [
+     "wait",
+     1500
+    ],
+    [
+     "waitFor",
+     "text=confidence",
+     120000
+    ],
+    [
+     "wait",
+     1500
+    ],
+    [
+     "scrollTo",
+     "text=confidence",
+     260,
+     1400
+    ],
+    [
+     "wait",
+     6000
+    ]
+   ]
+  },
+  {
+   "name": "ui_approve",
+   "storageState": ".sessions/state-payer.json",
+   "steps": [
+    [
+     "goto",
+     "{{job}}",
+     "h1"
+    ],
+    [
+     "waitFor",
+     "button:has-text(\"Approve and release\") >> visible=true",
+     120000
+    ],
+    [
+     "wait",
+     2500
+    ],
+    [
+     "scrollBy",
+     420,
+     1500
+    ],
+    [
+     "wait",
+     2500
+    ],
+    [
+     "scrollBy",
+     -420,
+     1100
+    ],
+    [
+     "wait",
+     600
+    ],
+    [
+     "moveTo",
+     "button:has-text(\"Approve and release\") >> visible=true",
+     800
+    ],
+    [
+     "click"
+    ],
+    [
+     "waitFor",
+     "button:has-text(\"Sign and continue\")",
+     30000
+    ],
+    [
+     "wait",
+     900
+    ],
+    [
+     "moveTo",
+     "button:has-text(\"Sign and continue\")",
+     700
+    ],
+    [
+     "click"
+    ],
+    [
+     "waitFor",
+     "text=Settlement transaction",
+     60000
+    ],
+    [
+     "wait",
+     5000
+    ]
+   ]
+  },
+  {
+   "name": "ui_paid_worker",
+   "storageState": ".sessions/state-worker.json",
+   "steps": [
+    [
+     "goto",
+     "{{job}}",
+     "h1"
+    ],
+    [
+     "waitFor",
+     "text=Settlement transaction",
+     120000
+    ],
+    [
+     "wait",
+     3500
+    ],
+    [
+     "zoom",
+     "text=Settlement transaction",
+     1.45,
+     900,
+     3200,
+     0,
+     -60
+    ],
+    [
+     "unzoom",
+     800
+    ],
+    [
+     "wait",
+     1200
+    ]
+   ]
+  }
+ ]
+}

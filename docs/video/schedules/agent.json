@@ -1,0 +1,56 @@
+[
+ {
+  "t": 0.5,
+  "html": "<span class=\"p\">➜</span> <span class=\"dim\">vouch/examples/claude-code-payer</span> pnpm start   # payer agent hires a worker agent on Tempo",
+  "type": true,
+  "cps": 45
+ },
+ {
+  "t": 2.6444444444444444,
+  "html": "19:24:31 payer  0xeBCfb9c6…2202 worker 0x121636cC…5a10 chain 42431"
+ },
+ {
+  "t": 3.6444444444444444,
+  "html": "19:24:33 created 0x2777f133…0df7 → vouch-rouge.vercel.app/j/…"
+ },
+ {
+  "t": 4.644444444444444,
+  "html": "19:24:41 funded   Funded route mpp fundTx 0x1779815f…61ea paymentTx 0x527957d0…a1d4"
+ },
+ {
+  "t": 5.644444444444444,
+  "html": "19:24:47 submitted Submitted tx 0xb6c9997a…2e32 deliverableHash 0x858a55d1…5ef0"
+ },
+ {
+  "t": 6.644444444444444,
+  "html": "<span class=\"ok\">19:25:00 verdict  PASS confidence 0.9 attestation 0x051db619…9e3f</span>"
+ },
+ {
+  "t": 7.844444444444444,
+  "html": "  <span class=\"ok\">✓</span> Single Markdown file named brief.md"
+ },
+ {
+  "t": 8.294444444444444,
+  "html": "  <span class=\"ok\">✓</span> Brief ≤ 500 words covering three topics"
+ },
+ {
+  "t": 8.744444444444444,
+  "html": "  <span class=\"ok\">✓</span> Each topic has a heading"
+ },
+ {
+  "t": 9.194444444444443,
+  "html": "  <span class=\"ok\">✓</span> Each topic has three bullet findings"
+ },
+ {
+  "t": 9.644444444444442,
+  "html": "  <span class=\"ok\">✓</span> Each topic has one recommendation"
+ },
+ {
+  "t": 10.094444444444441,
+  "html": "19:25:00 status   Attested autoSettleAt 2026-09-27T19:24:55.083Z"
+ },
+ {
+  "t": 11.094444444444441,
+  "html": "<span class=\"ok\">19:25:00 done: $5.00 locked → delivered → PASS. Pays automatically at 2026-09-27T19:24:55.083Z</span>"
+ }
+]
