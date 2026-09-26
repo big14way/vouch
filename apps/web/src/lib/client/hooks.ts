@@ -21,7 +21,17 @@ export function useJob(id: string, initial?: JobSnapshot | null) {
       if (stop) return;
       const src = new EventSource(`/api/v1/jobs/${id}/events`);
       es.current = src;
-      src.addEventListener("job", (e) => qc.setQueryData<JobResponse>(["job", id], { job: JSON.parse((e as MessageEvent).data) as JobDto }));
+      src.addEventListener("job", (e) => {
+        const next = JSON.parse((e as MessageEvent).data) as JobDto;
+        const prev = qc.getQueryData<JobResponse>(["job", id])?.job;
+        // The stream carries the public view. Never let it replace what a signed-in viewer can see
+        // (role, amount, parties): take the news as a signal and refetch with the viewer's identity.
+        if (prev && prev.role !== "public" && next.role === "public") {
+          if (prev.status !== next.status || prev.updatedAt !== next.updatedAt) void qc.invalidateQueries({ queryKey: ["job", id] });
+          return;
+        }
+        qc.setQueryData<JobResponse>(["job", id], { job: next });
+      });
       src.addEventListener("verdict", (e) => qc.setQueryData<VerdictDto>(["verdict", id], JSON.parse((e as MessageEvent).data) as VerdictDto));
       src.onerror = () => {
         src.close();
