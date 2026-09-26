@@ -21,6 +21,12 @@ const nextConfig: NextConfig = {
   transpilePackages: ["@vouch/shared", "@vouch/abi"],
   serverExternalPackages: ["pdf-parse", "@prisma/client", "mppx"],
   experimental: { optimizePackageImports: ["lucide-react", "framer-motion"] },
+  // Local UI work against live data: DEV_API_PROXY=https://<deployment> forwards the API to that deployment
+  // (this machine cannot reach the database). Unset in every real deployment.
+  async rewrites() {
+    const proxy = process.env.DEV_API_PROXY;
+    return proxy ? { beforeFiles: [{ source: "/api/v1/:path*", destination: `${proxy}/api/v1/:path*` }], afterFiles: [], fallback: [] } : [];
+  },
   async headers() {
     return [
       {

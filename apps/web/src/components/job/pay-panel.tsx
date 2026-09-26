@@ -6,11 +6,12 @@ import type { Address, Hex } from "viem";
 import type { JobDto } from "@vouch/shared";
 import { chainMeta, formatAmount, isTempo, shortAddress } from "@vouch/shared";
 import { Button } from "@/components/ui/button";
-import { Card, CardTitle, Muted } from "@/components/ui/card";
+import { Card, Eyebrow } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
 import { CopyField } from "@/components/ui/copy-field";
 import { Sheet } from "@/components/ui/sheet";
 import { useToast } from "@/components/ui/toast";
-import { jobs, api, ClientError } from "@/lib/client/api";
+import { jobs, api, me, ClientError } from "@/lib/client/api";
 import { signReceiveWithAuthorization } from "@/lib/client/wallet";
 import { dur, ease } from "@/components/motion";
 
@@ -26,6 +27,7 @@ export function PayPanel({ job, onFunded }: { job: JobDto; onFunded: (j: JobDto)
   const [txHash, setTxHash] = useState("");
   const tempoChain = isTempo(job.chainId);
   const vaultRoute = job.fundRoutes.find((r) => r.kind === "transfer");
+  const bal = useQuery({ queryKey: ["balances"], queryFn: me.balances, enabled: ready && authenticated });
 
   useEffect(() => {
     if (!anyWallet || !vaultRoute?.target || qr) return;
@@ -101,25 +103,35 @@ export function PayPanel({ job, onFunded }: { job: JobDto; onFunded: (j: JobDto)
     }
   };
 
+  const balanceRow = bal.data?.balances.find((b) => b.chainId === job.chainId && b.token.toLowerCase() === job.token.toLowerCase());
+  const covers = Boolean(job.amount && balanceRow && BigInt(balanceRow.available) >= BigInt(job.amount));
+  const amountText = job.amount ? formatAmount(job.amount) : "";
+
   return (
     <Card>
-      <CardTitle>Pay {job.amount ? formatAmount(job.amount, { symbol: job.tokenSymbol }) : ""}</CardTitle>
-      <Muted className="mt-1">Held safely until the work is delivered and verified. Fee {job.feeBps / 100}% is taken from the payout, not from you.</Muted>
+      <Eyebrow>Lock the payment</Eyebrow>
+      <p className="mt-2 text-[14px] leading-5">Held in the vault until the work is delivered and verified. The {job.feeBps / 100}% fee comes out of the payout, not from you.</p>
       <div className="mt-4 space-y-2">
-        {tempoChain ? (
+        {covers ? (
+          <Button full size="lg" loading={busy === "balance"} onClick={payBalance}>
+            Lock {amountText} from your balance
+          </Button>
+        ) : tempoChain ? (
           <Button full size="lg" loading={busy === "tempo"} onClick={payTempoWallet}>Pay with Tempo wallet</Button>
         ) : (
           <Button full size="lg" loading={busy === "base"} onClick={payBase} disabled={!ready}>
-            {authenticated ? "Pay with USDC" : "Sign in to pay"}
+            {authenticated ? `Pay ${amountText} with USDC` : "Sign in to pay"}
           </Button>
         )}
         <div className="grid grid-cols-2 gap-2">
-          {tempoChain ? <Button variant="secondary" onClick={() => setAnyWallet(true)}>Pay from any wallet</Button> : null}
-          <Button variant="secondary" loading={busy === "balance"} onClick={payBalance}>Use my balance</Button>
+          {covers && tempoChain ? <Button variant="secondary" loading={busy === "tempo"} onClick={payTempoWallet}>Tempo wallet</Button> : null}
+          {tempoChain ? <Button variant="secondary" onClick={() => setAnyWallet(true)}>Any wallet</Button> : null}
+          {!covers ? <Button variant="secondary" loading={busy === "balance"} onClick={payBalance}>My balance</Button> : null}
         </div>
       </div>
-      <p className="mt-3 text-[13px] text-muted">
-        {tempoChain ? "One confirmation. No network fee for you." : "You sign once. No ETH needed."} Settled on {chainMeta(job.chainId).name}.
+      <p className="mt-3 text-[12px] leading-5 text-faint">
+        {covers && balanceRow ? `Balance ${formatAmount(balanceRow.available)} ${balanceRow.symbol}. ` : ""}
+        {tempoChain ? "One confirmation, no network fee for you." : "You sign once. No ETH needed."} Settled on {chainMeta(job.chainId).name}.
       </p>
       <Sheet open={anyWallet} onClose={() => setAnyWallet(false)} title="Pay from any wallet">
         <p className="text-[15px]">Send exactly <span className="mono font-semibold">{job.amount ? formatAmount(job.amount, { symbol: job.tokenSymbol }) : "the job amount"}</span> on {chainMeta(job.chainId).name} to the vault, with the memo below. It is matched to this job automatically.</p>
@@ -133,7 +145,7 @@ export function PayPanel({ job, onFunded }: { job: JobDto; onFunded: (j: JobDto)
         </div>
         <p className="mt-4 text-[13px] text-muted">Already sent? Paste the transaction hash to speed things up.</p>
         <div className="mt-2 flex gap-2">
-          <input aria-label="Transaction hash" className="mono min-h-11 flex-1 rounded-[var(--r-md)] border border-border bg-bg px-3 text-[13px]" placeholder="0x…" value={txHash} onChange={(e) => setTxHash(e.target.value.trim())} />
+          <input aria-label="Transaction hash" className="mono h-10 flex-1 rounded-[var(--r-md)] border border-border-strong bg-bg px-3 text-[13px] outline-none focus:border-primary/70" placeholder="0x…" value={txHash} onChange={(e) => setTxHash(e.target.value.trim())} />
           <Button loading={busy === "confirm"} onClick={confirmTx}>Confirm</Button>
         </div>
       </Sheet>

@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/client/auth";
 import { Shell } from "@/components/layout/nav";
 import { Button } from "@/components/ui/button";
-import { Card, CardTitle, Muted } from "@/components/ui/card";
+import { Card, Muted } from "@/components/ui/card";
 import { Field, Input, Label } from "@/components/ui/field";
 import { me } from "@/lib/client/api";
 
@@ -40,8 +40,8 @@ function Inner() {
   };
 
   return (
-    <Card>
-      <CardTitle>Almost there</CardTitle>
+    <Card className="p-6">
+      <h1 className="text-[20px] font-semibold tracking-[-0.02em]">Almost there</h1>
       <Muted className="mt-1">Two questions, then you are in.</Muted>
       <Field className="mt-4" error={err}>
         <Label htmlFor="name">Your name</Label>
@@ -51,7 +51,7 @@ function Inner() {
         <legend className="mb-1.5 text-[13px] font-medium">You mostly</legend>
         <div className="grid grid-cols-3 gap-2">
           {(["payer", "worker", "both"] as const).map((r) => (
-            <button key={r} type="button" aria-pressed={role === r} onClick={() => setRole(r)} className={`min-h-11 rounded-[var(--r-md)] border px-3 text-[15px] ${role === r ? "border-primary bg-primary/5" : "border-border"}`}>
+            <button key={r} type="button" aria-pressed={role === r} onClick={() => setRole(r)} className={`h-10 rounded-[var(--r-md)] border px-3 text-[13px] transition-colors ${role === r ? "border-primary/60 bg-primary/[0.06] text-text" : "border-border-strong text-muted hover:text-text"}`}>
               {r === "payer" ? "Pay for work" : r === "worker" ? "Do work" : "Both"}
             </button>
           ))}

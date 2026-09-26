@@ -4,21 +4,27 @@ import { m, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/lib/client/auth";
 import type { Address } from "viem";
 import { formatAmount, type JobDto } from "@vouch/shared";
-import { Button } from "@/components/ui/button";
-import { Card, CardTitle, Muted } from "@/components/ui/card";
+import { CheckCircle2 } from "lucide-react";
+import { ActionButton, Button, type ActionPhase } from "@/components/ui/button";
+import { Card, Eyebrow, Muted } from "@/components/ui/card";
 import { Field, Label, Textarea } from "@/components/ui/field";
 import { Sheet } from "@/components/ui/sheet";
 import { TxLink } from "@/components/ui/tx-link";
 import { useToast } from "@/components/ui/toast";
-import { spring } from "@/components/motion";
+import { dur, ease, spring } from "@/components/motion";
 import { jobs, ClientError } from "@/lib/client/api";
 import { signTypedData } from "@/lib/client/wallet";
 
-/** Approve & pay / Dispute (payer), Dispute (worker), Refund (expired). Settled state morphs the button into a receipt card. */
+/**
+ * Approve & release / Dispute (payer), Dispute (worker), Refund (expired). The approve button carries the action
+ * through Releasing… → Released in place, then the panel becomes a receipt. On phones the payer's action sits in
+ * a bottom bar so it is always one thumb away.
+ */
 export function JobActions({ job, onChange }: { job: JobDto; onChange: (j: JobDto) => void }) {
   const toast = useToast();
   const { authenticated, login, address, getProvider } = useAuth();
   const [busy, setBusy] = useState<string | null>(null);
+  const [phase, setPhase] = useState<ActionPhase>("idle");
   const [disputeOpen, setDisputeOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [err, setErr] = useState<string | null>(null);
@@ -28,7 +34,7 @@ export function JobActions({ job, onChange }: { job: JobDto; onChange: (j: JobDt
       login();
       throw new ClientError("Sign in first.", "unauthenticated");
     }
-    if (!address) throw new ClientError("Your wallet is still being created.", "no_wallet", "Try again in a moment.");
+    if (!address) throw new ClientError("Your wallet is still loading.", "no_wallet", "Try again in a moment.");
     const signer = address as Address;
     const { typedData } = await jobs.sign(job.id, { action, signer, ...extra });
     const provider = await getProvider();
@@ -43,15 +49,16 @@ export function JobActions({ job, onChange }: { job: JobDto; onChange: (j: JobDt
   };
 
   const approve = async () => {
-    setBusy("approve");
+    setPhase("pending");
     try {
       const sig = await sign("Settle");
       const r = await jobs.approve(job.id, sig);
-      onChange(r.job);
+      setPhase("done");
+      // Let "Released" register before the panel turns into the receipt.
+      setTimeout(() => onChange(r.job), 700);
     } catch (e) {
+      setPhase("idle");
       fail(e);
-    } finally {
-      setBusy(null);
     }
   };
 
@@ -87,54 +94,82 @@ export function JobActions({ job, onChange }: { job: JobDto; onChange: (j: JobDt
   const settled = job.status === "Settled" || job.status === "Resolved";
   const canAct = job.status === "Submitted" || job.status === "Attested";
   const expired = job.status === "Funded" && job.submitDeadlineAt && new Date(job.submitDeadlineAt).getTime() < Date.now();
+  const amount = job.amount ? formatAmount(job.amount) : "";
+  const payout = job.amount ? formatAmount(BigInt(job.amount) - (BigInt(job.amount) * BigInt(job.feeBps)) / 10000n) : "";
+
+  const approveButton = (
+    <ActionButton phase={phase} onClick={approve} idle={`Approve and release${amount ? ` ${amount}` : ""}`} pending="Releasing…" done="Released" />
+  );
 
   return (
-    <AnimatePresence mode="wait">
-      {settled ? (
-        <m.div key="receipt" layout initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={spring.soft}>
-          <Card className="border-success/40">
-            <CardTitle className="text-success">Paid</CardTitle>
-            <Muted className="mt-1">{job.amount ? formatAmount(job.amount, { symbol: job.tokenSymbol }) : "The amount"} moved from Locked to Paid{job.status === "Resolved" ? " by the arbiter's decision" : ""}. The worker can withdraw any time.</Muted>
-            <div className="mt-3 flex flex-wrap gap-3">
-              {job.txs.settled ? <TxLink chainId={job.chainId} hash={job.txs.settled} label="Settlement" /> : null}
-              {job.txs.resolved ? <TxLink chainId={job.chainId} hash={job.txs.resolved} label="Resolution" /> : null}
+    <>
+      <AnimatePresence mode="wait" initial={false}>
+        {settled ? (
+          <m.div key="receipt" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: dur.base, ease: ease.out }}>
+            <Card className="border-success/30">
+              <div className="flex items-center gap-2.5">
+                <m.span initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={spring.snappy}>
+                  <CheckCircle2 className="size-5 text-success" />
+                </m.span>
+                <p className="text-[15px] font-semibold">{job.status === "Resolved" ? "Resolved by the arbiter" : "Paid"}</p>
+              </div>
+              <div className="mt-4 space-y-2 text-[13px]">
+                <div className="flex justify-between"><span className="text-muted">Released</span><span className="tnum">{amount}</span></div>
+                <div className="flex justify-between"><span className="text-muted">Fee ({job.feeBps / 100}%)</span><span className="tnum text-muted">−{job.amount ? formatAmount((BigInt(job.amount) * BigInt(job.feeBps)) / 10000n) : ""}</span></div>
+                <div className="hairline my-1" />
+                <div className="flex justify-between font-medium"><span>To the worker</span><span className="tnum text-success">{payout}</span></div>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-4">
+                {job.txs.settled ? <TxLink chainId={job.chainId} hash={job.txs.settled} label="Settlement transaction" /> : null}
+                {job.txs.resolved ? <TxLink chainId={job.chainId} hash={job.txs.resolved} label="Resolution transaction" /> : null}
+              </div>
+            </Card>
+          </m.div>
+        ) : job.role === "payer" && canAct ? (
+          <m.div key="payer" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: dur.base }}>
+            <Card>
+              <Eyebrow>Your decision</Eyebrow>
+              <p className="mt-2 text-[14px] leading-5">{job.status === "Submitted" ? "The check is still running. You can release now or wait for the verdict." : "Release the payment if the work matches, or dispute it."}</p>
+              <div className="mt-4 hidden space-y-2 lg:block">
+                {approveButton}
+                <Button full variant="ghost" onClick={() => setDisputeOpen(true)} disabled={phase !== "idle"}>Dispute</Button>
+              </div>
+              <Muted className="mt-3 hidden lg:block">Releasing sends {payout || "the payout"} to the worker. It cannot be undone.</Muted>
+            </Card>
+            {/* Phones: the decision is always one thumb away. */}
+            <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-bg/90 px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl lg:hidden">
+              <div className="mx-auto grid max-w-lg grid-cols-[1fr_auto] gap-2">
+                {approveButton}
+                <Button size="lg" variant="secondary" onClick={() => setDisputeOpen(true)} disabled={phase !== "idle"}>Dispute</Button>
+              </div>
             </div>
-          </Card>
-        </m.div>
-      ) : job.role === "payer" && canAct ? (
-        <m.div key="payer" layout className="sticky bottom-3 z-10">
-          <Card className="shadow-[var(--shadow)]">
-            <div className="grid grid-cols-[1fr_auto] gap-2">
-              <Button size="lg" loading={busy === "approve"} onClick={approve}>Approve &amp; pay</Button>
-              <Button size="lg" variant="secondary" onClick={() => setDisputeOpen(true)}>Dispute</Button>
-            </div>
-            {job.status === "Submitted" ? <Muted className="mt-2">You can pay now, or wait for the verification to finish.</Muted> : null}
-          </Card>
-        </m.div>
-      ) : job.role === "worker" && canAct ? (
-        <m.div key="worker" layout>
-          <Card>
-            <Muted>{job.status === "Attested" && job.verdict === "FAIL" ? "You can resubmit above, or dispute the result." : "Waiting on the payer. Dispute only if something is wrong with the review."}</Muted>
-            <Button className="mt-3" variant="secondary" onClick={() => setDisputeOpen(true)}>Dispute</Button>
-          </Card>
-        </m.div>
-      ) : expired && job.role === "payer" ? (
-        <m.div key="refund" layout>
-          <Card>
-            <CardTitle>Nothing was delivered in time</CardTitle>
-            <Muted className="mt-1">The delivery deadline passed. Move the locked amount back to your balance.</Muted>
-            <Button className="mt-3" loading={busy === "refund"} onClick={refund}>Get my money back</Button>
-          </Card>
-        </m.div>
-      ) : null}
+          </m.div>
+        ) : job.role === "worker" && canAct ? (
+          <m.div key="worker" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: dur.base }}>
+            <Card>
+              <Eyebrow>Waiting on the payer</Eyebrow>
+              <p className="mt-2 text-[14px] leading-5 text-muted">{job.status === "Attested" && job.verdict === "FAIL" ? "You can resubmit, or dispute the result if the review is wrong." : job.autoSettleAt ? "Your payment releases automatically unless the payer disputes." : "The payer reviews the verdict and releases the payment."}</p>
+              <Button className="mt-4" full variant="ghost" onClick={() => setDisputeOpen(true)}>Dispute the review</Button>
+            </Card>
+          </m.div>
+        ) : expired && job.role === "payer" ? (
+          <m.div key="refund" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <Card>
+              <Eyebrow>Nothing was delivered in time</Eyebrow>
+              <p className="mt-2 text-[14px] leading-5 text-muted">The delivery deadline passed. Move the locked amount back to your balance.</p>
+              <Button className="mt-4" full loading={busy === "refund"} onClick={refund}>Get my money back</Button>
+            </Card>
+          </m.div>
+        ) : null}
+      </AnimatePresence>
       <Sheet open={disputeOpen} onClose={() => setDisputeOpen(false)} title="Open a dispute">
-        <p className="text-[15px]">An arbiter sees the same pinned evidence and verification report, then splits the locked amount. Their decision is final for funds in the vault.</p>
+        <p className="text-[14px] leading-6 text-muted">An arbiter sees the same pinned evidence and verification report, then splits the locked amount. Their decision is final for funds in the vault.</p>
         <Field error={err} className="mt-4">
           <Label htmlFor="reason">What is wrong?</Label>
           <Textarea id="reason" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Be specific: which part of the scope, and what you saw." />
         </Field>
-        <Button full variant="danger" loading={busy === "dispute"} onClick={dispute}>Open dispute</Button>
+        <Button full size="lg" variant="danger" loading={busy === "dispute"} onClick={dispute}>Open dispute</Button>
       </Sheet>
-    </AnimatePresence>
+    </>
   );
 }

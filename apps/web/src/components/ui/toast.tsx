@@ -28,9 +28,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               initial={{ opacity: 0, y: -16 }}
               animate={{ opacity: 1, y: 0, transition: { duration: dur.base, ease: ease.out } }}
               exit={{ opacity: 0, y: -8, transition: { duration: dur.fast, ease: ease.in } }}
-              className={`pointer-events-auto w-full max-w-sm rounded-[var(--r-md)] border bg-bg p-3 shadow-[var(--shadow)] ${t.tone === "danger" ? "border-danger/40" : t.tone === "success" ? "border-success/40" : "border-border"}`}
+              className={`pointer-events-auto w-full max-w-sm rounded-[var(--r-lg)] border bg-overlay p-3.5 shadow-[var(--shadow-pop)] ${t.tone === "danger" ? "border-danger/40" : t.tone === "success" ? "border-success/40" : "border-border"}`}
             >
-              <p className="text-[15px] font-medium">{t.title}</p>
+              <p className="text-[14px] font-medium">{t.title}</p>
               {t.body ? <p className="mt-0.5 text-[13px] text-muted">{t.body}</p> : null}
             </m.div>
           ))}

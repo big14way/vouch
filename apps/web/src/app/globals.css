@@ -4,34 +4,48 @@
    (the hero's product card, print). Success/warn/danger/info are tuned per theme for AA contrast on their surfaces. */
 :root,
 [data-theme="dark"] {
-  --bg: #0b1220;
-  --surface: #131a2a;
-  --border: #232c3d;
-  --text: #f3f5f8;
-  --muted: #9aa4b2;
-  --primary: #2fb182;
-  --primary-fg: #06201a;
+  /* Four neutral levels, warm-leaning greys (Linear-style: structure felt, not seen). */
+  --bg: #0b0c0e;
+  --surface: #121316;
+  --overlay: #18191d;
+  --border: #23252a;
+  --border-strong: #2f3238;
+  /* Three text levels. */
+  --text: #ededef;
+  --muted: #9b9ea5;
+  --faint: #686b73;
+  /* One brand accent: primary actions, focus, and money that has actually landed. */
+  --primary: #3ccf91;
+  --primary-fg: #04130c;
   --accent: #f2b705;
-  --success: #22c55e;
-  --warn: #f59e0b;
-  --danger: #f87171;
-  --info: #60a5fa;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  /* Status colours carry meaning only: dots, 1px borders and 12–16% tints, never large fills. */
+  --success: #3ccf91;
+  --warn: #f5a524;
+  --danger: #f26d6d;
+  --info: #8ea4c8;
+  --shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 12px 32px -16px rgba(0, 0, 0, 0.7);
+  --shadow-pop: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 24px 64px -24px rgba(0, 0, 0, 0.85);
   color-scheme: dark;
 }
 
 :root {
-  --r-lg: 12px;
+  --r-xl: 18px;
+  --r-lg: 14px;
   --r-md: 10px;
+  --r-sm: 7px;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --r-pill: 999px;
 }
 
 [data-theme="light"] {
   --bg: #ffffff;
   --surface: #f6f7f9;
+  --overlay: #ffffff;
   --border: #e4e7ec;
+  --border-strong: #d3d8e0;
   --text: #0b1220;
   --muted: #5b6472;
+  --faint: #8a93a1;
   --primary: #0a6c4e;
   --primary-fg: #ffffff;
   --accent: #f2b705;
@@ -40,15 +54,19 @@
   --danger: #dc2626;
   --info: #2563eb;
   --shadow: 0 1px 2px rgba(11, 18, 32, 0.04), 0 8px 24px -12px rgba(11, 18, 32, 0.12);
+  --shadow-pop: 0 2px 4px rgba(11, 18, 32, 0.05), 0 24px 48px -20px rgba(11, 18, 32, 0.25);
   color-scheme: light;
 }
 
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
+  --color-overlay: var(--overlay);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-text: var(--text);
   --color-muted: var(--muted);
+  --color-faint: var(--faint);
   --color-primary: var(--primary);
   --color-primary-fg: var(--primary-fg);
   --color-accent: var(--accent);
@@ -58,10 +76,13 @@
   --color-info: var(--info);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --radius-xl: var(--r-xl);
   --radius-lg: var(--r-lg);
+  --radius-sm: var(--r-sm);
   --radius-md: var(--r-md);
   --radius-pill: var(--r-pill);
   --shadow-card: var(--shadow);
+  --shadow-pop: var(--shadow-pop);
   --text-xs: 13px;
   --text-sm: 15px;
   --text-base: 17px;
@@ -81,7 +102,31 @@ html {
 body {
   margin: 0;
   min-height: 100dvh;
-  font-size: 15px;
+  font-size: 14px;
+  font-feature-settings: "cv11", "ss01", "ss03";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Amounts and every other number that sits in a column. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum", "cv11", "ss01";
+}
+
+/* Current step only: a slow opacity pulse, stops at terminal states. */
+@keyframes vouch-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.pulse-soft {
+  animation: vouch-pulse 1.6s ease-in-out infinite;
+}
+
+/* Hairline divider that fades at both ends. */
+.hairline {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border) 12%, var(--border) 88%, transparent);
 }
 
 * {

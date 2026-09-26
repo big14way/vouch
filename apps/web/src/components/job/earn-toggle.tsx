@@ -35,11 +35,11 @@ export function EarnToggle({ chainId, value, onChange }: { chainId: number; valu
   const apy = (v: EarnVaultDto) => (v.apy && Number(v.apy) > 0 ? `~${(Number(v.apy) * 100).toFixed(1)}%` : "rate not measured yet");
 
   return (
-    <fieldset className="rounded-[var(--r-md)] border border-border p-3">
+    <fieldset className="rounded-[var(--r-md)] border border-border-strong bg-bg/50 p-3.5">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <legend className="text-[15px] font-medium">Earn while locked</legend>
-          <p className="mt-0.5 text-[13px] text-muted">
+          <legend className="text-[14px] font-medium">Earn while locked</legend>
+          <p className="mt-0.5 text-[12px] leading-[18px] text-muted">
             {vaults === null && !err ? "Checking available vaults…" : vaults && vaults.length === 0 ? "No Earn vault is enabled for this network yet." : "Your locked money earns while the work happens. The yield is yours."}
           </p>
         </div>
@@ -51,9 +51,9 @@ export function EarnToggle({ chainId, value, onChange }: { chainId: number; valu
           whileTap={{ scale: 0.96 }}
           transition={spring.snappy}
           onClick={() => onChange(on ? null : (vaults?.[0]?.address ?? null))}
-          className={cn("relative h-7 w-12 shrink-0 rounded-full border transition-colors disabled:opacity-40", on ? "border-primary bg-primary" : "border-border bg-surface")}
+          className={cn("relative h-6 w-10 shrink-0 rounded-full border transition-colors disabled:opacity-40", on ? "border-primary bg-primary" : "border-border-strong bg-overlay")}
         >
-          <span className={cn("absolute top-0.5 size-5 rounded-full bg-bg shadow transition-[left]", on ? "left-6" : "left-0.5")} />
+          <span className={cn("absolute top-0.5 size-[18px] rounded-full bg-text shadow transition-[left] duration-150", on ? "left-[18px]" : "left-0.5")} />
         </m.button>
       </div>
       {err ? <p className="mt-2 text-[13px] text-danger">{err}</p> : null}

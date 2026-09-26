@@ -17,8 +17,8 @@ export function PolicyPicker({ value, onChange }: { value: PolicyValue; onChange
   const set = (patch: Partial<PolicyWire>) => onChange({ preset: "custom", policy: { ...p, ...patch } });
   return (
     <fieldset>
-      <legend className="mb-1.5 block text-[13px] font-medium">When should payment release?</legend>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <legend className="sr-only">When should payment release?</legend>
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {POLICY_PRESET_NAMES.map((name) => {
           const active = value.preset === name;
           return (
@@ -29,19 +29,24 @@ export function PolicyPicker({ value, onChange }: { value: PolicyValue; onChange
               transition={spring.snappy}
               aria-pressed={active}
               onClick={() => onChange(name === "custom" ? { preset: "custom", policy: { ...p, autoRelease: p.autoRelease || 1 } } : { preset: name, policy: policyToWire(POLICY_PRESETS[name]) })}
-              className={cn("rounded-[var(--r-md)] border p-3 text-left min-h-11", active ? "border-primary bg-primary/5" : "border-border hover:bg-surface")}
+              className={cn("relative flex gap-3 rounded-[var(--r-md)] border p-3.5 text-left transition-colors duration-150", active ? "border-primary/60 bg-primary/[0.06] shadow-[0_0_0_3px_color-mix(in_oklab,var(--primary)_12%,transparent)]" : "border-border-strong bg-bg/50 hover:border-faint/60")}
             >
-              <span className="block text-[15px] font-medium">{POLICY_PRESET_COPY[name].title}</span>
-              <span className="mt-0.5 block text-[13px] text-muted">{POLICY_PRESET_COPY[name].blurb}</span>
+              <span className={cn("mt-0.5 grid size-4 shrink-0 place-items-center rounded-full border transition-colors", active ? "border-primary" : "border-faint")} aria-hidden>
+                {active ? <m.span layoutId="policy-dot" className="size-2 rounded-full bg-primary" transition={spring.snappy} /> : null}
+              </span>
+              <span className="min-w-0">
+                <span className="block text-[14px] font-medium">{POLICY_PRESET_COPY[name].title}</span>
+                <span className="mt-0.5 block text-[12px] leading-[18px] text-muted">{POLICY_PRESET_COPY[name].blurb}</span>
+              </span>
             </m.button>
           );
         })}
       </div>
       {value.preset === "custom" ? (
-        <div className="mt-3 grid grid-cols-1 gap-3 rounded-[var(--r-md)] border border-border bg-surface p-3 sm:grid-cols-2">
+        <m.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="mt-3 grid grid-cols-1 gap-3 rounded-[var(--r-md)] border border-border bg-bg/50 p-4 sm:grid-cols-2">
           <div>
             <Label htmlFor="autoRelease">Release automatically</Label>
-            <select id="autoRelease" className="w-full rounded-[var(--r-md)] border border-border bg-bg px-3 py-2.5 min-h-11" value={p.autoRelease} onChange={(e) => set({ autoRelease: Number(e.target.value) as 0 | 1 | 2 })}>
+            <select id="autoRelease" className="h-10 w-full rounded-[var(--r-md)] border border-border-strong bg-bg px-3 text-[14px]" value={p.autoRelease} onChange={(e) => set({ autoRelease: Number(e.target.value) as 0 | 1 | 2 })}>
               <option value={0}>Never (I approve)</option>
               <option value={1}>When verified as complete</option>
               <option value={2}>When verified, even if it needs review</option>
@@ -63,7 +68,7 @@ export function PolicyPicker({ value, onChange }: { value: PolicyValue; onChange
             <Label htmlFor="deadline">Delivery deadline (days)</Label>
             <Input id="deadline" type="number" min={0} value={Math.round(p.submitDeadline / 86400)} onChange={(e) => set({ submitDeadline: Math.max(0, Number(e.target.value)) * 86400 })} />
           </div>
-        </div>
+        </m.div>
       ) : null}
     </fieldset>
   );

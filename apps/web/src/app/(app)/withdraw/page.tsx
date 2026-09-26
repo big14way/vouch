@@ -60,10 +60,12 @@ export default function Withdraw() {
   };
 
   return (
-    <Shell narrow>
-      <h1 className="text-[22px] font-semibold">Withdraw</h1>
-      <Card className="mt-4">
-        {rows.length === 0 ? <Muted>Nothing to withdraw yet. Balances appear here after you are paid or refunded.</Muted> : (
+    <Shell>
+      <div className="mx-auto max-w-[520px]">
+      <h1 className="text-[24px] font-semibold tracking-[-0.025em] sm:text-[28px]">Withdraw</h1>
+      <p className="mt-1 text-[13px] text-muted">Send your available balance to any wallet. Vouch pays the network fee.</p>
+      <Card className="mt-6 p-6">
+        {rows.length === 0 ? <Muted>{bal.isLoading || !ready ? "Loading your balances…" : "Nothing to withdraw yet. Balances appear here after you are paid or refunded."}</Muted> : (
           <>
             <Field>
               <Label htmlFor="bal">From</Label>
@@ -74,8 +76,8 @@ export default function Withdraw() {
             <Field>
               <Label htmlFor="amt">Amount</Label>
               <div className="flex gap-2">
-                <Input id="amt" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" />
-                <Button type="button" variant="secondary" onClick={() => row && setAmount(formatAmount(row.available).replace("$", ""))}>Max</Button>
+                <Input id="amt" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" className="tnum h-12 text-[20px] font-semibold" />
+                <Button type="button" variant="secondary" size="lg" onClick={() => row && setAmount(formatAmount(row.available).replace("$", "").replace(/,/g, ""))}>Max</Button>
               </div>
             </Field>
             <Field error={err}>
@@ -87,13 +89,14 @@ export default function Withdraw() {
           </>
         )}
         {done ? (
-          <div className="mt-4 rounded-[var(--r-md)] border border-success/40 p-3">
-            <CardTitle className="text-[15px] text-success">Sent</CardTitle>
+          <div className="mt-4 rounded-[var(--r-md)] border border-success/30 bg-success/[0.06] p-3.5">
+            <CardTitle className="text-success">Sent</CardTitle>
             <div className="mt-1"><TxLink chainId={done.chainId} hash={done.tx} /></div>
           </div>
         ) : null}
       </Card>
-      {row && process.env.NEXT_PUBLIC_ZONES_ENABLED === "1" ? <ZonePayout chainId={row.chainId} token={row.token as Address} symbol={row.symbol} available={row.available} /> : null}
+      {row && process.env.NEXT_PUBLIC_ZONES_ENABLED === "1" ? <div className="mt-4"><ZonePayout chainId={row.chainId} token={row.token as Address} symbol={row.symbol} available={row.available} /></div> : null}
+      </div>
     </Shell>
   );
 }
