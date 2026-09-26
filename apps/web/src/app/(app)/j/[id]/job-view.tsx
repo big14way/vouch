@@ -123,7 +123,10 @@ export function JobView({ id, initial }: { id: string; initial?: JobInitial | nu
   const paid = PAID.has(job.status);
   const verdictArrivedLive = !(initial?.verdict?.stage != null && verdict?.attestationHash === initial.verdict.attestationHash && verdict?.stage === initial.verdict.stage);
   const disputed = job.status === "Disputed";
-  const showDeliver = (job.role === "worker" || (job.role === "public" && !job.worker)) && job.status === "Funded";
+  // Until sign-in resolves every viewer looks public; don't offer public-only states (the open deliver form,
+  // the hidden amount) to someone who is about to turn out to be the payer or the worker.
+  const authPending = !ready;
+  const showDeliver = !authPending && (job.role === "worker" || (job.role === "public" && !job.worker)) && job.status === "Funded";
   const showResubmit = job.role === "worker" && job.status === "Attested" && job.verdict === "FAIL" && job.resubmits < 2;
   const next = nextStep(job, now);
   const roleLabel = job.role === "payer" ? "You pay" : job.role === "worker" ? "You deliver" : job.role === "arbiter" ? "You arbitrate" : null;
@@ -167,7 +170,7 @@ export function JobView({ id, initial }: { id: string; initial?: JobInitial | nu
               <div className="min-w-0">
                 <Eyebrow>{amountLabel}</Eyebrow>
                 <div className="mt-2">
-                  <AmountDisplay amount={job.amount} symbol={job.tokenSymbol} size="xl" countUp={justLocked} className={paid && job.role === "worker" ? "text-success" : undefined} />
+                  {authPending && !job.amount ? <Skeleton className="h-10 w-44" /> : <AmountDisplay amount={job.amount} symbol={job.tokenSymbol} size="xl" countUp={justLocked} className={paid && job.role === "worker" ? "text-success" : undefined} />}
                 </div>
                 {job.amount && paid ? <p className="mt-2 text-[12px] text-muted">Worker receives {formatAmount(BigInt(job.amount) - (BigInt(job.amount) * BigInt(job.feeBps)) / 10000n)} after the {job.feeBps / 100}% fee</p> : null}
               </div>
