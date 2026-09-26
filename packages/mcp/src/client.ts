@@ -4,7 +4,7 @@ import { basename, extname } from "node:path";
 import { privateKeyToAccount, type PrivateKeyAccount } from "viem/accounts";
 import type { Address, Hex } from "viem";
 import { Mppx, evm, tempo } from "mppx/client";
-import { agentKeyChallenge, hashManifest, type DeliveryCore, type JobDto, type VerdictDto } from "@vouch/shared";
+import { USDC_EIP712_DOMAIN, agentKeyChallenge, hashManifest, type DeliveryCore, type JobDto, type VerdictDto } from "@vouch/shared";
 import type { Config } from "./config.js";
 
 export class VouchError extends Error {
@@ -23,7 +23,7 @@ const MIME: Record<string, string> = {
 export class VouchClient {
   readonly account: PrivateKeyAccount | null;
   private apiKey: string | undefined;
-  private payer: { fetch: typeof fetch } | null = null;
+  private payers = new Map<number, typeof fetch>();
 
   constructor(readonly cfg: Config) {
     this.account = cfg.VOUCH_AGENT_PRIVATE_KEY ? privateKeyToAccount(cfg.VOUCH_AGENT_PRIVATE_KEY as Hex) : null;
@@ -96,23 +96,30 @@ export class VouchClient {
 
   // ---- payments (MPP on Tempo, x402-compatible evm/charge on Base) ----
 
-  private payerFetch(): typeof fetch {
+  private payerFetch(chainId: number): typeof fetch {
     if (!this.account) throw new VouchError("VOUCH_AGENT_PRIVATE_KEY is not set.", "no_wallet", "Set VOUCH_AGENT_PRIVATE_KEY to a wallet holding pathUSD (Tempo) or USDC (Base).");
-    if (!this.payer) {
-      const max = this.cfg.VOUCH_MAX_PAYMENT;
-      const mppx = Mppx.create({
-        polyfill: false,
-        methods: [tempo({ account: this.account }), evm({ account: this.account, maxAmount: max })],
-      });
-      this.payer = { fetch: mppx.fetch as typeof fetch };
-    }
-    return this.payer.fetch;
+    const cached = this.payers.get(chainId);
+    if (cached) return cached;
+    const max = this.cfg.VOUCH_MAX_PAYMENT;
+    const mppx = Mppx.create({
+      polyfill: false,
+      // Every Vouch token has 6 decimals (mppx needs them to enforce maxAmount); an EIP-3009 signature on Base
+      // also needs the chain's USDC EIP-712 domain.
+      methods: [
+        tempo({ account: this.account }),
+        evm({ account: this.account, maxAmount: max, decimals: 6, authorization: USDC_EIP712_DOMAIN[chainId] ?? USDC_EIP712_DOMAIN[8453] }),
+      ],
+    });
+    const f = mppx.fetch as typeof fetch;
+    this.payers.set(chainId, f);
+    return f;
   }
 
   /** POST /fund. A 402 is paid automatically by mppx (Tempo charge or EIP-3009), then the 200 comes back. */
   async fundJob(id: string): Promise<{ status: string; route?: string; tx?: string; paymentTx?: string; job: JobDto; note?: string }> {
     const key = await this.ensureApiKey();
-    const doFetch = this.payerFetch();
+    const { job } = await this.getJob(id);
+    const doFetch = this.payerFetch(job.chainId);
     const res = await doFetch(this.url(`/jobs/${id}/fund`), {
       method: "POST",
       headers: { "content-type": "application/json", ...(key ? { "x-api-key": key } : {}) },

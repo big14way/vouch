@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { Mppx, evm, tempo } from "mppx/server";
 import { Receipt } from "mppx";
 import type { Address } from "viem";
-import { BASE_MAINNET_ID, TEMPO_MODERATO_ID, TOKENS, defaultToken, isTempo, type ChainId } from "@vouch/shared";
+import { TEMPO_MODERATO_ID, TOKENS, USDC_EIP712_DOMAIN, defaultToken, isTempo, type ChainId } from "@vouch/shared";
 import { accountFor, hasRole, vaultAddress } from "./chain/clients";
 import { env } from "./env";
 
@@ -17,10 +17,6 @@ import { env } from "./env";
 type Instance = Record<string, unknown>;
 const instances = new Map<number, Instance>();
 
-const USDC_DOMAIN: Record<number, { name: string; version: string }> = {
-  [BASE_MAINNET_ID]: { name: "USD Coin", version: "2" },
-  84532: { name: "USDC", version: "2" },
-};
 
 export function realm(): string {
   const e = env();
@@ -55,7 +51,7 @@ export function mppFor(chainId: ChainId): Instance {
       ],
     }) as unknown as Instance;
   } else {
-    const domain = USDC_DOMAIN[chainId] ?? { name: "USD Coin", version: "2" };
+    const domain = USDC_EIP712_DOMAIN[chainId] ?? { name: "USD Coin", version: "2" };
     inst = Mppx.create({
       realm: realm(),
       secretKey: secretKey(),

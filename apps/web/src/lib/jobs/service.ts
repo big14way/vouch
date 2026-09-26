@@ -125,9 +125,21 @@ export async function fundFromBalance(job: JobRow, payer: Address, actor: Princi
   const chainId = job.chainId as ChainId;
   const row = await ensureOnChain(job, payer);
   const { amount, salt } = await decryptSecret(row.id);
-  const onChain = await vault.readJob(chainId, row.id as Hex);
+  // Public RPCs are load-balanced: a read right after createJob / attributeDeposit can come from a node that has
+  // not seen them yet. Wait for the job (and the credited balance) to be visible; never treat "not there yet" as
+  // "already funded", which would mark the job Funded in the database while the chain still says Open.
+  let onChain = await vault.readJob(chainId, row.id as Hex);
+  for (let i = 0; onChain.status === Status.None && i < 15; i++) {
+    await new Promise((r) => setTimeout(r, 1000));
+    onChain = await vault.readJob(chainId, row.id as Hex);
+  }
+  if (onChain.status === Status.None) throw errors.chain("The job is not visible on-chain yet.");
   if (onChain.status === Status.Open) {
-    const bal = await vault.readBalance(chainId, row.token as Address, payer);
+    let bal = await vault.readBalance(chainId, row.token as Address, payer);
+    for (let i = 0; bal < amount && i < 10; i++) {
+      await new Promise((r) => setTimeout(r, 1000));
+      bal = await vault.readBalance(chainId, row.token as Address, payer);
+    }
     if (bal < amount) {
       throw errors.badRequest(
         `Your Vouch balance on this chain is ${bal.toString()} base units; this job needs ${amount.toString()}.`,

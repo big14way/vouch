@@ -25,6 +25,12 @@ export interface TokenInfo {
   tip20: boolean;
 }
 
+/** EIP-712 domain of USDC on Base, needed to sign EIP-3009 authorisations (x402 / evm charge). */
+export const USDC_EIP712_DOMAIN: Record<number, { name: string; version: string }> = {
+  8453: { name: "USD Coin", version: "2" },
+  84532: { name: "USDC", version: "2" },
+};
+
 /** Token allow-list per chain. Tempo addresses are [VERIFY]-flagged in the spec; override via env if they move. */
 export const TOKENS: Record<ChainId, readonly TokenInfo[]> = {
   [TEMPO_MAINNET_ID]: [
