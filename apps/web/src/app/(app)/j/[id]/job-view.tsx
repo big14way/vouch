@@ -18,6 +18,7 @@ import { Activity, ScopeView } from "@/components/job/activity";
 import { Padlock } from "@/components/job/padlock";
 import { ease, useMotion } from "@/components/motion";
 import { useJob, useNow, type JobSnapshot } from "@/lib/client/hooks";
+import { useAuth } from "@/lib/client/auth";
 import { cn } from "@/lib/utils";
 
 export type JobInitial = JobSnapshot;
@@ -76,6 +77,11 @@ export function JobView({ id, initial }: { id: string; initial?: JobInitial | nu
   const now = useNow(1000);
   const [justLocked, setJustLocked] = useState(false);
   const [justPaid, setJustPaid] = useState(false);
+  const { ready, authenticated } = useAuth();
+  // The first fetch can run before sign-in resolves (public view); refetch once it does, to get the viewer's role.
+  useEffect(() => {
+    if (ready && authenticated) void qc.invalidateQueries({ queryKey: ["job", id] });
+  }, [ready, authenticated, qc, id]);
   const onChange = (j: JobDto) => {
     if (job && job.status === "Open" && j.status === "Funded") setJustLocked(true);
     if (job && !PAID.has(job.status) && PAID.has(j.status)) setJustPaid(true);

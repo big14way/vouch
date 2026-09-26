@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { PrivyProvider, usePrivy, useWallets } from "@privy-io/react-auth";
 import { base, baseSepolia, tempo, tempoModerato } from "viem/chains";
 import type { Address, EIP1193Provider } from "viem";
@@ -12,9 +12,9 @@ const CHAINS = [tempo, tempoModerato, base, baseSepolia];
 function Bridge({ children }: { children: ReactNode }) {
   const { getAccessToken, authenticated, ready, login, logout, user } = usePrivy();
   const { wallets } = useWallets();
-  useEffect(() => {
-    setTokenGetter(async () => (ready && authenticated ? getAccessToken() : null));
-  }, [getAccessToken, authenticated, ready]);
+  // Set during render, not in an effect: child effects (the first queries) run before a parent's effect,
+  // so an effect-set getter let the first authenticated requests go out without a token and 401.
+  setTokenGetter(async () => (ready && authenticated ? getAccessToken() : null));
   const wallet = wallets.find((w) => w.walletClientType === "privy") ?? wallets[0];
   const value = useMemo<Auth>(
     () => ({
