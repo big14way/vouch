@@ -31,6 +31,19 @@ type ApiVault = {
 
 let cache: { at: number; chainId: number; data: EarnVaultDto[] } | null = null;
 
+/**
+ * Venues the Vouch Vault allow-lists that the Tempo API does not list: on Moderato, the clearly labelled demo venue
+ * (MockEarnVault) used because both testnet pathUSD Earn vaults revert deposits. Extend with EARN_VAULTS_<chainId>.
+ */
+const OWN_VENUES: Record<number, Array<{ address: string; label: string; venue: string }>> = {
+  42431: [{ address: "0xa2D6b710b92416760a05aD13022b7078e398ff9d", label: "Demo venue (testnet)", venue: "Vouch demo · simulated yield" }],
+};
+
+function ownVenues(chainId: number) {
+  const extra = (process.env[`EARN_VAULTS_${chainId}`] ?? "").split(",").map((a) => a.trim()).filter(Boolean).map((address) => ({ address, label: "Allow-listed venue", venue: "Earn vault" }));
+  return [...(OWN_VENUES[chainId] ?? []), ...extra];
+}
+
 export const GET = withErrors(async (req) => {
   rateLimit(req, "read");
   const url = new URL(req.url);
@@ -40,13 +53,26 @@ export const GET = withErrors(async (req) => {
   if (cache && cache.chainId === chainId && Date.now() - cache.at < 60_000) return json({ chainId, vaults: cache.data });
 
   const network = chainId === 4217 ? "mainnet" : "testnet";
-  const res = await fetch(`https://api.tempo.xyz/v1/earn/vaults?chainId=${network}&include=apy,tvl,capabilities,access&limit=50`, {
-    headers: { accept: "application/json" }, cache: "no-store",
-  });
-  if (!res.ok) throw errors.chain(`Tempo API returned ${res.status} for Earn vaults.`);
-  const body = (await res.json()) as { data: ApiVault[] };
   const tokens = new Map(TOKENS[chainId as ChainId].map((t) => [t.address.toLowerCase(), t.symbol]));
-  const candidates = body.data.filter(
+  // The Tempo API is discovery only; if it is down, keep serving the last good list plus the Vault's own venues.
+  let listed: ApiVault[] = [];
+  try {
+    const res = await fetch(`https://api.tempo.xyz/v1/earn/vaults?chainId=${network}&include=apy,tvl,capabilities,access&limit=50`, {
+      headers: { accept: "application/json" }, cache: "no-store", signal: AbortSignal.timeout(6000),
+    });
+    if (!res.ok) throw new Error(String(res.status));
+    listed = ((await res.json()) as { data: ApiVault[] }).data;
+  } catch {
+    if (cache && cache.chainId === chainId) return json({ chainId, vaults: cache.data, note: "Tempo API unavailable; showing the last known list." });
+  }
+  const known = new Set(listed.map((v) => v.vaultAddress.toLowerCase()));
+  for (const o of ownVenues(chainId)) {
+    if (known.has(o.address.toLowerCase())) continue;
+    const asset = (await publicClient(chainId).readContract({ address: o.address as Address, abi: [{ type: "function", name: "asset", stateMutability: "view", inputs: [], outputs: [{ type: "address" }] }], functionName: "asset" }).catch(() => null)) as string | null;
+    if (!asset) continue;
+    listed.push({ vaultAddress: o.address, label: o.label, verified: false, assetToken: { address: asset, symbol: tokens.get(asset.toLowerCase()) ?? "" }, engine: { type: "demo", venue: o.venue }, apy: null, access: { status: "open" }, capabilities: { redeem: true, exactWithdraw: true, deposit: true }, state: { depositsPaused: false } });
+  }
+  const candidates = listed.filter(
     (v) => tokens.has(v.assetToken.address.toLowerCase()) && !v.state?.depositsPaused && v.capabilities?.deposit && v.capabilities?.redeem && v.capabilities?.exactWithdraw,
   );
 

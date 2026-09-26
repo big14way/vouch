@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { createClient, createPublicClient, custom, http, type Address } from "viem";
+import { createClient, createPublicClient, custom, http, type Address, type Hex } from "viem";
+import { toAccount } from "viem/accounts";
 import { tempoModerato } from "viem/chains";
 import { encryptZoneRecipient, formatAmount, parseAmount, zonesFor } from "@vouch/shared";
 import { Button } from "@/components/ui/button";
@@ -56,16 +57,36 @@ export function ZonePayout({ chainId, token, symbol, available }: { chainId: num
       const r = await api<{ tx: string; zone: string }>("/withdraw/zone", { method: "POST", json: { chainId, zoneId: zone.zoneId, token, amount: base.toString(), keyIndex: keyIndex.toString(), encrypted, signature } });
       setDone(r);
       toast({ title: "Sent privately", body: `Your ${symbol} is on its way into ${r.zone}. Only the amount is visible on the public chain.`, tone: "success" });
-      // 4. Read the private balance with a signed authorisation token (only you can see it).
-      // the token embeds the chain id it is valid for: sign it for the zone chain, not the Tempo L1
-      const zoneChain = { ...tempoModerato, id: zone.chainId, name: zone.name, rpcUrls: { default: { http: [zone.rpcUrl] } } };
-      const wallet = createClient({ account: address, chain: zoneChain, transport: custom(provider) });
-      const { token: authToken } = await Actions.zone.signAuthorizationToken(wallet, { zoneId: zone.zoneId, chain: zoneChain });
-      const zoneClient = createPublicClient({ chain: zoneChain, transport: http(zone.rpcUrl, { fetchOptions: { headers: { "X-Authorization-Token": authToken } } }) });
-      for (let i = 0; i < 20; i++) {
-        await new Promise((res) => setTimeout(res, 6000));
-        const bal = await zoneClient.readContract({ address: token, abi: [{ type: "function", name: "balanceOf", stateMutability: "view", inputs: [{ name: "a", type: "address" }], outputs: [{ type: "uint256" }] }], functionName: "balanceOf", args: [address], account: address }).catch(() => null);
-        if (bal != null && bal > 0n) { setZoneBalance(bal.toString()); break; }
+      // 4. Read the private balance with a signed authorisation token (only you can see it). The token is a raw-hash
+      //    signature; embedded wallets that do not offer raw signing can't produce it, which says nothing about the
+      //    payout above, so this step fails on its own and never reports the money as lost.
+      try {
+        // the token embeds the chain id it is valid for: sign it for the zone chain, not the Tempo L1
+        const zoneChain = { ...tempoModerato, id: zone.chainId, name: zone.name, rpcUrls: { default: { http: [zone.rpcUrl] } } };
+        const rawSigner = toAccount({
+          address,
+          async sign({ hash }) {
+            for (const method of ["secp256k1_sign", "eth_sign"] as const) {
+              const params = method === "eth_sign" ? [address, hash] : [hash];
+              const sig = await (provider.request as (a: { method: string; params: unknown[] }) => Promise<Hex>)({ method, params }).catch(() => null);
+              if (sig) return sig;
+            }
+            throw new Error("raw-sign-unavailable");
+          },
+          async signMessage() { throw new Error("unused"); },
+          async signTransaction() { throw new Error("unused"); },
+          async signTypedData() { throw new Error("unused"); },
+        });
+        const wallet = createClient({ account: rawSigner, chain: zoneChain, transport: custom(provider) });
+        const { token: authToken } = await Actions.zone.signAuthorizationToken(wallet, { zoneId: zone.zoneId, chain: zoneChain });
+        const zoneClient = createPublicClient({ chain: zoneChain, transport: http(zone.rpcUrl, { fetchOptions: { headers: { "X-Authorization-Token": authToken } } }) });
+        for (let i = 0; i < 20; i++) {
+          await new Promise((res) => setTimeout(res, 6000));
+          const bal = await zoneClient.readContract({ address: token, abi: [{ type: "function", name: "balanceOf", stateMutability: "view", inputs: [{ name: "a", type: "address" }], outputs: [{ type: "uint256" }] }], functionName: "balanceOf", args: [address], account: address }).catch(() => null);
+          if (bal != null && bal > 0n) { setZoneBalance(bal.toString()); break; }
+        }
+      } catch {
+        setZoneBalance("unreadable");
       }
     } catch (e) {
       const ce = e instanceof ClientError ? e : null;
@@ -87,7 +108,13 @@ export function ZonePayout({ chainId, token, symbol, available }: { chainId: num
       {done ? (
         <div className="mt-3 text-[13px]">
           <div><TxLink chainId={chainId} hash={done.tx} label="Vault → Zone Portal" /></div>
-          <Muted className="mt-1">{zoneBalance ? `Your private balance in ${zone.name}: ${formatAmount(zoneBalance)} ${symbol} (visible only with your signature).` : "The zone credits you once the sequencer processes the deposit; checking…"}</Muted>
+          <Muted className="mt-1">
+            {zoneBalance === "unreadable"
+              ? `Sent. Only you can read your ${zone.name} balance, with a zone wallet that signs raw authorisations; this browser wallet does not offer that yet.`
+              : zoneBalance
+                ? `Your private balance in ${zone.name}: ${formatAmount(zoneBalance)} ${symbol} (visible only with your signature).`
+                : "The zone credits you once the sequencer processes the deposit; checking…"}
+          </Muted>
         </div>
       ) : null}
     </Card>
