@@ -1,7 +1,7 @@
 /**
  * Unattended agent-to-agent demo (spec §10 week 2 exit, §13 step 2).
  *
- *   PAYER agent: creates "Summarise 3 PDFs into a 1-page brief", $5, Autopilot → funds via MPP (Tempo) / x402 (Base).
+ *   PAYER agent: creates "Write a 1-page brief on three topics", $5, Autopilot → funds via MPP (Tempo) / x402 (Base).
  *   WORKER agent: writes the brief, submits it (files pinned, Submit signed).
  *   Vouch verifier: attests PASS/NEEDS_REVIEW/FAIL on-chain.
  *   Vault: after the review window the timelock cron calls autoSettle. No human clicks.
@@ -30,19 +30,13 @@ async function main() {
   // 1. Lock
   const amount = parseAmount(process.env.DEMO_AMOUNT ?? "5");
   const scope = `## Deliverables
-- A one-page brief (≤ 500 words) summarising the three attached PDF topics: late payment in freelance work, agent-to-agent commerce on Tempo, and x402.
+- A brief (≤ 500 words) on three topics: late payment in freelance work, agent-to-agent commerce on Tempo, and x402.
 - Each topic gets a heading, three bullet findings, and one recommendation.
 
 ## Format
-- Markdown file named brief.md.
-
-## Deadline
-- Within 2 days of funding.
-
-## Out of scope
-- New research beyond the three topics.`;
+- One Markdown file named brief.md.`;
   const created = await payer.createJob({
-    title: "Summarise 3 PDFs into a 1-page brief", scopeMd: scope, amount: amount.toString(), chainId: chain, policyPreset: "autopilot", worker: worker.address,
+    title: "Write a 1-page brief on three topics", scopeMd: scope, amount: amount.toString(), chainId: chain, policyPreset: "autopilot", worker: worker.address,
   });
   log("created", created.jobId, "→", created.payUrl);
 

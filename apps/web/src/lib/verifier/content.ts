@@ -9,7 +9,8 @@ export type Artifact =
   | { kind: "image"; name: string; base64: string; mediaType: "image/png" | "image/jpeg" | "image/gif" | "image/webp"; sha256: string }
   | { kind: "error"; name: string; error: string; sha256: string | null };
 
-const TEXT_TYPES = /^(text\/|application\/(json|xml|javascript|typescript|x-yaml|yaml|markdown|csv|sql|toml))/i;
+// SVG is XML: reviewed as markup text (vision models take raster formats only).
+const TEXT_TYPES = /^(text\/|application\/(json|xml|javascript|typescript|x-yaml|yaml|markdown|csv|sql|toml)|image\/svg\+xml|[a-z]+\/[\w.-]+\+(xml|json))/i;
 const IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp"]);
 const MAX_TEXT_CHARS = 60_000;
 
@@ -45,7 +46,7 @@ export async function bytesToArtifact(name: string, contentType: string, bytes: 
       const { text, truncated } = clip(await pdfToText(bytes));
       return { kind: "text", name, text, sha256: hash, truncated };
     }
-    if (TEXT_TYPES.test(ct) || ct === "" || /\.(md|txt|json|csv|js|ts|tsx|py|sol|html|css|yml|yaml|toml|sql|rs|go)$/i.test(name)) {
+    if (TEXT_TYPES.test(ct) || ct === "" || /\.(md|txt|json|csv|js|ts|tsx|py|sol|html|css|yml|yaml|toml|sql|rs|go|svg|xml)$/i.test(name)) {
       const { text, truncated } = clip(new TextDecoder("utf-8", { fatal: false }).decode(bytes));
       return { kind: "text", name, text, sha256: hash, truncated };
     }
