@@ -1,0 +1,19 @@
+=== Job C: Earn while locked via 0xa2D6b710b92416760a05aD13022b7078e398ff9d ===
+   ✓ Earn vault is allow-listed on the Vouch vault
+✔ approve(vault)                     https://explore.moderato.tempo.xyz/tx/0x699e20332799bae4209f7a3c597609e336909e6c111907fc5eff2a15b1f4004c  gas 277942
+✔ deposit                            https://explore.moderato.tempo.xyz/tx/0x1cdbb4205e6f9bcdd12a8d9fa347ccad1a40f70f250ef036cf9d6d0e95f0279b  gas 66284
+✔ createJob (earnVault set)          https://explore.moderato.tempo.xyz/tx/0xd5faafd47199da8efa20da368bda4b46cb70e1f0c6e79a17f6676105cd1cfcc3  gas 1556736
+✔ fund → deposits into Earn          https://explore.moderato.tempo.xyz/tx/0x97543fea757f53fa2ba39c920f38d75e2f6cb74e4f8faae097da86a67877e6e3  gas 1114200
+   ✓ status Funded
+   ✓ job holds 5000000 Earn shares
+   ✓ deployed principal tracked
+   ✓ principal sits in the Earn vault on the real token
+   ✓ deployed principal is not counted as surplus
+✔ submit (worker)                    https://explore.moderato.tempo.xyz/tx/0x1ae728f2b94642a2a22b881245f2bd7a66682d7cd07419976c9e4f9e05f5cf96  gas 294824
+✔ simulated yield: +1% sent to the venue https://explore.moderato.tempo.xyz/tx/0x36d7e386c0f2b1d1cc6da87e906aa17e0d714dc635a5ebe210d14e411ce8e020  gas 31130
+✔ settle (payer) → withdrawExact from Earn https://explore.moderato.tempo.xyz/tx/0x0d2abdfe829f93a0ac7c9aad2844675f17e6049398dc396a79f2dd4e77de3a07  gas 123341
+   ✓ worker credited exactly amount − fee (principal recalled in full)
+   ✓ deployed back to its previous value
+   ✓ payer holds 49504 yield shares after settlement (simulated 1%)
+   ✓ solvency with Earn: 30150000 + 0 ≥ 30150000
+jobs: A 0x73347cf227e9ee3827ba9a7ce14cd10f3f0f74f5d5a6c5bc5a05bec03c7a98ef

@@ -501,6 +501,125 @@
      1200
     ]
    ]
+  },
+  {
+   "name": "ui_zone",
+   "storageState": ".sessions/state-worker.json",
+   "steps": [
+    [
+     "goto",
+     "/withdraw",
+     "h1"
+    ],
+    [
+     "waitFor",
+     "#zone-amt",
+     120000
+    ],
+    [
+     "wait",
+     9000
+    ],
+    [
+     "scrollTo",
+     "text=Send privately",
+     120,
+     1200
+    ],
+    [
+     "wait",
+     800
+    ],
+    [
+     "moveTo",
+     "#zone-amt",
+     700
+    ],
+    [
+     "click"
+    ],
+    [
+     "type",
+     "19.80",
+     110
+    ],
+    [
+     "moveTo",
+     "button:has-text(\"Send to Zone A\")",
+     700
+    ],
+    [
+     "click"
+    ],
+    [
+     "waitFor",
+     "button:has-text(\"Sign and continue\")",
+     60000
+    ],
+    [
+     "wait",
+     900
+    ],
+    [
+     "moveTo",
+     "button:has-text(\"Sign and continue\")",
+     700
+    ],
+    [
+     "click"
+    ],
+    [
+     "waitFor",
+     "text=Vault \u2192 Zone Portal",
+     90000
+    ],
+    [
+     "wait",
+     1500
+    ],
+    [
+     "waitFor",
+     "button:has-text(\"Sign and continue\")",
+     60000
+    ],
+    [
+     "wait",
+     900
+    ],
+    [
+     "moveTo",
+     "button:has-text(\"Sign and continue\")",
+     700
+    ],
+    [
+     "click"
+    ],
+    [
+     "waitFor",
+     "text=Your private balance in",
+     150000
+    ],
+    [
+     "wait",
+     4500
+    ]
+   ]
+  },
+  {
+   "name": "term_x402",
+   "terminal": {
+    "title": "same agent on Base Sepolia \u00b7 funded with x402 \u00b7 live, Sept 27",
+    "schedule": "schedules/x402.json",
+    "end": 13
+   }
+  },
+  {
+   "name": "term_earn",
+   "terminal": {
+    "title": "earn while locked \u00b7 Tempo Moderato \u00b7 Sept 17 (demo venue, simulated 1% yield)",
+    "schedule": "schedules/earn.json",
+    "end": 18
+   }
   }
  ]
 }

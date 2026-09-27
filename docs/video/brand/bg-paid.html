@@ -1,0 +1,15 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+html,body{margin:0;width:1920px;height:1080px;background:#0b0c0e;overflow:hidden}
+.glow{position:absolute;border-radius:50%;filter:blur(120px)}
+.g1{width:900px;height:900px;left:-200px;top:-300px;background:rgba(60,207,145,.20)}
+.g2{width:800px;height:800px;right:-240px;bottom:-360px;background:rgba(60,207,145,.12)}
+.grid{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1px);background-size:28px 28px;-webkit-mask-image:radial-gradient(ellipse 70% 60% at 50% 45%,#000 30%,transparent 80%)}
+.track{position:absolute;left:260px;right:260px;top:760px;height:2px;background:linear-gradient(90deg,transparent,#23252a 10%,#23252a 90%,transparent)}
+.fill{position:absolute;left:260px;width:1400px;top:760px;height:2px;background:linear-gradient(90deg,transparent,#3ccf91)}
+.dot{position:absolute;top:748px;width:26px;height:26px;border-radius:50%;background:#0b0c0e;border:2px solid #2f3238}
+.dot.on{background:#3ccf91;border-color:#3ccf91;box-shadow:0 0 30px rgba(60,207,145,.5)}
+</style></head><body>
+<div class="glow g1"></div><div class="glow g2"></div><div class="grid"></div>
+<div class="track"></div><div class="fill"></div>
+<div class="dot on" style="left:447px"></div><div class="dot on" style="left:747px"></div><div class="dot on" style="left:1047px"></div><div class="dot on" style="left:1347px"></div><div class="dot on" style="left:1647px"></div>
+</body></html>

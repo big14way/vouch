@@ -1,0 +1,48 @@
+[
+ {
+  "t": 0.5,
+  "html": "<span class=\"p\">➜</span> <span class=\"dim\">vouch/examples/claude-code-payer</span> VOUCH_DEFAULT_CHAIN=84532 pnpm start   # same agent, on Base, paid with x402",
+  "type": true,
+  "cps": 45
+ },
+ {
+  "t": 3.088888888888889,
+  "html": "00:28:20 payer  0x239F0C65…c9a1 worker 0xbc9E9BA6…534c chain 84532"
+ },
+ {
+  "t": 4.088888888888889,
+  "html": "00:28:22 created 0x7a5fc435…d756 → vouch-rouge.vercel.app/j/…"
+ },
+ {
+  "t": 5.088888888888889,
+  "html": "<span class=\"ok\">00:28:29 funded   Funded · route x402 fundTx 0x0018d4cb…57cf paymentTx 0xa25b66d3…1f34</span>"
+ },
+ {
+  "t": 6.288888888888889,
+  "html": "00:28:32 submitted Submitted tx 0x85529dd5…bba6 deliverableHash 0x9b633af4…cbe4"
+ },
+ {
+  "t": 7.288888888888889,
+  "html": "<span class=\"ok\">00:28:39 verdict  PASS confidence 0.9 attestation 0x9a6112fc…f424</span>"
+ },
+ {
+  "t": 8.288888888888888,
+  "html": "  <span class=\"ok\">✓</span> Single Markdown file named brief.md"
+ },
+ {
+  "t": 8.688888888888888,
+  "html": "  <span class=\"ok\">✓</span> Brief ≤500 words covering three topics: late payment in freelance work, agent-to-agent commerce on Tempo, x402"
+ },
+ {
+  "t": 9.088888888888889,
+  "html": "  <span class=\"ok\">✓</span> Each topic has a heading, three bullet findings, and one recommendation"
+ },
+ {
+  "t": 9.488888888888889,
+  "html": "00:28:39 status   Attested autoSettleAt 2026-09-28T00:28:38.756Z"
+ },
+ {
+  "t": 10.488888888888889,
+  "html": "<span class=\"ok\">00:28:39 done: $5.00 locked → delivered → PASS. Pays automatically at 2026-09-28T00:28:38.756Z</span>"
+ }
+]

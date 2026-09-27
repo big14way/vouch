@@ -19,3 +19,18 @@ build('attack-run-2026-09-26.txt', 'npx tsx attack.ts   # the worker tries to tr
   if (/status/.test(l)) return { text: l, cls: 'ok' };
   return l;
 });
+
+// Base: an agent funds the job with x402 (USDC EIP-3009), live against the public deployment.
+build('x402-run-2026-09-27.txt', 'VOUCH_DEFAULT_CHAIN=84532 pnpm start   # same agent, on Base, paid with x402', 'schedules/x402.json', (l) => {
+  if (/ funded /.test(l)) return { text: l.replace('Funded route x402', 'Funded · route x402'), cls: 'ok', gap: 1.2 };
+  if (/ verdict /.test(l)) return { text: l, cls: 'ok', gap: 1.0 };
+  if (/^\S+\s{5}met/.test(l)) return { text: '  ✓ ' + l.replace(/^\S+\s+met\s+/, ''), gap: 0.4 };
+  if (/done:/.test(l)) return { text: l, cls: 'ok' };
+  return l;
+});
+
+// Earn while locked: the real Sept 17 contract run on Moderato (demo venue, simulated 1% yield, labelled as such).
+{
+  const lines = fs.readFileSync('earn-run-2026-09-17.txt', 'utf8').split('\n').filter((l) => l.trim() && !/^\s*$/.test(l)).map((l) => short(l.replace(/https:\/\/explore\.moderato\.tempo\.xyz\/tx\//, 'tx ')).replace(/\s+gas \d+$/, ''));
+  fs.writeFileSync('schedules/earn.json', JSON.stringify(fromCommand('SIMULATE_YIELD=1 pnpm start   # earn while locked, Tempo Moderato', lines, { dir: 'vouch/examples/moderato-e2e', gap: 0.75 }), null, 1));
+}

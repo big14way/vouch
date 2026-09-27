@@ -1,0 +1,84 @@
+[
+ {
+  "t": 0.5,
+  "html": "<span class=\"p\">➜</span> <span class=\"dim\">vouch/examples/moderato-e2e</span> SIMULATE_YIELD=1 pnpm start   # earn while locked, Tempo Moderato",
+  "type": true,
+  "cps": 45
+ },
+ {
+  "t": 2.8444444444444446,
+  "html": "=== Job C: Earn while locked via 0xa2D6b710…ff9d ==="
+ },
+ {
+  "t": 3.5944444444444446,
+  "html": "   <span class=\"ok\">✓</span> Earn vault is allow-listed on the Vouch vault"
+ },
+ {
+  "t": 4.344444444444445,
+  "html": "✔ approve(vault)                     tx 0x699e2033…004c"
+ },
+ {
+  "t": 5.094444444444445,
+  "html": "✔ deposit                            tx 0x1cdbb420…279b"
+ },
+ {
+  "t": 5.844444444444445,
+  "html": "✔ createJob (earnVault set)          tx 0xd5faafd4…fcc3"
+ },
+ {
+  "t": 6.594444444444445,
+  "html": "✔ fund → deposits into Earn          tx 0x97543fea…e6e3"
+ },
+ {
+  "t": 7.344444444444445,
+  "html": "   <span class=\"ok\">✓</span> status Funded"
+ },
+ {
+  "t": 8.094444444444445,
+  "html": "   <span class=\"ok\">✓</span> job holds 5000000 Earn shares"
+ },
+ {
+  "t": 8.844444444444445,
+  "html": "   <span class=\"ok\">✓</span> deployed principal tracked"
+ },
+ {
+  "t": 9.594444444444445,
+  "html": "   <span class=\"ok\">✓</span> principal sits in the Earn vault on the real token"
+ },
+ {
+  "t": 10.344444444444445,
+  "html": "   <span class=\"ok\">✓</span> deployed principal is not counted as surplus"
+ },
+ {
+  "t": 11.094444444444445,
+  "html": "✔ submit (worker)                    tx 0x1ae728f2…cf96"
+ },
+ {
+  "t": 11.844444444444445,
+  "html": "✔ simulated yield: +1% sent to the venue tx 0x36d7e386…e020"
+ },
+ {
+  "t": 12.594444444444445,
+  "html": "✔ settle (payer) → withdrawExact from Earn tx 0x0d2abdfe…3a07"
+ },
+ {
+  "t": 13.344444444444445,
+  "html": "   <span class=\"ok\">✓</span> worker credited exactly amount − fee (principal recalled in full)"
+ },
+ {
+  "t": 14.094444444444445,
+  "html": "   <span class=\"ok\">✓</span> deployed back to its previous value"
+ },
+ {
+  "t": 14.844444444444445,
+  "html": "   <span class=\"ok\">✓</span> payer holds 49504 yield shares after settlement (simulated 1%)"
+ },
+ {
+  "t": 15.594444444444445,
+  "html": "   <span class=\"ok\">✓</span> solvency with Earn: 30150000 + 0 ≥ 30150000"
+ },
+ {
+  "t": 16.344444444444445,
+  "html": "jobs: A 0x73347cf2…98ef"
+ }
+]
