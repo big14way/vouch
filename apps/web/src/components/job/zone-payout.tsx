@@ -68,7 +68,11 @@ export function ZonePayout({ chainId, token, symbol, available }: { chainId: num
           async sign({ hash }) {
             for (const method of ["secp256k1_sign", "eth_sign"] as const) {
               const params = method === "eth_sign" ? [address, hash] : [hash];
-              const sig = await (provider.request as (a: { method: string; params: unknown[] }) => Promise<Hex>)({ method, params }).catch(() => null);
+              // Some wallets never answer an unsupported method; don't wait on them.
+              const sig = await Promise.race([
+                (provider.request as (a: { method: string; params: unknown[] }) => Promise<Hex>)({ method, params }).catch(() => null),
+                new Promise<null>((r) => setTimeout(() => r(null), 5000)),
+              ]);
               if (sig) return sig;
             }
             throw new Error("raw-sign-unavailable");

@@ -382,12 +382,16 @@
    "src": "ui_zone.webm",
    "cut": [
     [
-     13,
-     22
+     21.5,
+     26
     ],
     [
-     26,
-     34
+     29,
+     33
+    ],
+    [
+     37,
+     46
     ]
    ],
    "crop": [
@@ -396,7 +400,7 @@
     0,
     0
    ],
-   "max_speed": 1.6,
+   "max_speed": 1.8,
    "step": "",
    "head": "Rita takes her pay private",
    "sub": "Into Tempo Zone A with her address encrypted. The public chain sees only Vault to Portal. Live on Moderato.",

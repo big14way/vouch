@@ -575,28 +575,20 @@
     ],
     [
      "wait",
-     1500
+     2500
     ],
     [
      "waitFor",
      "button:has-text(\"Sign and continue\")",
-     60000
+     15000
     ],
     [
-     "wait",
-     900
-    ],
-    [
-     "moveTo",
-     "button:has-text(\"Sign and continue\")",
-     700
-    ],
-    [
-     "click"
+     "eval",
+     "(() => { const b=[...document.querySelectorAll('button')].find(x=>x.textContent.includes('Sign and continue')); if(b) b.click(); })()"
     ],
     [
      "waitFor",
-     "text=Your private balance in",
+     "text=/private balance in|Only you can read/",
      150000
     ],
     [
