@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { Providers, PwaRegister } from "@/components/providers";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap", axes: ["opsz"] });
-const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", display: "swap", weight: ["400", "600"] });
+// Self-hosted (OFL, see assets/fonts): the build never depends on fetching Google Fonts.
+const inter = localFont({ src: "../assets/fonts/inter-latin-opsz.woff2", variable: "--font-inter", display: "swap", weight: "100 900" });
+const mono = localFont({ src: "../assets/fonts/jetbrains-mono-latin.woff2", variable: "--font-jetbrains", display: "swap", weight: "100 800" });
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://vouch-rouge.vercel.app";
 
