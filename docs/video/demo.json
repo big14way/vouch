@@ -31,9 +31,13 @@
    "id": "p1",
    "kind": "slide",
    "image": "img/worker-desk.jpg",
-   "label": "The problem",
-   "head": "Rita did the work. The money never came.",
+   "label": "Why we built this",
+   "head": "My sister Rita did the work.",
    "bullets": [
+    {
+     "k": "Rita",
+     "v": "My sister. A freelance designer in Nigeria."
+    },
     {
      "k": "The deal",
      "v": "A brand identity for a client overseas. Half upfront, half on delivery."
@@ -41,17 +45,33 @@
     {
      "k": "The work",
      "v": "Three weeks of late nights. Delivered on time."
+    }
+   ],
+   "vo": "Rita is my sister. She is a freelance designer in Nigeria. A client overseas wanted a full brand identity. Half upfront, the rest on delivery. She gave it three weeks of late nights. And she delivered, on time.",
+   "voice_rate": "+4%"
+  },
+  {
+   "id": "p1b",
+   "kind": "slide",
+   "image": "img/silence.jpg",
+   "label": "Why we built this",
+   "voice_rate": "+4%",
+   "head": "The money never came.",
+   "bullets": [
+    {
+     "k": "The message",
+     "v": "\"Not what we asked for.\" They kept her files and stopped replying."
     },
     {
-     "k": "The silence",
-     "v": "\"Not what we asked for.\" The client keeps the files and stops replying."
+     "k": "No referee",
+     "v": "No court she could afford. No one to call."
     },
     {
      "k": "The loss",
-     "v": "No referee. No court she can afford. Three weeks, gone."
+     "v": "Three weeks of her life, gone. That is why Vouch exists."
     }
    ],
-   "vo": "Picture Rita, a brand designer in Lagos. A client overseas wants a full identity. Half upfront, the rest on delivery. She gives it three weeks of late nights, and she delivers. Then the client says it's not what they asked for, keeps the files, and goes quiet. No referee. No court she can afford. Three weeks of her life, gone."
+   "vo": "Then one message. Not what we asked for. They kept her files. And they went quiet. No referee. No court she could afford. She never saw that money. Three weeks of my sister's life, gone. That is why we built Vouch."
   },
   {
    "id": "p2",
@@ -73,7 +93,7 @@
      "v": "Stablecoin rails for agents shipped this year. The conditional layer did not."
     }
    ],
-   "vo": "Rita is not rare. Eighty-five percent of freelancers get paid late. And now AI agents are hiring each other, on rails that pay first. Nobody checks the work."
+   "vo": "My sister is not rare. Eighty-five percent of freelancers get paid late. And now AI agents are hiring each other, on rails that pay first. Nobody checks the work."
   },
   {
    "id": "p3",
@@ -239,8 +259,8 @@
    "max_speed": 2.0,
    "step": "01",
    "head": "The real product: lock the money",
-   "sub": "Live on Tempo testnet, Sept 26. Kora Coffee hires Rita and locks $20 in one click.",
-   "vo": "This is the real product, live on Tempo testnet. Kora Coffee hires Rita for a brand identity. They write the scope, set twenty dollars, and lock it with one click. The money is now held for her, and she can see it."
+   "sub": "Live on Tempo testnet, Sept 26. Rita's job, the way it should have gone: Kora Coffee locks $20 in one click.",
+   "vo": "This is the real product, live on Tempo testnet. Rita's job, the way it should have gone. Kora Coffee writes the scope, sets twenty dollars, and locks it with one click. The money is now held for her, and she can see it."
   },
   {
    "kind": "laptop",
@@ -328,7 +348,7 @@
    "step": "",
    "head": "This time, Rita gets paid.",
    "sub": "Her view of the same job: Paid, with the settlement transaction.",
-   "vo": "This time, Rita gets paid."
+   "vo": "This time, my sister gets paid."
   },
   {
    "kind": "laptop",
@@ -350,7 +370,7 @@
    "step": "",
    "head": "Locked money earns for the payer",
    "sub": "Principal into a Tempo Earn vault, recalled exactly at settlement, yield to the payer. Testnet run on a labelled demo venue.",
-   "vo": "While the money waits, it doesn't sit idle. The payer can switch on Earn while locked. The principal goes into a Tempo Earn vault, comes back exactly at settlement, and the yield is theirs. On testnet this runs on a labelled demo venue, because the public test vaults reject deposits."
+   "vo": "While the money waits, it doesn't sit idle. The payer can switch on Earn while locked: the principal goes into a Tempo Earn vault, comes back exactly at settlement, and the yield is theirs. On testnet this runs on a labelled demo venue."
   },
   {
    "id": "v1",
@@ -425,7 +445,7 @@
    "step": "04",
    "head": "For agents: one call, zero clicks",
    "sub": "Live on Tempo testnet, Sept 26: funded by a Tempo machine payment, PASS 0.90 thirteen seconds after delivery.",
-   "vo": "For agents, it's one call. Live on Tempo testnet, a payer agent hires a worker agent. It funds the job with a Tempo machine payment in one round-trip. The worker delivers. Thirteen seconds later, the verifier returns PASS, at ninety percent.",
+   "vo": "For agents, it's one call. Live on Tempo testnet, a payer agent hires a worker agent and funds the job with a Tempo machine payment, in one round-trip. The worker delivers. Thirteen seconds later: PASS, at ninety percent.",
    "device_h": 800
   },
   {
@@ -566,7 +586,8 @@
      "v": "Money that waits for proof, not for trust."
     }
    ],
-   "vo": "In ten years, every job between people and agents settles on a verified outcome, and verifiers compete on how well they judge. So that no one like Rita loses three weeks of her life again."
+   "vo": "In ten years, every job between people and agents settles on a verified outcome, and verifiers compete on how well they judge. So that no one's sister loses three weeks of her life to silence again.",
+   "voice_rate": "+6%"
   },
   {
    "id": "s99",
