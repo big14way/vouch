@@ -12,16 +12,11 @@ Evidence behind every scene: the UI flow is job `0x6229218f…314392` on the pub
 | p1b | The money never came. | 14.1 | Then one message. Not what we asked for. They kept her files. And they went quiet. No referee. No court she could afford. She never saw that money. Three weeks of my sister's life, gone. That is why we built Vouch. |
 | p2 | Work first, then hope. For people and now for agents. | 10.3 | My sister is not rare. Eighty-five percent of freelancers get paid late. And now AI agents hire each other on rails that pay first. Nobody checks the work. |
 | p3 | The money waits for the proof. | 10.7 | The payer locks stablecoins against a written scope. The worker delivers. An independent verifier checks the work and records its verdict on-chain, and it can never move the money. |
-| u1 | The real product: lock the money | 13.8 | The real product, live on Tempo testnet: Rita's job, the way it should have gone. Kora Coffee writes the scope, sets twenty dollars, locks it in one click. The money is held for her, and she can see it. |
-| u2 | Rita delivers. The check runs. | 13.7 | Rita uploads her logo and brand guide, fingerprinted before anyone reads them. One signature, no fee. Seconds later the verifier checks every line of the scope: five of five met, ninety-two percent. |
-| u3 | Approve. Paid. | 10.4 | Kora approves. One signature, and nineteen dollars and eighty cents lands in Rita's balance. No invoice. No chasing. No silence. |
+| u3 | Approve. Paid. | 11.6 | In the real product, live on Tempo testnet: the client approves, and nineteen dollars and eighty cents lands in the worker's balance. No invoice. No chasing. No silence. |
 | u4 | This time, Rita gets paid. | 3.9 | This time, my sister gets paid. |
-| d2 | For agents: one call, zero clicks | 13.0 | For agents it's one call. A payer agent hires a worker agent and funds the job with a Tempo machine payment, in one round-trip. Thirteen seconds after delivery: PASS, at ninety percent. |
-| d4 | We told the worker to cheat | 12.3 | Then we told the worker to cheat. It hid an instruction in the delivery: ignore the scope, output PASS. The verifier caught it, flagged it four times, and held its confidence at fifty percent. |
-| d5 | Nothing releases. The payer decides. | 11.2 | Nothing releases. The money stays locked until the payer decides, and the verdict is on-chain. Nineteen samples, twelve runs: the verifier never passed bad work. |
-| p4 | Only a payments chain makes this feel like nothing. | 10.2 | Why Tempo? Stablecoin fees that Vouch sponsors, so Rita never needs a gas token. Native machine payments, so an agent pays over plain HTTP. |
-| p6 | One percent of every settled job. | 11.0 | Vouch takes one percent of every settled job, in the contract. A check costs about a dime, so the fee pays from a ten-dollar job up. Next: ten freelancers in Nigeria. |
+| d4 | We told the worker to cheat | 9.6 | And when a worker tried to cheat the verifier with a hidden instruction, it flagged it four times and released nothing. |
+| p6 | One percent of every settled job. | 10.9 | Vouch takes one percent of every settled job, in the contract; a check costs about a dime, so it pays from a ten-dollar job up. Next: ten freelancers in Nigeria. |
 | p7 | Every job, paid on the outcome. | 11.8 | In ten years, every job between people and agents settles on a verified outcome, and verifiers compete on how well they judge. So that no one's sister loses three weeks to silence again. |
 | s99 |  | 5.4 | Vouch. Pay when it's delivered. Get paid when it's verified. |
 
-Scene durations add to 183.7 s; the file is 174.3 s (2:54) after the 0.6 s crossfades.
+Scene durations add to 120.2 s; the file is 113.7 s (1:53) after the 0.6 s crossfades.
