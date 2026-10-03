@@ -1,0 +1,128 @@
+{
+ "clips_dir": "clips",
+ "work_dir": ".build-week3",
+ "output": "out/vouch-week3.mp4",
+ "voice": "en-US-AndrewMultilingualNeural",
+ "voice_rate": "+12%",
+ "crossfade": 0.6,
+ "sfx_gain": 0.6,
+ "brand": {
+  "name": "Vouch",
+  "domain": "vouch-rouge.vercel.app",
+  "paper": "#0b1220",
+  "paper_deep": "#131a2a",
+  "ink": "#f3f5f8",
+  "ink_soft": "#b7c0cc",
+  "ink_faint": "#6b7585",
+  "accent": "#2fb182",
+  "accent_soft": "#9fe3c8",
+  "card": "#0a3b2c"
+ },
+ "scenes": [
+  {
+   "id": "w0",
+   "kind": "title",
+   "image": "img/vouch-bg.jpg",
+   "tagline": "Week 3: what changed",
+   "tag": "Vouch · Crypto World's Fair · Oct 3",
+   "vo": "Vouch, week three. What we built, what we learned, what's next."
+  },
+  {
+   "kind": "laptop",
+   "layout": "wide",
+   "crop": [
+    1920,
+    1080,
+    0,
+    0
+   ],
+   "device_h": 800,
+   "id": "w1",
+   "src": "ui_approve.webm",
+   "cut": [
+    [
+     16.5,
+     18.5
+    ],
+    [
+     26,
+     39
+    ]
+   ],
+   "max_speed": 2.0,
+   "step": "",
+   "head": "Built: the full flow, live through the UI",
+   "sub": "A $20 brand-identity job: locked, delivered, verified 5 of 5, paid. Tempo testnet, every step on-chain.",
+   "vo": "Built: the product redesign shipped, and the whole flow ran live through the UI. A client locks twenty dollars, the designer delivers, the verifier passes five of five, the client approves, and the pay lands. Then Base, funded with x402, and private payouts into a Tempo Zone."
+  },
+  {
+   "id": "w2",
+   "kind": "slide",
+   "image": "img/rita.jpg",
+   "label": "Learned",
+   "head": "Judged against the rubric, three gaps.",
+   "bullets": [
+    {
+     "k": "Team and why",
+     "v": "The pitch now opens with who I am and my sister Rita, the freelancer who was never paid."
+    },
+    {
+     "k": "Under three minutes",
+     "v": "Pitch 2:54; the Tempo depth moved into a 2:55 technical demo."
+    },
+    {
+     "k": "Users",
+     "v": "Fifteen funded $5 test-money jobs are out; zero logged testers yet."
+    }
+   ],
+   "vo": "Learned: I judged the submission against Colosseum's own criteria and found three gaps. The pitch had no team and ran four minutes; it now opens with me and my sister Rita, under three minutes, with a separate technical demo. And it has no users yet: fifteen funded test jobs are out, and no one has delivered."
+  },
+  {
+   "id": "w3",
+   "kind": "slide",
+   "image": "img/ui/job.jpg",
+   "label": "Next",
+   "head": "Ten testers, then the traction slide.",
+   "bullets": [
+    {
+     "k": "This week",
+     "v": "WhatsApp, Superteam Nigeria, Web3Bridge, a Superteam Earn bounty, the arena."
+    },
+    {
+     "k": "Then",
+     "v": "Fix the top two things that broke; log every conversation in docs/users.md."
+    },
+    {
+     "k": "Submit",
+     "v": "Oct 11, with real numbers and one quote, with permission."
+    }
+   ],
+   "vo": "Next: ten testers this week, through WhatsApp, Superteam Nigeria, Web3Bridge, a bounty, and this arena. Fix the top two things that break, log every conversation, and submit on the eleventh with real numbers."
+  },
+  {
+   "id": "w9",
+   "kind": "end",
+   "image": "img/vouch-bg-paid.jpg",
+   "lines": [
+    "Pay when it's delivered.",
+    "Get paid when it's verified."
+   ],
+   "links": [
+    [
+     "Try it",
+     "vouch-rouge.vercel.app"
+    ],
+    [
+     "Code",
+     "github.com/big14way/vouch"
+    ],
+    [
+     "Agents",
+     "npx -y @gwilll/vouch-mcp"
+    ]
+   ],
+   "footer": "Tempo · MPP · Earn · Zones · Claude · MCP · Base · x402",
+   "vo": "Vouch. Pay when it's delivered. Get paid when it's verified."
+  }
+ ]
+}
