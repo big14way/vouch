@@ -16,6 +16,10 @@ Goal (spec §2.3.1, §1.4): ten real people use a pay link, and every conversati
 - **Progress**: `./status.sh` shows where every link stands (Locked, Delivered, Verified, Paid) and the verdict.
 - **More links**: `cd examples/claude-code-payer && set -a && source ../../contracts/.env.moderato && set +a && COUNT=1 npx tsx tester-links.ts` (it paces itself under the API rate limit and appends to `links.local.md`).
 
+## Where to find them
+
+[`channels.md`](channels.md): the channels researched on Oct 3 (free ones in reach today, small-budget ones that work in 24 to 72 hours, the ones to skip), with posts ready to paste and a day-by-day plan to Oct 11.
+
 ## How to run it
 
 1. Pick 10 people: freelancers you know (designers, writers, social media managers), ideally in Lagos. Add 3–5 developers for the agent invite.
