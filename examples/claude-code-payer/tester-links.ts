@@ -3,7 +3,7 @@
  * Each job is a small task a freelancer can finish in ~10 minutes, $5 locked up front, first person to deliver
  * becomes the worker, and it releases automatically 15 minutes after a verified delivery (PASS ≥ 85%).
  *
- *   PAYER_PRIVATE_KEY=0x… VOUCH_API_URL=https://vouch-rouge.vercel.app COUNT=2 npx tsx tester-links.ts
+ *   PAYER_PRIVATE_KEY=0x… VOUCH_API_URL=https://vouchhq.vercel.app COUNT=2 npx tsx tester-links.ts
  *
  * Writes the links to ../../docs/testers/links.local.md (gitignored: a link belongs to whoever delivers first).
  */
@@ -67,7 +67,7 @@ const TASKS = [
 const log = (...a: unknown[]) => console.log(new Date().toISOString().slice(11, 19), ...a);
 
 async function main() {
-  const apiUrl = process.env.VOUCH_API_URL ?? "https://vouch-rouge.vercel.app";
+  const apiUrl = process.env.VOUCH_API_URL ?? "https://vouchhq.vercel.app";
   const key = process.env.PAYER_PRIVATE_KEY;
   if (!key) throw new Error("Set PAYER_PRIVATE_KEY (a Moderato wallet holding pathUSD).");
   const count = Number(process.env.COUNT ?? 2);

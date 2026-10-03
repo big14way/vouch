@@ -43,7 +43,7 @@ Then, from the repo root: `scripts/vercel-env.sh apps/web/.env.production && ver
 
 **Crons on the Hobby plan.** Vercel Hobby allows two crons per project, once a day each, so `apps/web/vercel.json` carries no schedules and `.github/workflows/cron.yml` calls the three routes every 5 minutes instead (`gh secret set CRON_SECRET`, `gh variable set VOUCH_APP_URL`). Submissions still verify inline through `after()`; the workflow only drains retries, polls the indexer and runs the timelock. GitHub's schedule is best-effort (it fired once in the first six hours), so the API also ticks itself: job GET and `/api/v1/health` run the indexer (15 s budget) and the timelock after the response when no tick ran in the last 20 s (`apps/web/src/lib/nudge.ts`). Anyone polling a job therefore converges within seconds; the workflow covers jobs nobody is watching. On a Pro plan, put `* * * * *` / `*/5 * * * *` schedules back into `vercel.json` and delete the workflow.
 
-Live since Sept 19: https://vouch-rouge.vercel.app (project `vouch`, team big14ways-projects; testnets Moderato + Base Sepolia, Vault v4).
+Live since Sept 19: https://vouchhq.vercel.app (project `vouch`, team big14ways-projects; testnets Moderato + Base Sepolia, Vault v4).
 
 ## 3. Service (Vercel)
 Set every variable in `.env.example`. Three that are easy to miss: `MPP_SECRET_KEY` (binds MPP challenges; required in production), `INDEXER_START_BLOCK_<chainId>` (the Vault deployment block, so the first indexer run backfills instead of starting at the head), and per-chain role keys (`INTAKE_PRIVATE_KEY_84532` etc.) when the Tempo and Base roles are different wallets. The cron routes accept `Authorization: Bearer $CRON_SECRET` (what Vercel crons and the GitHub workflow send) or `x-cron-secret`.

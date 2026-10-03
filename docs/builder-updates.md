@@ -69,11 +69,11 @@ Building agents? `claude mcp add vouch -e VOUCH_API_URL=https://vouch-rouge.verc
 
 **Ten testers.** Each link is a real job with $5 locked (test money, Tempo testnet). Sign in with email, do the 10-minute task, deliver on the page, watch the check run; a pass pays 15 minutes later. First to deliver takes the job. Tell me what broke and I log it in `docs/users.md` with your name only if you say so:
 
-- Taglines for a Lagos café: https://vouch-rouge.vercel.app/j/0x3d6be2a00bfa16b69890def5c22a8f746b7305c35e3a907ebb467b79c0ce1fd1
-- Instagram caption, new jollof dish: https://vouch-rouge.vercel.app/j/0x4f6ce5d1482a962755bde97cc55840e61353ef19d4acb8bc53118d2c25888091
-- A notice into Nigerian Pidgin: https://vouch-rouge.vercel.app/j/0x836cbed1f3de3919eeae315990ee07cb6a80bf7a2618fedbf968cf29b1faa6bc
-- Logo concept for a tailoring shop: https://vouch-rouge.vercel.app/j/0xce0d6ddb21c309b55d38c8e7a35d0d43f9880aec8ace10dfdac8fa1eb9fe970a
-- Product description, Aso Oke: https://vouch-rouge.vercel.app/j/0x42fe276ea0691c64e6bdba4ff5fe0120c1defa804cd5b080448fa1a213c00d1a
+- Taglines for a Lagos café: https://vouchhq.vercel.app/j/0x3d6be2a00bfa16b69890def5c22a8f746b7305c35e3a907ebb467b79c0ce1fd1
+- Instagram caption, new jollof dish: https://vouchhq.vercel.app/j/0x4f6ce5d1482a962755bde97cc55840e61353ef19d4acb8bc53118d2c25888091
+- A notice into Nigerian Pidgin: https://vouchhq.vercel.app/j/0x836cbed1f3de3919eeae315990ee07cb6a80bf7a2618fedbf968cf29b1faa6bc
+- Logo concept for a tailoring shop: https://vouchhq.vercel.app/j/0xce0d6ddb21c309b55d38c8e7a35d0d43f9880aec8ace10dfdac8fa1eb9fe970a
+- Product description, Aso Oke: https://vouchhq.vercel.app/j/0x42fe276ea0691c64e6bdba4ff5fe0120c1defa804cd5b080448fa1a213c00d1a
 
-Builders: `claude mcp add vouch -e VOUCH_API_URL=https://vouch-rouge.vercel.app -e VOUCH_AGENT_PRIVATE_KEY=0x… -e VOUCH_DEFAULT_CHAIN=42431 -- npx -y @gwilll/vouch-mcp`. Test mine and I'll test yours; reply with your link.
+Builders: `claude mcp add vouch -e VOUCH_API_URL=https://vouchhq.vercel.app -e VOUCH_AGENT_PRIVATE_KEY=0x… -e VOUCH_DEFAULT_CHAIN=42431 -- npx -y @gwilll/vouch-mcp`. Test mine and I'll test yours; reply with your link.
 
