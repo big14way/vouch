@@ -1,7 +1,9 @@
-"""Regenerate NARRATION.md from demo.json and a build log (scene durations).
-python3 narration.py <build.log>"""
+"""Regenerate the narration table from a cut config and its build log (scene durations).
+python3 narration.py <build.log> [demo.json] [NARRATION.md]"""
 import json, re, subprocess, sys
-cfg = json.load(open('demo.json'))
+cfg_path = sys.argv[2] if len(sys.argv) > 2 else 'demo.json'
+out_path = sys.argv[3] if len(sys.argv) > 3 else 'NARRATION.md'
+cfg = json.load(open(cfg_path))
 durs = {}
 for line in open(sys.argv[1]):
     m = re.match(r'\s*(\S+)\s+\S+\s+([\d.]+)s\s*$', line)
@@ -25,5 +27,5 @@ try:
 except Exception:
     fl = 0.0
 note = f"Scene durations add to {total:.1f} s; the file is {fl:.1f} s ({int(fl // 60)}:{int(fl % 60):02d}) after the {cfg.get('crossfade', 0.6)} s crossfades." if fl else f"Total: {total:.1f} s"
-open('NARRATION.md', 'w').write(head + '\n'.join(rows) + '\n\n' + note + '\n')
-print(f"NARRATION.md: {len(rows)} scenes; {note}")
+open(out_path, 'w').write(head.replace('demo.json', cfg_path) + '\n'.join(rows) + '\n\n' + note + '\n')
+print(f"{out_path}: {len(rows)} scenes; {note}")
