@@ -4,7 +4,9 @@
 
 Vouch is a conditional-settlement layer for agent and human work. A payer, human or AI agent, locks stablecoins against a written scope. An independent verifier agent compares the delivery to that scope and writes an evidence-backed attestation on-chain. Funds settle automatically under rules the payer chose, or on their approval. Any agent can use it in one tool call (MCP) or one HTTP request (MPP on Tempo, x402 on Base).
 
-Built for the Colosseum Crypto World's Fair (Sept 14 – Oct 12, 2026). Tempo mainnet (4217) primary, Base mainnet (8453) secondary. First commit: Sept 14, 2026. Nothing copied from prior repos.
+Built for the Colosseum Crypto World's Fair (Sept 14 – Oct 12, 2026). Tempo primary, Base secondary. First commit: Sept 14, 2026. Nothing copied from prior repos.
+
+**Testnet by decision.** Vouch runs on Tempo Moderato and Base Sepolia for the hackathon. The organisers never asked for mainnet, and the remaining weeks went to testers and the verifier instead of a mainnet launch; the mainnet deploy is the same script with a fee-sponsor key and an Earn allow-list (`contracts/script/deploy-tempo.sh`, [docs/deploy.md](docs/deploy.md)). Every amount in this repo and in the product is test money.
 
 Live: **https://vouch-rouge.vercel.app** (testnets: Tempo Moderato 42431 + Base Sepolia 84532, Vault v4). MPP discovery at `/openapi.json` and `/llms.txt`.
 
@@ -55,9 +57,7 @@ npx mppx https://vouch-rouge.vercel.app/api/v1/jobs/<jobId>/fund -X POST     # 4
 
 | Chain | Vault | VerifierRegistry |
 |---|---|---|
-| Tempo 4217 | _pending deploy_ | _pending deploy_ |
 | Tempo Moderato 42431 | [`0xaD15409d1B7EFA36a9898107fa9757E58a36442D`](https://explore.moderato.tempo.xyz/address/0xaD15409d1B7EFA36a9898107fa9757E58a36442D) (v4 with Earn + Zone payout, Sept 17; [deploy tx](https://explore.moderato.tempo.xyz/tx/0x7d1cb6a07b8c1161be42396363a66e227a4ce681a96e647bcaba09d9c269b5d5)) | [`0xBA8C173dB605414ea8b7bB5dbC57BA9724c70b9C`](https://explore.moderato.tempo.xyz/address/0xBA8C173dB605414ea8b7bB5dbC57BA9724c70b9C) |
-| Base 8453 | _pending deploy_ | _pending deploy_ |
 | Base Sepolia 84532 | [`0x9fA83aa77f155D3CC55Ca5034617313634a48fAd`](https://sepolia.basescan.org/address/0x9fA83aa77f155D3CC55Ca5034617313634a48fAd) (v4, Sept 17; [Sourcify match](https://repo.sourcify.dev/84532/0x9fA83aa77f155D3CC55Ca5034617313634a48fAd)) | [`0xCD4f2A717F5cC11607d9d0C2F0501B4Caf040Bca`](https://sepolia.basescan.org/address/0xCD4f2A717F5cC11607d9d0C2F0501B4Caf040Bca) ([Sourcify match](https://repo.sourcify.dev/84532/0xCD4f2A717F5cC11607d9d0C2F0501B4Caf040Bca)) |
 
 Addresses are committed to `packages/abi/addresses.json` the day they are deployed, with explorer links and the deploy tx.
@@ -131,8 +131,8 @@ See [docs/deploy.md](docs/deploy.md). In short: `pnpm install`, build `packages/
 | # | Feature | State |
 |---|---|---|
 | F1 | Vault + registry, invariants, v5 hardening | done (103 Foundry tests: 91 unit incl. Earn, Zone and venue re-entry paths · 6 fuzz · 6 invariants × 10k calls; 99% branch coverage, the gap is instrumentation on `pause`/`_revertWith`) |
-| F2 | Funding rails: Tempo batched, MPP charge, Base EIP-3009, x402 | implemented; contracts live on Moderato and Base Sepolia (Sept 15); mainnets pending |
-| F3 | `@gwilll/vouch-mcp` | published (0.1.1, `npx -y @gwilll/vouch-mcp`); stdio + HTTP; its client drove the live service runs on Moderato and on the public deployment |
+| F2 | Funding rails: Tempo batched, MPP charge, Base EIP-3009, x402 | implemented; contracts live on Moderato and Base Sepolia (Sept 15); mainnet not deployed for the hackathon, by decision (Sept 26) |
+| F3 | `@gwilll/vouch-mcp` | published (0.1.2, `npx -y @gwilll/vouch-mcp`); stdio + HTTP; its client drove the live service runs on Moderato and on the public deployment |
 | F4 | Verifier + on-chain attestation | implemented |
 | F5 | Settlement policy on-chain | done; autoSettle and settleWithSig exercised live on Moderato |
 | F6 | Web app S0–S7 + motion system | implemented; landing redesigned Sept 22 (live job-card demo, proof section, photos); dark theme by default with a light scope for the hero's product card; public routes render on the server without the wallet SDK, the job page loads its data on the server. Lighthouse mobile against the live deployment (Sept 22, after the dark build): landing 81 perf / 100 a11y / 96 best-practices / 100 SEO; job page 84 perf / 100 a11y / 96 best-practices (SEO 60 by design: job pages are `noindex`), LCP 1.7–2.3 s, CLS 0.002 |
@@ -143,11 +143,25 @@ See [docs/deploy.md](docs/deploy.md). In short: `pnpm install`, build `packages/
 | F11 | Earn while locked + idle-balance Earn | contracts done (17 tests, invariants with yield/loss), API + MCP + picker done, live on Moderato with a demo venue; real venue pending Tempo allow-list |
 | F12 | Private payout via Tempo Zone | contracts done (7 tests: legacy + current portal shapes, WithSig binds the payload), API route + withdraw-page card, live on Moderato Zone A with the private balance credited; testnet-only, behind `ZONES_ENABLED` |
 
-Known gaps: job page first load is 244 kB (106 kB of it Next/React) against a 150 kB target; Slither triage is in [docs/slither-2026-09-17.md](docs/slither-2026-09-17.md) (33 results, none blocking, two hardening items queued for the mainnet release); remaining `[VERIFY]` items in the spec (Privy on 4217, mppx handler context, submission deadline) are re-checked on the day they are used.
+Known gaps: job page first load is 244 kB (106 kB of it Next/React) against a 150 kB target; Slither triage is in [docs/slither-2026-09-17.md](docs/slither-2026-09-17.md) (33 results, none blocking; the two hardening items are done in Vault v5, in the repo, which ships with the mainnet deploy); remaining `[VERIFY]` items in the spec (Privy on 4217, mppx handler context, submission deadline) are re-checked on the day they are used.
 
 Resolved Sept 15 from the Colosseum kickoff call: cross-chain submissions are allowed and a team can win any track it places in, but the track is decided by depth of integration. Tempo is the primary submission; the Base x402/EIP-3009 rail stays as built and gets no further UX work.
 
 Launch wedge: judges and the pitch lead with agent services on the MPP directory hired from Claude Code with zero clicks; human beta users come from freelancers sharing a WhatsApp pay link. Tester conversations are logged in `docs/users.md`.
+
+## Business model, with the arithmetic
+
+The Vault takes **1% of every settled job**, in the contract, at settlement. A verification costs Vouch about **$0.05** (typical) to **$0.12** (worst case, 60k characters of deliverable) in model calls with Claude Sonnet 5 at adaptive thinking, measured over the calibration runs. So the 1% fee covers the check from about a **$10 job** upwards; below that, v1 pays for the check out of pocket, which is fine for a tester round and not for a business. The planned fix is in the settlement policy, not the pitch: a flat verification fee (around $0.25, set at job creation and shown on the job page) for jobs under $25, with the 1% unchanged above it. Payers see the number before they lock anything.
+
+Who pays: the payer, because the payer is the one who gets the guarantee. Agents pay the same way, inside the MPP or x402 charge that funds the job.
+
+## Team
+
+Godswill Idolor ([@big14way](https://github.com/big14way)): full-stack Web3 engineer, Rust and Solidity, previously a Flare and Stellar fellow. Solo for this hackathon: every commit in this repo, from the first on Sept 14, is his. Why this: his sister Rita is a freelance designer in Nigeria who delivered three weeks of work to a client overseas and was never paid; the first user story in the pitch is hers.
+
+## Users
+
+Every tester conversation is logged in [docs/users.md](docs/users.md), what broke before what they liked. The tester kit (funded pay links, invites, channel plan) is in [docs/testers](docs/testers).
 
 ## Roadmap (out of scope for v1)
 Third-party verifiers, worker bonds, zone-funded jobs, virtual deposit address per job, fiat rails, invoice financing on settlement history.
