@@ -1,6 +1,8 @@
 # Submission draft (Colosseum Crypto World's Fair, due Oct 12, 2026)
 
-**Status: draft, Oct 3.** The organisers said at the kickoff that long-form answers written by hand land and generated ones do not. Every fact below is checked against the repo and the live deployment; the voice is a starting point for Godswill to rewrite in his own words before pasting. Fields follow Colosseum's form (product, chains and tools, team, repo, pitch video, demo video, go-to-market, demand validation, distribution) plus the three things the kickoff said they read for (why you built this, your unique insight, why this team and the 5 to 10 year vision).
+**Status: Oct 3, evening.** Project details and Media and code are filled in the arena from this file (saved as draft; final submission opens Oct 6, 04:00 PDT). Field limits found on the form: technologies 500 chars (single line), "how does your product use these chains" 500, access instructions 300, repo context 500, notes for judges 500. Still empty on the form: team Telegram contact (required), the two video URLs (YouTube, Loom or Vimeo; pitch up to 2 minutes, demo up to 3 minutes and must show the live product, not slides), the founder profile, and the accelerator questions.
+
+**Original note:** The organisers said at the kickoff that long-form answers written by hand land and generated ones do not. Every fact below is checked against the repo and the live deployment; the voice is a starting point for Godswill to rewrite in his own words before pasting. Fields follow Colosseum's form (product, chains and tools, team, repo, pitch video, demo video, go-to-market, demand validation, distribution) plus the three things the kickoff said they read for (why you built this, your unique insight, why this team and the 5 to 10 year vision).
 
 ## Product name and one-liner
 
