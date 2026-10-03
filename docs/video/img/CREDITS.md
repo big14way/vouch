@@ -2,6 +2,7 @@ Images in this video are Vouch's own, except three licensed photos.
 
 Own:
 - vouch-bg.jpg, vouch-bg-paid.jpg: rendered from brand/bg.html and brand/bg-paid.html (the Vouch five-step progress line on the product palette).
+- founder.jpg: the founder's GitHub avatar on the brand canvas, for the team slide.
 - rita.jpg: the founder's sister at her desk, supplied by the founder for this video (metadata stripped, cropped to the slide panel). Not committed: it is a family photo, so it lives only on the founder's machine; a fresh clone rebuilds p1 with img/worker-desk.jpg.
 - silence.jpg: rendered from brand/silence.py (the same line, lit up to Delivered and dark after it) for the second story slide.
 - ui/*.jpg: screenshots of the live product (vouch-rouge.vercel.app), framed with frame.py.

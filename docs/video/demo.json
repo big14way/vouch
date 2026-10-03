@@ -25,7 +25,29 @@
    "image": "img/vouch-bg.jpg",
    "tagline": "Pay when it's delivered. Get paid when it's verified.",
    "tag": "Colosseum Crypto World's Fair · Built on Tempo",
-   "vo": "This is Vouch. Lock the money against a written scope, and release it only when the work is verified. For freelancers, and for AI agents."
+   "vo": "This is Vouch. Money locked against a scope, released only when the work is verified."
+  },
+  {
+   "id": "t0",
+   "kind": "slide",
+   "image": "img/founder.jpg",
+   "label": "Who",
+   "head": "One engineer. Four weeks. One reason.",
+   "bullets": [
+    {
+     "k": "Godswill Idolor",
+     "v": "Full-stack Web3 engineer. Rust and Solidity. Previously a Flare and Stellar fellow."
+    },
+    {
+     "k": "Solo",
+     "v": "Every commit since Sept 14. Live on two testnets, 103 contract tests, an MCP server on npm."
+    },
+    {
+     "k": "Why",
+     "v": "My sister."
+    }
+   ],
+   "vo": "I'm Godswill Idolor, a full-stack Web3 engineer: Rust and Solidity, a Flare and Stellar fellow before this. I built Vouch alone in four weeks, because of my sister."
   },
   {
    "id": "p1",
@@ -93,7 +115,7 @@
      "v": "Stablecoin rails for agents shipped this year. The conditional layer did not."
     }
    ],
-   "vo": "My sister is not rare. Eighty-five percent of freelancers get paid late. And now AI agents are hiring each other, on rails that pay first. Nobody checks the work."
+   "vo": "My sister is not rare. Eighty-five percent of freelancers get paid late. And now AI agents hire each other on rails that pay first. Nobody checks the work."
   },
   {
    "id": "p3",
@@ -228,7 +250,7 @@
     ],
     "note": "The verifier can never move money. It only writes a verdict."
    },
-   "vo": "Vouch changes the order. The payer locks stablecoins against a written scope. The worker delivers. An independent verifier checks the work against that scope and records its verdict on-chain. It can never move the money."
+   "vo": "The payer locks stablecoins against a written scope. The worker delivers. An independent verifier checks the work and records its verdict on-chain, and it can never move the money."
   },
   {
    "kind": "laptop",
@@ -256,11 +278,11 @@
      36.5
     ]
    ],
-   "max_speed": 2.0,
+   "max_speed": 2.2,
    "step": "01",
    "head": "The real product: lock the money",
    "sub": "Live on Tempo testnet, Sept 26. Rita's job, the way it should have gone: Kora Coffee locks $20 in one click.",
-   "vo": "This is the real product, live on Tempo testnet. Rita's job, the way it should have gone. Kora Coffee writes the scope, sets twenty dollars, and locks it with one click. The money is now held for her, and she can see it."
+   "vo": "The real product, live on Tempo testnet: Rita's job, the way it should have gone. Kora Coffee writes the scope, sets twenty dollars, locks it in one click. The money is held for her, and she can see it."
   },
   {
    "kind": "laptop",
@@ -292,11 +314,11 @@
      50
     ]
    ],
-   "max_speed": 2.0,
+   "max_speed": 2.4,
    "step": "02",
    "head": "Rita delivers. The check runs.",
    "sub": "Files fingerprinted, one signature, no fee. PASS at 92%, five of five scope items met.",
-   "vo": "Rita uploads her logo and brand guide. Each file is fingerprinted before anyone reads it. She signs once and pays no fee. Seconds later, the verifier checks every line of the scope. Five of five met, ninety-two percent."
+   "vo": "Rita uploads her logo and brand guide, fingerprinted before anyone reads them. One signature, no fee. Seconds later the verifier checks every line of the scope: five of five met, ninety-two percent."
   },
   {
    "kind": "laptop",
@@ -351,82 +373,6 @@
    "vo": "This time, my sister gets paid."
   },
   {
-   "kind": "laptop",
-   "layout": "wide",
-   "device_h": 800,
-   "id": "e1",
-   "src": "term_earn.webm",
-   "cut": [
-    0.2,
-    17.8
-   ],
-   "crop": [
-    1840,
-    1035,
-    0,
-    0
-   ],
-   "max_speed": 1.5,
-   "step": "",
-   "head": "Locked money earns for the payer",
-   "sub": "Principal into a Tempo Earn vault, recalled exactly at settlement, yield to the payer. Testnet run on a labelled demo venue.",
-   "vo": "While the money waits, it doesn't sit idle. The payer can switch on Earn while locked: the principal goes into a Tempo Earn vault, comes back exactly at settlement, and the yield is theirs. On testnet this runs on a labelled demo venue."
-  },
-  {
-   "id": "v1",
-   "kind": "slide",
-   "image": "img/ui/public-job.jpg",
-   "label": "Privacy",
-   "head": "Everyone can verify. Only the two parties see the price.",
-   "bullets": [
-    {
-     "k": "Commitment, not a price",
-     "v": "On-chain, a job stores a hash of its terms. Outsiders see money locked, not how much."
-    },
-    {
-     "k": "Unlinked balances",
-     "v": "Deposits credit a balance; jobs draw from it. No payer-to-worker trail."
-    },
-    {
-     "k": "Private payouts",
-     "v": "Pay can move into a Tempo Zone with the recipient encrypted (testnet)."
-    }
-   ],
-   "vo": "Pay is personal, so Vouch keeps it private. On-chain, a job stores a commitment, not the price. Outsiders can see that money is locked, not how much, and deposits are never linked to jobs."
-  },
-  {
-   "kind": "laptop",
-   "layout": "wide",
-   "device_h": 800,
-   "id": "z1",
-   "src": "ui_zone.webm",
-   "cut": [
-    [
-     21.5,
-     26
-    ],
-    [
-     29,
-     33
-    ],
-    [
-     37,
-     46
-    ]
-   ],
-   "crop": [
-    1920,
-    1080,
-    0,
-    0
-   ],
-   "max_speed": 1.8,
-   "step": "",
-   "head": "Rita takes her pay private",
-   "sub": "Into Tempo Zone A with her address encrypted. The public chain sees only Vault to Portal. Live on Moderato.",
-   "vo": "And Rita can take her pay private. One signature moves it into a Tempo Zone, with her address encrypted. The public chain sees only the vault and the portal, never her."
-  },
-  {
    "id": "d2",
    "kind": "laptop",
    "layout": "wide",
@@ -445,30 +391,8 @@
    "step": "04",
    "head": "For agents: one call, zero clicks",
    "sub": "Live on Tempo testnet, Sept 26: funded by a Tempo machine payment, PASS 0.90 thirteen seconds after delivery.",
-   "vo": "For agents, it's one call. Live on Tempo testnet, a payer agent hires a worker agent and funds the job with a Tempo machine payment, in one round-trip. The worker delivers. Thirteen seconds later: PASS, at ninety percent.",
+   "vo": "For agents it's one call. A payer agent hires a worker agent and funds the job with a Tempo machine payment, in one round-trip. Thirteen seconds after delivery: PASS, at ninety percent.",
    "device_h": 800
-  },
-  {
-   "kind": "laptop",
-   "layout": "wide",
-   "device_h": 800,
-   "id": "b1",
-   "src": "term_x402.webm",
-   "cut": [
-    0.2,
-    13.4
-   ],
-   "crop": [
-    1840,
-    1035,
-    0,
-    0
-   ],
-   "max_speed": 1.5,
-   "step": "",
-   "head": "The same, on Base, with x402",
-   "sub": "USDC EIP-3009 authorisation, no ETH. Funded, delivered and verified in 19 seconds. Live on Base Sepolia, Sept 27.",
-   "vo": "The same contracts run on Base. There, an agent funds the job with x402: one HTTP request, a USDC authorisation, no ETH. Funded, delivered and verified in nineteen seconds."
   },
   {
    "id": "d4",
@@ -510,8 +434,8 @@
    "max_speed": 1.6,
    "step": "06",
    "head": "Nothing releases. The payer decides.",
-   "sub": "Four red flags, a question for the worker, and the verdict on-chain. Twelve calibration runs, zero bad work passed.",
-   "vo": "Nothing releases. The money stays locked until the payer decides, and the verdict is recorded on-chain. Across twelve calibration runs, the verifier never once passed bad work.",
+   "sub": "Four red flags, a question for the worker, the verdict on-chain. Twelve calibration runs over 19 synthetic and adversarial samples: zero bad work passed.",
+   "vo": "Nothing releases. The money stays locked until the payer decides, and the verdict is on-chain. Nineteen samples, twelve runs: the verifier never passed bad work.",
    "device_h": 800
   },
   {
@@ -538,7 +462,7 @@
      "v": "Locked money can earn; payouts can go private. Both native to Tempo."
     }
    ],
-   "vo": "Why Tempo? Fees are paid in stablecoins and Vouch sponsors them, so Rita never needs a gas token. Machine payments are native, so an agent pays over plain HTTP. And Earn and private Zones are built into the chain."
+   "vo": "Why Tempo? Stablecoin fees that Vouch sponsors, so Rita never needs a gas token. Native machine payments, so an agent pays over plain HTTP."
   },
   {
    "id": "p6",
@@ -549,22 +473,18 @@
    "bullets": [
     {
      "k": "Revenue",
-     "v": "1% fee on settlement, set in the Vault contract."
+     "v": "1% of every settled job, in the contract. A check costs 5 to 12 cents, so it pays from a $10 job; a flat check fee for smaller jobs is next."
     },
     {
      "k": "Live",
-     "v": "vouch-rouge.vercel.app, end to end on Tempo testnet."
-    },
-    {
-     "k": "For agents",
-     "v": "npx -y @gwilll/vouch-mcp, published on npm."
+     "v": "vouch-rouge.vercel.app, end to end on Tempo testnet. npx -y @gwilll/vouch-mcp on npm."
     },
     {
      "k": "Next",
-     "v": "The first ten freelancers in Lagos, sending real pay links."
+     "v": "The first ten freelancers in Nigeria, real pay links, this week."
     }
    ],
-   "vo": "Vouch takes one percent of every settled job, in the contract. Today it runs end to end on Tempo testnet, on a public URL, with its MCP server on npm. Next: the first ten freelancers in Lagos, sending real pay links."
+   "vo": "Vouch takes one percent of every settled job, in the contract. A check costs about a dime, so the fee pays from a ten-dollar job up. Next: ten freelancers in Nigeria."
   },
   {
    "id": "p7",
@@ -586,8 +506,8 @@
      "v": "Money that waits for proof, not for trust."
     }
    ],
-   "vo": "In ten years, every job between people and agents settles on a verified outcome, and verifiers compete on how well they judge. So that no one's sister loses three weeks of her life to silence again.",
-   "voice_rate": "+6%"
+   "vo": "In ten years, every job between people and agents settles on a verified outcome, and verifiers compete on how well they judge. So that no one's sister loses three weeks to silence again.",
+   "voice_rate": "+12%"
   },
   {
    "id": "s99",
