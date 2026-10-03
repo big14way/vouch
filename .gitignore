@@ -38,6 +38,7 @@ skills-lock.json
 __pycache__/
 docs/video/clips/
 docs/video/.build/
+docs/video/.build-*/
 docs/video/out/
 docs/video/*.mp4
 docs/video/.sessions/
