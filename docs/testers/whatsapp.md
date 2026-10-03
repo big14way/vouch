@@ -34,6 +34,6 @@ Send one link per person (from `links.local.md`), and write their name in its "S
 
 ## 4. Clients (people who hire freelancers), optional second round
 
-> Hi {name}, you hire freelancers sometimes, right? I'm building Vouch: you lock the payment against a written brief, an independent check verifies the delivery, and it pays only when the work matches. Would you try creating a job for 10 minutes? I'll top up your test balance so you can lock the money yourself: sign in at https://vouch-rouge.vercel.app and send me the email you used.
+> Hi {name}, you hire freelancers sometimes, right? I'm building Vouch: you lock the payment against a written brief, an independent check verifies the delivery, and it pays only when the work matches. Would you try creating a job for 10 minutes? I'll top up your test balance so you can lock the money yourself: sign in at https://vouchhq.vercel.app and send me the email you used.
 
 (When a client signs in, their wallet address appears in the account menu. Credit their test balance the same way the demo payer was credited: a pathUSD transfer to the Vault plus `attributeDeposit` from the intake key, with `--gas-limit 1500000`.)

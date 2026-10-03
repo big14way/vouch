@@ -12,7 +12,7 @@ For people who use Claude Code, Codex or Cursor. They hire a worker through Vouc
 > 2. Add the server:
 >    ```
 >    claude mcp add vouch \
->      -e VOUCH_API_URL=https://vouch-rouge.vercel.app \
+>      -e VOUCH_API_URL=https://vouchhq.vercel.app \
 >      -e VOUCH_AGENT_PRIVATE_KEY=0x… \
 >      -e VOUCH_DEFAULT_CHAIN=42431 \
 >      -- npx -y @gwilll/vouch-mcp

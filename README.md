@@ -8,7 +8,7 @@ Built for the Colosseum Crypto World's Fair (Sept 14 – Oct 12, 2026). Tempo pr
 
 **Testnet by decision.** Vouch runs on Tempo Moderato and Base Sepolia for the hackathon. The organisers never asked for mainnet, and the remaining weeks went to testers and the verifier instead of a mainnet launch; the mainnet deploy is the same script with a fee-sponsor key and an Earn allow-list (`contracts/script/deploy-tempo.sh`, [docs/deploy.md](docs/deploy.md)). Every amount in this repo and in the product is test money.
 
-Live: **https://vouch-rouge.vercel.app** (testnets: Tempo Moderato 42431 + Base Sepolia 84532, Vault v4). MPP discovery at `/openapi.json` and `/llms.txt`.
+Live: **https://vouchhq.vercel.app** (testnets: Tempo Moderato 42431 + Base Sepolia 84532, Vault v4). MPP discovery at `/openapi.json` and `/llms.txt`.
 
 ## The problem
 
@@ -28,13 +28,13 @@ Not escrow: escrow is a box. Vouch is the judgment plus the settlement policy th
 
 **Agent (Claude Code):**
 ```bash
-claude mcp add vouch -e VOUCH_API_URL=https://vouch-rouge.vercel.app -e VOUCH_AGENT_PRIVATE_KEY=0x… -- npx -y @gwilll/vouch-mcp
+claude mcp add vouch -e VOUCH_API_URL=https://vouchhq.vercel.app -e VOUCH_AGENT_PRIVATE_KEY=0x… -- npx -y @gwilll/vouch-mcp
 # then: "Use the hire_for_task prompt: summarise 3 PDFs into a 1-page brief, budget 5"
 ```
 
 **Any HTTP client (Tempo):**
 ```bash
-npx mppx https://vouch-rouge.vercel.app/api/v1/jobs/<jobId>/fund -X POST     # 402 → pays the charge (memo = jobId) → 200 { status: "Funded", tx }
+npx mppx https://vouchhq.vercel.app/api/v1/jobs/<jobId>/fund -X POST     # 402 → pays the charge (memo = jobId) → 200 { status: "Funded", tx }
 ```
 
 **Human:** open a job link, tap Pay (one sponsored transaction on Tempo, one USDC signature on Base), share the link with the worker.
@@ -62,7 +62,7 @@ npx mppx https://vouch-rouge.vercel.app/api/v1/jobs/<jobId>/fund -X POST     # 4
 
 Addresses are committed to `packages/abi/addresses.json` the day they are deployed, with explorer links and the deploy tx.
 
-**Public deployment, Sept 21:** [`docs/e2e-service-public-2026-09-21.txt`](docs/e2e-service-public-2026-09-21.txt) is `examples/moderato-e2e/service.ts` run against https://vouch-rouge.vercel.app: create, MPP-funded, submitted, verified on-chain by Claude Sonnet 5 (NEEDS_REVIEW at 0.55 with an evidence-backed report stored in R2), approved and settled, 50 seconds end to end with every check passing.
+**Public deployment, Sept 21:** [`docs/e2e-service-public-2026-09-21.txt`](docs/e2e-service-public-2026-09-21.txt) is `examples/moderato-e2e/service.ts` run against https://vouchhq.vercel.app: create, MPP-funded, submitted, verified on-chain by Claude Sonnet 5 (NEEDS_REVIEW at 0.55 with an evidence-backed report stored in R2), approved and settled, 50 seconds end to end with every check passing.
 
 **Two agents, no humans, Sept 17:** [`docs/e2e-agent-payer-moderato-2026-09-17.txt`](docs/e2e-agent-payer-moderato-2026-09-17.txt) is `examples/claude-code-payer` run unattended against the service on Moderato: the payer agent creates a $5 job and pays the 402 with an MPP charge, the worker agent submits the pinned deliverable, all in 27 seconds and three transactions. The verifier stage reports `failed` in that run because no model key is configured yet, so the job waits for payer review instead of auto-settling.
 

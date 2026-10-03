@@ -3,7 +3,7 @@
 #   docs/testers/status.sh [links-public.local.md]   (default: links.local.md)
 set -euo pipefail
 cd "$(dirname "$0")"
-API="${VOUCH_API_URL:-https://vouch-rouge.vercel.app}"
+API="${VOUCH_API_URL:-https://vouchhq.vercel.app}"
 printf "%-46s %-10s %-13s %s\n" "TASK" "STATUS" "VERDICT" "LINK"
 grep -o "| [^|]* | https://[^ ]*/j/0x[0-9a-f]\{64\}" "${1:-links.local.md}" | while IFS='|' read -r _ task link; do
   id="${link##*/}"

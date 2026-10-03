@@ -5,7 +5,7 @@ Own:
 - founder.jpg: the founder's GitHub avatar on the brand canvas, for the team slide.
 - rita.jpg: the founder's sister at her desk, supplied by the founder for this video (metadata stripped, cropped to the slide panel). Not committed: it is a family photo, so it lives only on the founder's machine; a fresh clone rebuilds p1 with img/worker-desk.jpg.
 - silence.jpg: rendered from brand/silence.py (the same line, lit up to Delivered and dark after it) for the second story slide.
-- ui/*.jpg: screenshots of the live product (vouch-rouge.vercel.app), framed with frame.py.
+- ui/*.jpg: screenshots of the live product (vouchhq.vercel.app), framed with frame.py.
 
 Photos (Unsplash License, https://unsplash.com/license), the same ones the landing page credits:
 - worker-desk.jpg: Adeniji Abdullahi A (@akinggraphic), https://unsplash.com/photos/rH5kewe_3IE

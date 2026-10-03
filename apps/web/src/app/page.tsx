@@ -17,7 +17,7 @@ import productJob from "@/assets/img/product-job.jpg";
 
 export const dynamic = "force-static";
 
-const APP = process.env.NEXT_PUBLIC_APP_URL ?? "https://vouch-rouge.vercel.app";
+const APP = process.env.NEXT_PUBLIC_APP_URL ?? "https://vouchhq.vercel.app";
 const REPO = "https://github.com/big14way/vouch";
 const LIVE_JOB = `${APP}/j/0xc116004cc5eaad86fce7c8b3497ca0c4b201c3f880142cb272994706ed6226fe`;
 

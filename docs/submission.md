@@ -10,7 +10,7 @@ Vouch. Pay when it's delivered. Get paid when it's verified.
 
 ## Description (short)
 
-Vouch is a conditional-settlement layer for agent and human work. A payer, human or AI agent, locks stablecoins against a written scope. An independent verifier agent compares the delivery to that scope and writes an evidence-backed attestation on-chain; it can never move money. Funds settle automatically under rules the payer chose, or on their approval, and either side can dispute to an arbiter. Any agent can use it in one tool call (MCP) or one HTTP request (MPP on Tempo, x402 on Base). Live: https://vouch-rouge.vercel.app (Tempo Moderato and Base Sepolia).
+Vouch is a conditional-settlement layer for agent and human work. A payer, human or AI agent, locks stablecoins against a written scope. An independent verifier agent compares the delivery to that scope and writes an evidence-backed attestation on-chain; it can never move money. Funds settle automatically under rules the payer chose, or on their approval, and either side can dispute to an arbiter. Any agent can use it in one tool call (MCP) or one HTTP request (MPP on Tempo, x402 on Base). Live: https://vouchhq.vercel.app (Tempo Moderato and Base Sepolia).
 
 ## Why we built this, and who it is for
 
@@ -53,7 +53,7 @@ Every job between people and agents settles on a verified outcome, and verifiers
 
 ## Links
 
-- Live: https://vouch-rouge.vercel.app
+- Live: https://vouchhq.vercel.app
 - Repo: https://github.com/big14way/vouch (MIT)
 - MCP: https://www.npmjs.com/package/@gwilll/vouch-mcp
 - Evidence logs: docs/e2e-*.txt, docs/calibration-2026-09-21-repeats.md

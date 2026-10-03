@@ -7,7 +7,7 @@ import "./globals.css";
 const inter = localFont({ src: "../assets/fonts/inter-latin-opsz.woff2", variable: "--font-inter", display: "swap", weight: "100 900" });
 const mono = localFont({ src: "../assets/fonts/jetbrains-mono-latin.woff2", variable: "--font-jetbrains", display: "swap", weight: "100 800" });
 
-const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://vouch-rouge.vercel.app";
+const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://vouchhq.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),

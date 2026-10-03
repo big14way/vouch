@@ -8,7 +8,7 @@
  "sfx_gain": 0.6,
  "brand": {
   "name": "Vouch",
-  "domain": "vouch-rouge.vercel.app",
+  "domain": "vouchhq.vercel.app",
   "paper": "#0b1220",
   "paper_deep": "#131a2a",
   "ink": "#f3f5f8",
@@ -339,7 +339,7 @@
     },
     {
      "k": "Live",
-     "v": "vouch-rouge.vercel.app, end to end on Tempo testnet. npx -y @gwilll/vouch-mcp on npm."
+     "v": "vouchhq.vercel.app, end to end on Tempo testnet. npx -y @gwilll/vouch-mcp on npm."
     },
     {
      "k": "Next",
@@ -382,7 +382,7 @@
    "links": [
     [
      "Try it",
-     "vouch-rouge.vercel.app"
+     "vouchhq.vercel.app"
     ],
     [
      "Code",

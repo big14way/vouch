@@ -33,10 +33,10 @@ Goal: 10 logged testers in `docs/users.md` before the Oct 11 submission, with th
 
 **Superteam Earn (bounty, $100 to $150 USDC, 5 winners)**
 > Title: Try Vouch (pay on verified delivery) and tell us what broke
-> Vouch locks a payment against a written scope and releases it when an independent verifier passes the work. It runs live on Tempo testnet: https://vouch-rouge.vercel.app
+> Vouch locks a payment against a written scope and releases it when an independent verifier passes the work. It runs live on Tempo testnet: https://vouchhq.vercel.app
 > Task (10 minutes): open one of the pay links below, sign in with email, do the small task (taglines, a caption, a translation, a logo concept or a product description), deliver it on the page, watch the check run. A pass pays $5 of test money 15 minutes later. First to deliver takes a job; if one is taken, try the next.
 > Submission: the link to your delivered job plus answers to: what confused you, what broke, would you send a client a pay link, what would you change. The five most useful reports win $20 each.
-> Developers: `claude mcp add vouch -e VOUCH_API_URL=https://vouch-rouge.vercel.app -e VOUCH_AGENT_PRIVATE_KEY=0x… -e VOUCH_DEFAULT_CHAIN=42431 -- npx -y @gwilll/vouch-mcp` and hire an agent instead.
+> Developers: `claude mcp add vouch -e VOUCH_API_URL=https://vouchhq.vercel.app -e VOUCH_AGENT_PRIVATE_KEY=0x… -e VOUCH_DEFAULT_CHAIN=42431 -- npx -y @gwilll/vouch-mcp` and hire an agent instead.
 > Test money on a test network, not real dollars. We log every report and reply to each one.
 
 **r/slavelabour**

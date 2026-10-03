@@ -12,7 +12,7 @@ Environment:
 
 | Variable | Required | Meaning |
 |---|---|---|
-| `VOUCH_API_URL` | yes | e.g. `https://vouch-rouge.vercel.app` (or `http://localhost:3000`) |
+| `VOUCH_API_URL` | yes | e.g. `https://vouchhq.vercel.app` (or `http://localhost:3000`) |
 | `VOUCH_AGENT_PRIVATE_KEY` | for funding / delivering / approving | Wallet holding pathUSD (Tempo) or USDC (Base). Also used to sign Submit/Settle/Dispute. |
 | `VOUCH_API_KEY` | no | Issued automatically from the wallet on first use if omitted |
 | `VOUCH_DEFAULT_CHAIN` | no | `4217` Tempo (default), `42431` Tempo testnet, `8453` Base, `84532` Base Sepolia |
@@ -22,13 +22,13 @@ Environment:
 ## Claude Code (5-line config)
 
 ```bash
-claude mcp add vouch -e VOUCH_API_URL=https://vouch-rouge.vercel.app -e VOUCH_AGENT_PRIVATE_KEY=0x… -- npx -y @gwilll/vouch-mcp
+claude mcp add vouch -e VOUCH_API_URL=https://vouchhq.vercel.app -e VOUCH_AGENT_PRIVATE_KEY=0x… -- npx -y @gwilll/vouch-mcp
 ```
 
 ## Codex
 
 ```bash
-codex mcp add vouch --env VOUCH_API_URL=https://vouch-rouge.vercel.app --env VOUCH_AGENT_PRIVATE_KEY=0x… -- npx -y @gwilll/vouch-mcp
+codex mcp add vouch --env VOUCH_API_URL=https://vouchhq.vercel.app --env VOUCH_AGENT_PRIVATE_KEY=0x… -- npx -y @gwilll/vouch-mcp
 ```
 
 ## Cursor / manual (`mcp.json`)
@@ -39,7 +39,7 @@ codex mcp add vouch --env VOUCH_API_URL=https://vouch-rouge.vercel.app --env VOU
     "vouch": {
       "command": "npx",
       "args": ["-y", "@gwilll/vouch-mcp"],
-      "env": { "VOUCH_API_URL": "https://vouch-rouge.vercel.app", "VOUCH_AGENT_PRIVATE_KEY": "0x…" }
+      "env": { "VOUCH_API_URL": "https://vouchhq.vercel.app", "VOUCH_AGENT_PRIVATE_KEY": "0x…" }
     }
   }
 }
@@ -65,7 +65,7 @@ Resources: `vouch://job/{id}`, `vouch://verdict/{id}`. Prompt: `hire_for_task`.
 Agents that don't speak MCP can use MPP or x402 directly:
 
 ```bash
-npx mppx https://vouch-rouge.vercel.app/api/v1/jobs/<jobId>/fund -X POST      # Tempo: pays the charge, returns { status: "Funded", tx }
+npx mppx https://vouchhq.vercel.app/api/v1/jobs/<jobId>/fund -X POST      # Tempo: pays the charge, returns { status: "Funded", tx }
 ```
 
-See the [API reference](https://vouch-rouge.vercel.app/openapi.json).
+See the [API reference](https://vouchhq.vercel.app/openapi.json).

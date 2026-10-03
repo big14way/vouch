@@ -59,7 +59,7 @@
     "url": "git+https://github.com/big14way/vouch.git",
     "directory": "packages/mcp"
   },
-  "homepage": "https://vouch-rouge.vercel.app",
+  "homepage": "https://vouchhq.vercel.app",
   "bugs": {
     "url": "https://github.com/big14way/vouch/issues"
   }
