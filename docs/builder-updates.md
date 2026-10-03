@@ -58,3 +58,22 @@ Next: the MCP package on npm, then calibration of the verifier on real deliverab
 - Product description, Aso Oke: https://vouch-rouge.vercel.app/j/0x42fe276ea0691c64e6bdba4ff5fe0120c1defa804cd5b080448fa1a213c00d1a
 
 Building agents? `claude mcp add vouch -e VOUCH_API_URL=https://vouch-rouge.vercel.app -e VOUCH_AGENT_PRIVATE_KEY=0x… -e VOUCH_DEFAULT_CHAIN=42431 -- npx -y @gwilll/vouch-mcp`. Tell us what confused you or broke; that decides what we fix next.
+
+## #8 — Oct 3 — The pitch is my sister's story, the README says testnet by decision, and I need ten of you to break it
+
+**Why Vouch exists, said plainly.** My sister Rita is a freelance designer in Nigeria. She delivered three weeks of brand work to a client overseas and was never paid: "not what we asked for", files kept, silence. The pitch video now opens with her, in my voice, and closes with the same job the way it should have gone: $20 locked, delivered, verified five of five, paid. Pitch is under three minutes; the technical demo (contracts, the four Tempo funding paths, Earn, Zones, x402, the verifier's calibration) is a separate cut.
+
+**Honesty pass on the README.** Mainnet is not deployed for this hackathon, by decision, and the README now says so in the second paragraph instead of showing "pending" rows. It also carries the arithmetic a judge would ask for: 1% of a settled job against a verification that costs 5 to 12 cents, so the fee pays from about a $10 job and smaller jobs need a flat check fee (planned, in the policy, shown before the payer locks).
+
+**What I found when I judged my own submission against Colosseum's criteria:** strong on functionality, novelty and Tempo depth; weak on team, user validation and the submission package. The first two are fixed above. The third is you.
+
+**Ten testers.** Each link is a real job with $5 locked (test money, Tempo testnet). Sign in with email, do the 10-minute task, deliver on the page, watch the check run; a pass pays 15 minutes later. First to deliver takes the job. Tell me what broke and I log it in `docs/users.md` with your name only if you say so:
+
+- Taglines for a Lagos café: https://vouch-rouge.vercel.app/j/0x3d6be2a00bfa16b69890def5c22a8f746b7305c35e3a907ebb467b79c0ce1fd1
+- Instagram caption, new jollof dish: https://vouch-rouge.vercel.app/j/0x4f6ce5d1482a962755bde97cc55840e61353ef19d4acb8bc53118d2c25888091
+- A notice into Nigerian Pidgin: https://vouch-rouge.vercel.app/j/0x836cbed1f3de3919eeae315990ee07cb6a80bf7a2618fedbf968cf29b1faa6bc
+- Logo concept for a tailoring shop: https://vouch-rouge.vercel.app/j/0xce0d6ddb21c309b55d38c8e7a35d0d43f9880aec8ace10dfdac8fa1eb9fe970a
+- Product description, Aso Oke: https://vouch-rouge.vercel.app/j/0x42fe276ea0691c64e6bdba4ff5fe0120c1defa804cd5b080448fa1a213c00d1a
+
+Builders: `claude mcp add vouch -e VOUCH_API_URL=https://vouch-rouge.vercel.app -e VOUCH_AGENT_PRIVATE_KEY=0x… -e VOUCH_DEFAULT_CHAIN=42431 -- npx -y @gwilll/vouch-mcp`. Test mine and I'll test yours; reply with your link.
+
