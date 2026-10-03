@@ -61,7 +61,7 @@ Building agents? `claude mcp add vouch -e VOUCH_API_URL=https://vouch-rouge.verc
 
 ## #8 — Oct 3 — The pitch is my sister's story, the README says testnet by decision, and I need ten of you to break it
 
-**Why Vouch exists, said plainly.** My sister Rita is a freelance designer in Nigeria. She delivered three weeks of brand work to a client overseas and was never paid: "not what we asked for", files kept, silence. The pitch video now opens with her, in my voice, and closes with the same job the way it should have gone: $20 locked, delivered, verified five of five, paid. Pitch is under three minutes; the technical demo (contracts, the four Tempo funding paths, Earn, Zones, x402, the verifier's calibration) is a separate cut.
+**Why Vouch exists, said plainly.** My sister Rita is a freelance designer in Nigeria. She delivered three weeks of brand work to a client overseas and was never paid: "not what we asked for", files kept, silence. The pitch video now opens with her, in my voice, and closes with the same job the way it should have gone: $20 locked, delivered, verified five of five, paid. The pitch is under two minutes; the demo shows the live product; the technical walkthrough (contracts, the four Tempo funding paths, Earn, Zones, x402, the verifier's calibration) is a separate cut.
 
 **Honesty pass on the README.** Mainnet is not deployed for this hackathon, by decision, and the README now says so in the second paragraph instead of showing "pending" rows. It also carries the arithmetic a judge would ask for: 1% of a settled job against a verification that costs 5 to 12 cents, so the fee pays from about a $10 job and smaller jobs need a flat check fee (planned, in the policy, shown before the payer locks).
 
