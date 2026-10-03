@@ -42,3 +42,6 @@ docs/video/out/
 docs/video/*.mp4
 docs/video/.sessions/
 docs/testers/*.local.md
+
+# a family photo used on the first story slide; kept out of the public repo (the founder decides)
+docs/video/img/rita.jpg
