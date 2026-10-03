@@ -12,4 +12,4 @@ Photos (Unsplash License, https://unsplash.com/license), the same ones the landi
 - worker-writing.jpg: manny PANTOJA (@mann_pantoja), https://unsplash.com/photos/P2-4kxFhvCQ
 - paid-phone.jpg: Nel Ranoko (@nel_ranoko), https://unsplash.com/photos/iaHFmpXVltw
 
-The people in the licensed photos are illustrative; rita.jpg is Rita. Rita is the founder's sister, a freelance designer in Nigeria; the story in the two "Why we built this" scenes is hers, told by the founder. The market figure on the next slide is from BUILD_SPEC_v3.md §1.2.
+The people in the licensed photos are illustrative; rita.jpg is Rita. Rita is the founder's sister, a freelance designer in Nigeria; the story in the two "Why we built this" scenes is hers, told by the founder with her permission (confirmed Oct 3). The market figure on the next slide is from BUILD_SPEC_v3.md §1.2.
