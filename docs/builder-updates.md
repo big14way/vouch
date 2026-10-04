@@ -77,3 +77,13 @@ Building agents? `claude mcp add vouch -e VOUCH_API_URL=https://vouch-rouge.verc
 
 Builders: `claude mcp add vouch -e VOUCH_API_URL=https://vouchhq.vercel.app -e VOUCH_AGENT_PRIVATE_KEY=0x… -e VOUCH_DEFAULT_CHAIN=42431 -- npx -y @gwilll/vouch-mcp`. Test mine and I'll test yours; reply with your link.
 
+## #9 — Oct 4 — Earn works on a real Tempo venue, the test links I sent you all expired (sorry), one link that never will
+
+**The expired links, first.** Every $5 test job I posted yesterday hit its 7-day deadline overnight and the timelock refunded it to the payer before anyone opened one. If you clicked a link from me and saw "Refunded", that was my deadline, not your browser. Fix: a closed job now points you to https://vouchhq.vercel.app/try, which lists every open test job, and new links carry a 10-day deadline. Ten fresh jobs are funded there right now.
+
+**Earn on a real venue.** Tempo's team found a working EarnVault on Moderato (`0x46b81bdFA3f184CC1c02BBbd45eaa3E3dAa25cD9`) and we ran a full job through it: 5 pathUSD into the venue at fund, the exact principal back at settle, worker paid. Two things it taught me. The venue burns the vault's shares through an allowance my contract had never granted, so the first attempt reverted with `TokenCallFailed`; the fix is a share-token approval before every recall. And a venue that fails both `withdrawExact` and `redeem` used to make settlement revert with it, freezing the job; now the job closes anyway, the payer covers the principal and keeps the shares to redeem when the venue recovers. The public app still runs the Vault v4 with the labelled demo venue; the fix is in v5, proven on a second Moderato instance (`0x6fEdf025FE10D5F411A0483696898BD33638039f`, [log](https://github.com/big14way/vouch/blob/main/docs/e2e-earn-moderato-2026-10-04-v5.txt)). Mainnet will use Sentora's ERC-4626 pathUSD vault, which needs a 4626 branch I'm adding next.
+
+**Swaps.** Twenty-one of you got a "test mine, I test yours" message yesterday; five have answered so far and four are running a job today. Notes on your products are coming back to you tonight.
+
+Open test jobs, 10 minutes each, $5 of test money: https://vouchhq.vercel.app/try
+
