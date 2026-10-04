@@ -335,18 +335,18 @@
    "bullets": [
     {
      "k": "Revenue",
-     "v": "1% of every settled job, in the contract. A check costs 5 to 12 cents, so it pays from a $10 job; a flat check fee for smaller jobs is next."
+     "v": "1% of every settled job, in the contract. A check costs 5 to 12 cents, so it pays from a $10 job."
+    },
+    {
+     "k": "Traction",
+     "v": "Oct 4: the first stranger took a test job, delivered, passed at 93% and was paid automatically. 21 builders in a test swap, 10 open jobs at vouchhq.vercel.app/try."
     },
     {
      "k": "Live",
      "v": "vouchhq.vercel.app, end to end on Tempo testnet. npx -y @gwilll/vouch-mcp on npm."
-    },
-    {
-     "k": "Next",
-     "v": "The first ten freelancers in Nigeria, real pay links, this week."
     }
    ],
-   "vo": "Vouch takes one percent of every settled job, in the contract; a check costs about a dime, so it pays from a ten-dollar job up. Next: ten freelancers in Nigeria."
+   "vo": "Vouch takes one percent of every settled job, in the contract; a check costs about a dime, so it pays from a ten-dollar job up. And it works for strangers: the first tester delivered a job, passed at ninety-three percent, and was paid automatically."
   },
   {
    "id": "p7",
