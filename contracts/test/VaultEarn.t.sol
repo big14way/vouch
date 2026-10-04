@@ -216,6 +216,70 @@ contract VaultEarnTest is VaultBase {
         invariantHolds();
     }
 
+    /// A venue that reverts on withdrawExact AND redeem (the Moderato demo venue on Oct 4, 2026: deposits went to a
+    /// pool it could not pull from) must not block settlement: the payer covers the principal, keeps the shares.
+    function test_settle_venueDead_payerCoversPrincipalAndKeepsShares() public {
+        depositAs(payer, 2 * AMOUNT);
+        createJob(JOB, worker, AMOUNT, earnPolicy());
+        vm.prank(payer);
+        vault.fund(JOB, AMOUNT, SCOPE, SALT);
+        uint256 jobShares = vault.getJob(JOB).earnShares;
+        earn.setFailWithdrawExact(true);
+        earn.setFailRedeem(true);
+        submitAs(worker, JOB);
+
+        uint256 accountedBefore = vault.accounted(address(usd));
+        vm.prank(payer);
+        vm.expectEmit(true, true, true, true);
+        emit Vault.EarnVenueWrittenOff(JOB, payer, address(earn), jobShares);
+        vm.expectEmit(true, true, false, true);
+        emit Vault.JobEarnRecalled(JOB, address(earn), false, AMOUNT);
+        vault.settle(JOB, AMOUNT, SCOPE, SALT);
+
+        assertEq(vault.balances(address(usd), worker), AMOUNT - feeOn(AMOUNT), "worker made whole from the payer");
+        assertEq(vault.balances(address(usd), payer), 0, "payer covered the stranded principal from the spare balance");
+        assertEq(vault.userEarnShares(payer, address(earn)), jobShares, "payer keeps the stranded shares");
+        assertEq(vault.accounted(address(usd)), accountedBefore - AMOUNT, "ledger no longer counts the venue");
+        assertEq(vault.deployed(address(usd)), 0);
+        invariantHolds();
+
+        // The venue recovers: the payer redeems the stranded shares and gets the principal back.
+        earn.setFailRedeem(false);
+        vm.prank(payer);
+        vault.redeemFromEarn(address(earn), jobShares, 1);
+        assertEq(vault.balances(address(usd), payer), AMOUNT, "principal recovered once the venue works");
+        invariantHolds();
+    }
+
+    function test_settle_venueDead_noPayerBalance_jobStillCloses() public {
+        createAndFund(JOB, worker, AMOUNT, earnPolicy()); // payer has nothing spare
+        earn.setFailWithdrawExact(true);
+        earn.setFailRedeem(true);
+        earn.setFailPreview(true); // even the view reverts
+        submitAs(worker, JOB);
+        vm.prank(payer);
+        vault.settle(JOB, AMOUNT, SCOPE, SALT);
+        assertEq(uint8(status(JOB)), uint8(Vault.Status.Settled), "job closed");
+        assertEq(vault.balances(address(usd), worker), 0, "nothing to distribute yet");
+        assertGt(vault.userEarnShares(payer, address(earn)), 0, "shares parked with the payer");
+        invariantHolds();
+    }
+
+    function test_refundExpired_venueDead_jobStillCloses() public {
+        depositAs(payer, AMOUNT);
+        createJob(JOB, worker, AMOUNT, earnPolicy());
+        vm.prank(payer);
+        vault.fund(JOB, AMOUNT, SCOPE, SALT);
+        earn.setFailWithdrawExact(true);
+        earn.setFailRedeem(true);
+        vm.warp(block.timestamp + 365 days);
+        vm.prank(payer);
+        vault.refundExpired(JOB, AMOUNT, SCOPE, SALT);
+        assertEq(uint8(status(JOB)), uint8(Vault.Status.Refunded), "refund closed the job");
+        assertGt(vault.userEarnShares(payer, address(earn)), 0, "shares parked with the payer");
+        invariantHolds();
+    }
+
     function test_settle_lossCoveredByPayerBalance() public {
         depositAs(payer, 2 * AMOUNT); // extra balance to absorb a loss
         createJob(JOB, worker, AMOUNT, earnPolicy());

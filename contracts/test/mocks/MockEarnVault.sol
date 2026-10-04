@@ -19,9 +19,12 @@ contract MockEarnVault {
 
     IERC20 public immutable token;
     mapping(address => uint256) public shares;
+    mapping(address => mapping(address => uint256)) public allowance;
     uint256 public totalEarnShares;
     bool public depositsPaused;
     bool public failWithdrawExact;
+    bool public failRedeem;
+    bool public failPreview;
     address public observer;
 
     error ZeroMinimumEarnShares();
@@ -31,6 +34,8 @@ contract MockEarnVault {
     error ExceedsMaxEarnShares();
     error DepositsPaused();
     error WithdrawExactDisabled();
+    error TokenCallFailed();
+    error InsufficientAllowance();
     error NoEarnShares();
 
     constructor(IERC20 token_) {
@@ -46,6 +51,14 @@ contract MockEarnVault {
         failWithdrawExact = v;
     }
 
+    function setFailRedeem(bool v) external {
+        failRedeem = v;
+    }
+
+    function setFailPreview(bool v) external {
+        failPreview = v;
+    }
+
     function setObserver(address o) external {
         observer = o;
     }
@@ -57,6 +70,17 @@ contract MockEarnVault {
     /// Simulate a venue loss: move assets out.
     function slash(uint256 assets, address to) external {
         token.safeTransfer(to, assets);
+    }
+
+    /// The share token is this contract; the venue burns shares through an allowance, as Tempo Earn does.
+    function approve(address spender, uint256 amount) external returns (bool) {
+        allowance[msg.sender][spender] = amount;
+        return true;
+    }
+
+    function _burnWithAllowance(address owner, uint256 amount) internal {
+        if (allowance[owner][address(this)] < amount) revert InsufficientAllowance();
+        allowance[owner][address(this)] -= amount;
     }
 
     // ---- views ----
@@ -73,6 +97,7 @@ contract MockEarnVault {
     }
 
     function previewWithdraw(uint256 assets) public view returns (uint256) {
+        if (failPreview) revert TokenCallFailed();
         uint256 ta = totalAssets();
         if (totalEarnShares == 0 || ta == 0) return assets;
         return (assets * totalEarnShares + ta - 1) / ta; // ceil
@@ -98,10 +123,12 @@ contract MockEarnVault {
 
     function redeem(uint256 earnShares, address receiver, uint256 minAssets) external returns (uint256 assets) {
         _observe();
+        if (failRedeem) revert TokenCallFailed();
         if (minAssets == 0) revert ZeroMinimumAssets();
         if (shares[msg.sender] < earnShares) revert NoEarnShares();
         assets = previewRedeem(earnShares);
         if (assets < minAssets) revert MinimumAssetsNotMet();
+        _burnWithAllowance(msg.sender, earnShares);
         shares[msg.sender] -= earnShares;
         totalEarnShares -= earnShares;
         token.safeTransfer(receiver, assets);
@@ -114,6 +141,7 @@ contract MockEarnVault {
         if (burned > maxEarnShares) revert ExceedsMaxEarnShares();
         if (shares[msg.sender] < burned) revert NoEarnShares();
         if (assets > totalAssets()) revert MinimumAssetsNotMet();
+        _burnWithAllowance(msg.sender, burned);
         shares[msg.sender] -= burned;
         totalEarnShares -= burned;
         token.safeTransfer(receiver, assets);

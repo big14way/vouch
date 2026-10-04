@@ -187,6 +187,8 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
     /// @param shortfall principal not returned by the venue (charged to the payer's balance where possible)
     event JobEarnRecalled(bytes32 indexed jobId, address indexed earnVault, bool exact, uint256 shortfall);
     event EarnYieldCredited(bytes32 indexed jobId, address indexed payer, address indexed earnVault, uint256 shares);
+    /// @notice The venue refused both withdrawExact and redeem; the job closed anyway and the payer keeps the shares.
+    event EarnVenueWrittenOff(bytes32 indexed jobId, address indexed payer, address indexed earnVault, uint256 shares);
     event EarnDeposited(address indexed user, address indexed earnVault, address token, uint256 amount, uint256 shares);
     event EarnRedeemed(address indexed user, address indexed earnVault, address token, uint256 shares, uint256 assets);
     /// Recipient and memo are encrypted inside the portal deposit; only the amount is public.
@@ -806,6 +808,15 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
 
     /// @dev Bring a job's principal back from Earn. Returns the assets actually available for the payout:
     ///      `amount` normally; less only when the venue returned less and the payer's balance could not cover it.
+    /// @dev Tempo Earn venues burn the caller's shares through an allowance on the share token
+    ///      (the Moderato demo venue reverted with InsufficientAllowance, wrapped as TokenCallFailed, until this existed).
+    function _approveShares(address ev, uint256 shares) internal {
+        try IEarnVault(ev).earnShare() returns (address shareToken) {
+            if (shareToken != address(0) && shareToken != ev) IERC20(shareToken).forceApprove(ev, shares);
+            else if (shareToken == ev) IERC20(ev).forceApprove(ev, shares);
+        } catch {}
+    }
+
     function _recall(Job storage job, bytes32 jobId, uint256 amount) internal returns (uint256 available) {
         uint256 shares = job.earnShares;
         if (shares == 0) return amount;
@@ -814,7 +825,14 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
         job.earnShares = 0;
         deployed[token] -= amount;
 
-        if (IEarnVault(ev).previewWithdraw(amount) <= shares) {
+        bool previewOk;
+        uint256 need;
+        try IEarnVault(ev).previewWithdraw(amount) returns (uint256 n) {
+            previewOk = true;
+            need = n;
+        } catch {}
+        _approveShares(ev, shares);
+        if (previewOk && need <= shares) {
             try IEarnVault(ev).withdrawExact(amount, address(this), shares) returns (uint256 burned) {
                 uint256 yieldShares = shares - burned;
                 if (yieldShares != 0) {
@@ -827,7 +845,16 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
         }
 
         // Fallback: redeem everything; the ledger absorbs the difference against the promised principal.
-        uint256 got = IEarnVault(ev).redeem(shares, address(this), 1);
+        uint256 got;
+        try IEarnVault(ev).redeem(shares, address(this), 1) returns (uint256 g) {
+            got = g;
+        } catch {
+            // The venue cannot return anything right now. The job still closes: the payer, who opted into the
+            // venue, covers the principal from their Available balance, and keeps the shares to redeem once
+            // the venue recovers. A dead venue never blocks a settlement or a refund.
+            userEarnShares[job.payer][ev] += shares;
+            emit EarnVenueWrittenOff(jobId, job.payer, ev, shares);
+        }
         if (got >= amount) {
             uint256 extra = got - amount;
             if (extra != 0) {
@@ -868,6 +895,7 @@ contract Vault is Ownable2Step, Pausable, ReentrancyGuard, EIP712 {
         if (have < shares) revert InsufficientShares();
         userEarnShares[user][ev] = have - shares;
         address token = IEarnVault(ev).asset();
+        _approveShares(ev, shares);
         uint256 assets = IEarnVault(ev).redeem(shares, address(this), minAssets == 0 ? 1 : minAssets);
         _credit(token, user, assets);
         emit EarnRedeemed(user, ev, token, shares, assets);

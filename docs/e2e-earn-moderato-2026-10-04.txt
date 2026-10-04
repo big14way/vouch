@@ -1,0 +1,60 @@
+
+> @vouch/example-moderato-e2e@0.1.0 start /Users/gwill/Developer/vouch/examples/moderato-e2e
+> tsx run.ts
+
+Vault 0xaD15409d1B7EFA36a9898107fa9757E58a36442D on Tempo Moderato (https://rpc.moderato.tempo.xyz)
+payer 0xeBCfb9c6E03B5338684A0f96187DD15862cB2202 · worker 0x121636cC839Adaf71FCc3f8BE670874747975a10 · verifier 0x2BA42AaE62a6CCe1cfFAe16BE5Ea9B3a64df35FA · intake 0xe62c6BAdafa9368aeBD23eDcA5fcC32C1279Bd96 · relayer 0xE4a7e5584461D1bc4d61e6e75703a1488e457bBd
+
+=== Job A: wallet path, Autopilot, autoSettle, withdraw ===
+✔ approve(vault)                     https://explore.moderato.tempo.xyz/tx/0xa22002d8ddfcc52e1fa273f92d3f3bd068c98f08c61a92936331ef90ae165a02  gas 32942
+✔ deposit                            https://explore.moderato.tempo.xyz/tx/0x6685a0f76ce2b469b2b8771066417dba462b238cbc69d8c6fa49858d381c1f29  gas 62052
+   ✓ payer vault balance credited
+✔ createJob                          https://explore.moderato.tempo.xyz/tx/0x93fbd539d6482d03f3606f157386d1c028855651568a78832236dc33ca630411  gas 1300963
+✔ fund                               https://explore.moderato.tempo.xyz/tx/0xf6726a5cc7806ac74950aff02f1afe79b7e0dd735bb85c91a6cdaa4fdec0fe2a  gas 57192
+   ✓ status Funded
+✔ submit (worker)                    https://explore.moderato.tempo.xyz/tx/0xbceb944f3b6a3dac08dc0d504cf881b8d513dfb7fa486dd2b4830e41bba015ef  gas 294956
+✔ attest PASS 95% (verifier)         https://explore.moderato.tempo.xyz/tx/0xcc7b2e47627fbf04ab42fac993f26613034a235107791e0834507d88bc8d3265  gas 300019
+   ✓ status Attested, PASS, 9500 bps
+   ✓ canAutoSettle is true (autopilot, reviewWindow 0)
+✔ autoSettle (relayer)               https://explore.moderato.tempo.xyz/tx/0x5cbce6f685ca4b1d38b56286a686bbf3aa5a27335f8369229cfab45b7c6f71ac  gas 67754
+   ✓ worker credited 4950000 (amount − 1% fee)
+✔ withdraw (worker)                  https://explore.moderato.tempo.xyz/tx/0x6d1ad5b03172361b0a7304bc125aac862b27ef7b8f4a0ff95933de2644dda623  gas 47704
+   ✓ worker pathUSD delta 4949794 = payout 4950000 − gas 206 (fees paid in pathUSD) on the real token
+   ✓ solvency: vault holds 140450000 ≥ accounted 140450000
+
+=== Job B: memo transfer → intake attribution → open worker → NEEDS_REVIEW → relayed settle ===
+✔ transferWithMemo(vault, memo=jobId) https://explore.moderato.tempo.xyz/tx/0xcff4ea02356464b232803bd87caf760d089aeb168ff24cca3969b788470048c9  gas 33791
+   ✓ memo transfer shows as unattributed surplus
+✔ attributeDeposit (intake)          https://explore.moderato.tempo.xyz/tx/0xdd07ba4d7f639e6dbdc86d130ecf9efd8be0295c7cb3e25d7c594a904b5d546f  gas 301439
+   ✓ payer credited from surplus
+✔ createJob on payer's behalf (intake) https://explore.moderato.tempo.xyz/tx/0x4971df22191352508266702fdc144fa04eff9cc67d17cf3c22df8adb949a0546  gas 1052646
+✔ fund on payer's behalf (intake)    https://explore.moderato.tempo.xyz/tx/0x7566fb904bd27c3a4d525e12b747f3f105c90aa1a4e082b1c761d4f0f6df9a92  gas 308474
+✔ submit (open worker)               https://explore.moderato.tempo.xyz/tx/0xb94c16654bcc6eeeb9ce6b636938e04c5e468c08409ac173e1fbc4ecd44931a1  gas 295224
+   ✓ first submitter became the worker
+✔ attest NEEDS_REVIEW 60% (verifier) https://explore.moderato.tempo.xyz/tx/0x38fd428c5b6290271c36a48819c017627f35e84880803de4b5c3fde1cc8a03a7  gas 300007
+   ✓ manual policy: autoSettle not permitted
+✔ settleWithSig (relayer, payer signed) https://explore.moderato.tempo.xyz/tx/0x7dd1f905086a0d845b2e323c2713e8485f02fa6891cf193a9db28cc2391a296a  gas 77755
+   ✓ status Settled
+   ✓ payer nonce consumed
+
+=== Job C: Earn while locked via 0x46b81bdFA3f184CC1c02BBbd45eaa3E3dAa25cD9 ===
+   ✓ Earn vault is allow-listed on the Vouch vault
+✔ approve(vault)                     https://explore.moderato.tempo.xyz/tx/0x484f33a005a32dd699e69a0b26ad8f6c17d1e14a0a1673f32cc3e24e68239e3e  gas 32942
+✔ deposit                            https://explore.moderato.tempo.xyz/tx/0x9cb459db292e07651b35faf92b8277c5b5e68d131956538792ed69df4ca04bbf  gas 62052
+✔ createJob (earnVault set)          https://explore.moderato.tempo.xyz/tx/0x3898a2082fc23daec93d7833d3e68dd02c17abbe844d5b3f34b84cf060f6b75e  gas 1563974
+✔ fund → deposits into Earn          https://explore.moderato.tempo.xyz/tx/0xaa17342ed5ba80ff6dfc204a5163563caa3fe5423ef7e34ec59b11416b9c4048  gas 862631
+   ✓ status Funded
+   ✓ job holds 5000000 Earn shares
+   ✓ deployed principal tracked
+   ✗ principal sits in the Earn vault on the real token
+   ✓ deployed principal is not counted as surplus
+✔ submit (worker)                    https://explore.moderato.tempo.xyz/tx/0x3bc99bc945c919c324731b983ed83f2c8352a0568c7e53d3bb58950000164d6e  gas 294956
+✘ settle (payer) → withdrawExact from Earn https://explore.moderato.tempo.xyz/tx/0x6158fca9b7a2cd6aed29437f7c2378ac5a1311b2229cccbcaa3241e7ffac7c2f  gas 314014
+Error: settle (payer) → withdrawExact from Earn reverted: 0x6158fca9b7a2cd6aed29437f7c2378ac5a1311b2229cccbcaa3241e7ffac7c2f
+    at tx (/Users/gwill/Developer/vouch/examples/moderato-e2e/run.ts:56:37)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async jobC (/Users/gwill/Developer/vouch/examples/moderato-e2e/run.ts:171:3)
+    at async main (/Users/gwill/Developer/vouch/examples/moderato-e2e/run.ts:190:13)
+/Users/gwill/Developer/vouch/examples/moderato-e2e:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @vouch/example-moderato-e2e@0.1.0 start: `tsx run.ts`
+Exit status 1
