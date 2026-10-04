@@ -140,6 +140,11 @@ export function JobView({ id, initial }: { id: string; initial?: JobInitial | nu
         <ChevronRight className="size-3.5" />
         <span className="mono">{job.shortId}</span>
       </nav>
+      {(job.status === "Refunded" || job.status === "Expired") && job.role === "public" && (
+        <div className="mt-3 rounded-[var(--r-md)] border border-border bg-surface px-3 py-2 text-[13px]">
+          This test job has closed. <Link href="/try" className="font-medium underline underline-offset-2">See the open test jobs</Link>.
+        </div>
+      )}
       <div className="mt-3 flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
         <div className="min-w-0">
           <h1 className="text-[24px] font-semibold leading-8 tracking-[-0.025em] sm:text-[28px] sm:leading-9">{job.title}</h1>
