@@ -346,7 +346,7 @@
      "v": "vouchhq.vercel.app, end to end on Tempo testnet. npx -y @gwilll/vouch-mcp on npm."
     }
    ],
-   "vo": "Vouch takes one percent of every settled job, in the contract; a check costs about a dime, so it pays from a ten-dollar job up. And it works for strangers: the first tester delivered a job, passed at ninety-three percent, and was paid automatically."
+   "vo": "Vouch takes one percent of every settled job; a check costs about a dime, so it pays from a ten-dollar job. And it works for strangers: the first tester delivered, passed at ninety-three percent, and was paid automatically."
   },
   {
    "id": "p7",
