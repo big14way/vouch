@@ -15,8 +15,8 @@ Evidence behind every scene: the UI flow is job `0x6229218f…314392` on the pub
 | u3 | Approve. Paid. | 11.6 | In the real product, live on Tempo testnet: the client approves, and nineteen dollars and eighty cents lands in the worker's balance. No invoice. No chasing. No silence. |
 | u4 | This time, Rita gets paid. | 3.9 | This time, my sister gets paid. |
 | d4 | We told the worker to cheat | 9.6 | And when a worker tried to cheat the verifier with a hidden instruction, it flagged it four times and released nothing. |
-| p6 | One percent of every settled job. | 10.9 | Vouch takes one percent of every settled job, in the contract; a check costs about a dime, so it pays from a ten-dollar job up. Next: ten freelancers in Nigeria. |
+| p6 | One percent of every settled job. | 15.1 | Vouch takes one percent of every settled job, in the contract; a check costs about a dime, so it pays from a ten-dollar job up. And it works for strangers: the first tester delivered a job, passed at ninety-three percent, and was paid automatically. |
 | p7 | Every job, paid on the outcome. | 11.8 | In ten years, every job between people and agents settles on a verified outcome, and verifiers compete on how well they judge. So that no one's sister loses three weeks to silence again. |
 | s99 |  | 5.4 | Vouch. Pay when it's delivered. Get paid when it's verified. |
 
-Scene durations add to 120.2 s; the file is 113.7 s (1:53) after the 0.6 s crossfades.
+Scene durations add to 124.4 s; the file is 118.0 s (1:58) after the 0.6 s crossfades.
