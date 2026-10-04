@@ -197,6 +197,8 @@ export const VerdictDtoSchema = z.object({
   attestationHash: Bytes32Schema.nullable(),
   reportUrl: z.string().nullable(),
   stage: z.enum(["queued", "reading_scope", "checking_files", "writing_report", "attesting", "done", "failed"]).nullable(),
+  /** Plain-language reason when the stage is "failed"; the raw error stays in the service logs. */
+  error: z.string().nullable(),
   autoSettleAt: z.string().nullable(),
 });
 export type VerdictDto = z.infer<typeof VerdictDtoSchema>;

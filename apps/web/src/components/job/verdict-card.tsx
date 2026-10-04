@@ -49,7 +49,7 @@ export function VerdictCard({ verdict, chainId, entrance = true, settled = false
             </span>
             <div>
               <p className="text-[15px] font-semibold tracking-[-0.01em]">{failed ? "Verification paused" : "Verifying the delivery"}</p>
-              <p className="text-[12px] text-muted">{failed ? "It retries automatically. Nothing moves until it finishes." : "An independent check against the written scope. It cannot move money."}</p>
+              <p className="text-[12px] text-muted">{failed ? (verdict.error ?? "The checker hit an error. It retries automatically; the payer can still review and release.") : "An independent check against the written scope. It cannot move money."}</p>
             </div>
           </div>
         </div>

@@ -61,8 +61,8 @@ export function DeliverForm({ job, resubmit = false, onDone }: { job: JobDto; re
           <Textarea id="links" className="min-h-[72px]" placeholder="https://github.com/…  https://figma.com/…" value={links} onChange={(e) => setLinks(e.target.value)} />
         </Field>
         <Field error={err} className="mb-0">
-          <Label htmlFor="note">Note to the payer</Label>
-          <Textarea id="note" className="min-h-24" placeholder="What you did, and anything the check should know." value={note} onChange={(e) => setNote(e.target.value)} />
+          <Label htmlFor="note" hint="paste text deliveries here">Your work, or a note about it</Label>
+          <Textarea id="note" className="min-h-24" placeholder="If the scope asks for text (a caption, taglines, a translation), paste it here. Otherwise say what you attached and anything the check should know." value={note} onChange={(e) => setNote(e.target.value)} />
         </Field>
       </div>
       <div className="flex flex-col gap-3 border-t border-border bg-bg/40 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">

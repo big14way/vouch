@@ -38,7 +38,7 @@ export function PrivyShell({ appId, children }: { appId: string; children: React
     <PrivyProvider
       appId={appId}
       config={{
-        loginMethods: ["email", "google"],
+        loginMethods: ["email"], // Google is not enabled in the Privy dashboard; offering it was a dead end on the first click (tester, Oct 4)
         appearance: { theme: "dark", accentColor: "#2fb182", logo: "/icon.svg" },
         embeddedWallets: { ethereum: { createOnLogin: "users-without-wallets" } },
         supportedChains: CHAINS,

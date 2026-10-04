@@ -114,9 +114,26 @@ export async function runVerifier(verdictId: string): Promise<RunOutcome> {
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     Sentry.captureException(e, { tags: { area: "verifier", jobId: job.id } });
-    await stage(verdictId, "failed", { error: message.slice(0, 2000) });
+    console.error("verifier failed", { jobId: job.id, verdictId, message: message.slice(0, 2000) });
+    const { reason, transient } = explainFailure(message);
+    // The worker and payer see one plain sentence; the raw error stays in the logs.
+    await stage(verdictId, "failed", { error: reason, ...(transient ? { attempts: { decrement: 1 } } : {}) });
     throw e;
   }
+}
+
+/** A sentence a worker can act on, and whether the retry budget should be charged for this failure. */
+export function explainFailure(raw: string): { reason: string; transient: boolean } {
+  const m = raw.toLowerCase();
+  if (m.includes("usage limit") || m.includes("billing") || m.includes("credit balance") || m.includes("spending limit") || m.includes("regain access"))
+    return { reason: "The checker's API budget is exhausted. It resumes automatically once the budget is restored; meanwhile the payer can review the delivery and release the payment.", transient: true };
+  if (m.includes("rate limit") || m.includes("429") || m.includes("overloaded") || m.includes("529"))
+    return { reason: "The checker is busy. It retries automatically within a few minutes.", transient: true };
+  if (m.includes("timeout") || m.includes("timed out") || m.includes("econnreset") || m.includes("fetch failed"))
+    return { reason: "The checker lost its connection. It retries automatically.", transient: true };
+  if (m.includes("attest") || m.includes("revert") || m.includes("nonce") || m.includes("gas"))
+    return { reason: "The verdict was reached but recording it on-chain failed. It retries automatically.", transient: true };
+  return { reason: "The checker hit an error on this delivery. It retries up to three times; after that the payer reviews the delivery directly.", transient: false };
 }
 
 /** Cron entry: pick up queued/failed verdicts (≤ 3 attempts) and run them one at a time. */

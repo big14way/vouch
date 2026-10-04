@@ -35,7 +35,7 @@ const VERDICT: VerdictDto = {
   attestationHash: null,
   reportUrl: null,
   stage: "done",
-  autoSettleAt: null,
+  error: null, autoSettleAt: null,
 };
 
 const panel = {

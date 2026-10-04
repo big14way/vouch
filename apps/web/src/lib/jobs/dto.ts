@@ -75,7 +75,9 @@ export function autoSettleAt(job: JobRow): Date | null {
 export async function toDto(job: JobRow, p: Principal): Promise<JobDto> {
   const role = roleFor(job, p);
   const chainId = job.chainId as ChainId;
-  const canSeeAmount = role !== "public" || job.amountPublic;
+  // An open job (no worker yet) is an offer to whoever delivers first, so the amount is part of the offer.
+  const openOffer = !job.worker && job.status === "Funded";
+  const canSeeAmount = role !== "public" || job.amountPublic || openOffer;
   let amount: string | null = null;
   if (canSeeAmount) {
     const s = await decryptSecret(job.id).catch(() => null);
@@ -139,6 +141,7 @@ export async function verdictDto(job: JobRow, v: VerdictRow | null, delivery: De
     attestationHash: (v?.reportHash as `0x${string}` | null) ?? null,
     reportUrl: v?.reportKey ? await objectUrl(v.reportKey) : null,
     stage: (v?.stage as VerdictDto["stage"]) ?? (delivery ? "queued" : null),
+    error: v?.stage === "failed" ? (v.error ?? null) : null,
     autoSettleAt: autoSettleAt(job)?.toISOString() ?? null,
   };
 }
