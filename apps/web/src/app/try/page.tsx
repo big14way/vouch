@@ -16,7 +16,7 @@ const TESTER_PAYERS = (process.env.TESTER_PAYERS ?? "0xeBCfb9c6E03B5338684A0f961
 export default async function TryPage() {
   const jobs = await db.job.findMany({
     where: { status: "Funded", worker: null, payer: { in: TESTER_PAYERS } },
-    orderBy: { createdAt: "asc" },
+    orderBy: { createdAt: "desc" },
     take: 50,
   });
   return (
