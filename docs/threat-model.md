@@ -17,3 +17,7 @@
 
 ## Calibration
 `pnpm --filter @vouch/web calibrate` (rules only) / `--model` (full). Adversarial corpus: `examples/adversarial`. Results in the root README.
+
+## Earn venue that cannot return funds (found Oct 4, 2026 on Moderato)
+
+A venue that reverts on both `withdrawExact` and `redeem` used to make `settle`, `resolve` and `refundExpired` revert with it, so a dead venue could freeze every job that opted into it. Since v5 (`_recall`), the job still closes: the payer, who opted into the venue, covers the principal from their Available balance (the worker is paid first), the ledger stops counting the venue, and the stranded shares are credited to the payer to redeem once the venue works again (`EarnVenueWrittenOff`). The root cause on Moderato was an allowance: Tempo Earn venues burn the caller's shares through the share token, so the Vault now `forceApprove`s the venue for the job's shares before every recall and redeem. Tests: `test_settle_venueDead_*`, `test_refundExpired_venueDead_jobStillCloses`.

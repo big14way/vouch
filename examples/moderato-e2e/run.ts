@@ -15,7 +15,7 @@ import { resolve } from "node:path";
 import { createPublicClient, createWalletClient, http, keccak256, toHex, type Address, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { tempoModerato } from "viem/chains";
-import { vaultAbi, tip20Abi, getAddresses } from "@vouch/abi";
+import { vaultAbi, tip20Abi, getAddresses, earnVaultAbi } from "@vouch/abi";
 import { computeCommit, hashScope, jobMemo, randomBytes32, vaultDomain, VaultTypes, ZERO_ADDRESS, POLICY_PRESETS, type Policy } from "@vouch/shared";
 
 const RPC = process.env.RPC_URL ?? "https://rpc.moderato.tempo.xyz";
@@ -149,17 +149,18 @@ async function jobC() {
   const policy: Policy = { ...POLICY_PRESETS.manual, earnVault: EARN };
   const commit = computeCommit({ jobId, payer: payer.address, worker: worker.address, token: PATHUSD, amount: AMOUNT, scopeHash, salt });
   const deployedBefore = await read<bigint>("deployed", [PATHUSD]);
-  const earnBalBefore = await tokenBal(EARN);
+  const venueAssets = () => pub.readContract({ address: EARN, abi: earnVaultAbi as never, functionName: "totalAssets" as never }) as Promise<bigint>;
+  const earnAssetsBefore = await venueAssets();
 
   await tx("approve(vault)", payer, PATHUSD, tip20Abi, "approve", [VAULT, AMOUNT], 400_000n);
   await tx("deposit", payer, VAULT, vaultAbi, "deposit", [PATHUSD, AMOUNT]);
   await tx("createJob (earnVault set)", payer, VAULT, vaultAbi, "createJob", [jobId, commit, payer.address, worker.address, PATHUSD, policy]);
-  await tx("fund → deposits into Earn", payer, VAULT, vaultAbi, "fund", [jobId, AMOUNT, scopeHash, salt], 2_500_000n);
+  await tx("fund → deposits into Earn", payer, VAULT, vaultAbi, "fund", [jobId, AMOUNT, scopeHash, salt], 8_000_000n); // Tempo charges 250k per account the venue path touches for the first time; estimateGas leaves that out
   const jobAfterFund = await read<{ status: number; earnShares: bigint }>("getJob", [jobId]);
   check(jobAfterFund.status === 2, "status Funded");
   check(jobAfterFund.earnShares > 0n, `job holds ${jobAfterFund.earnShares} Earn shares`);
   check((await read<bigint>("deployed", [PATHUSD])) - deployedBefore === AMOUNT, "deployed principal tracked");
-  check((await tokenBal(EARN)) - earnBalBefore === AMOUNT, "principal sits in the Earn vault on the real token");
+  check((await venueAssets()) - earnAssetsBefore === AMOUNT, "venue totalAssets grew by the principal (a real venue forwards the tokens to its strategy)");
   check((await read<bigint>("surplus", [PATHUSD])) === 0n, "deployed principal is not counted as surplus");
 
   await tx("submit (worker)", worker, VAULT, vaultAbi, "submit", [jobId, keccak256(toHex("manifest C"))]);
@@ -168,7 +169,7 @@ async function jobC() {
     await tx("simulated yield: +1% sent to the venue", payer, PATHUSD, tip20Abi, "transfer", [EARN, AMOUNT / 100n], 400_000n);
   }
   const workerCreditBefore = await read<bigint>("balances", [PATHUSD, worker.address]);
-  await tx("settle (payer) → withdrawExact from Earn", payer, VAULT, vaultAbi, "settle", [jobId, AMOUNT, scopeHash, salt], 2_500_000n);
+  await tx("settle (payer) → withdrawExact from Earn", payer, VAULT, vaultAbi, "settle", [jobId, AMOUNT, scopeHash, salt], 8_000_000n);
   const fee = AMOUNT / 100n;
   check((await read<bigint>("balances", [PATHUSD, worker.address])) - workerCreditBefore === AMOUNT - fee, "worker credited exactly amount − fee (principal recalled in full)");
   check((await read<bigint>("deployed", [PATHUSD])) === deployedBefore, "deployed back to its previous value");
@@ -185,8 +186,9 @@ async function jobC() {
 async function main() {
   console.log(`Vault ${VAULT} on Tempo Moderato (${RPC})`);
   console.log(`payer ${payer.address} · worker ${worker.address} · verifier ${verifier.address} · intake ${intake.address} · relayer ${relayer.address}`);
-  const a = await jobA();
-  const b = await jobB();
+  const only = process.env.ONLY_JOB_C === "1";
+  const a = only ? "skipped" : await jobA();
+  const b = only ? "skipped" : await jobB();
   const c = await jobC();
   console.log(`\njobs: A ${a}\n      B ${b}\n      C ${c}`);
   console.log(failures === 0 ? "\nALL CHECKS PASSED" : `\n${failures} CHECK(S) FAILED`);

@@ -1,0 +1,30 @@
+
+> @vouch/example-moderato-e2e@0.1.0 start /Users/gwill/Developer/vouch/examples/moderato-e2e
+> tsx run.ts
+
+Vault 0x6fEdf025FE10D5F411A0483696898BD33638039f on Tempo Moderato (https://rpc.moderato.tempo.xyz)
+payer 0xeBCfb9c6E03B5338684A0f96187DD15862cB2202 · worker 0x121636cC839Adaf71FCc3f8BE670874747975a10 · verifier 0x2BA42AaE62a6CCe1cfFAe16BE5Ea9B3a64df35FA · intake 0xe62c6BAdafa9368aeBD23eDcA5fcC32C1279Bd96 · relayer 0xE4a7e5584461D1bc4d61e6e75703a1488e457bBd
+
+=== Job C: Earn while locked via 0x46b81bdFA3f184CC1c02BBbd45eaa3E3dAa25cD9 ===
+   ✓ Earn vault is allow-listed on the Vouch vault
+✔ approve(vault)                     https://explore.moderato.tempo.xyz/tx/0x4d44ba905bcbdb9305277c031c54995e121194c8da9d2da691192f9adaea52fa  gas 32942
+✔ deposit                            https://explore.moderato.tempo.xyz/tx/0x9d09baa38e7ec59ca514d29a4ae98a42b7ba74d6b2cab42ff1fe99127a2fd0e8  gas 62052
+✔ createJob (earnVault set)          https://explore.moderato.tempo.xyz/tx/0x5576bd2dd97568080b926b6d3483569538b9fbb15c54de8780de147c44d8a731  gas 1563974
+✔ fund → deposits into Earn          https://explore.moderato.tempo.xyz/tx/0xb4bf52e19a32e5c4f466ee482d9cde87de02b7aa209e07ca12c669855545cca1  gas 1354931
+   ✓ status Funded
+   ✓ job holds 5000000 Earn shares
+   ✓ deployed principal tracked
+   ✓ venue totalAssets grew by the principal (a real venue forwards the tokens to its strategy)
+   ✓ deployed principal is not counted as surplus
+✔ submit (worker)                    https://explore.moderato.tempo.xyz/tx/0x0e1a1e0d7c28428307f9c2154ba7e1918605f41b5bd950caa4707e2d167a692a  gas 294956
+✔ settle (payer) → withdrawExact from Earn https://explore.moderato.tempo.xyz/tx/0x94575620ba13736b96f3c8c256dddda267848eb3b601741fc9fbf5244e60979d  gas 327212
+   ✓ worker credited exactly amount − fee (principal recalled in full)
+   ✓ deployed back to its previous value
+   payer yield shares after settlement: 0 (0 expected when the venue paid no yield)
+   ✓ solvency with Earn: 15050000 + 0 ≥ 15050000
+
+jobs: A skipped
+      B skipped
+      C 0x857c5607d5a1d60533383733ab05e24138619a8958833f2166ebaffe4dd19cfb
+
+ALL CHECKS PASSED

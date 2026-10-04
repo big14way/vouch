@@ -1,0 +1,18 @@
+{
+  "chainId": 42431,
+  "VerifierRegistry": "0xBA8C173dB605414ea8b7bB5dbC57BA9724c70b9C",
+  "Vault": "0x6fEdf025FE10D5F411A0483696898BD33638039f",
+  "owner": "0xC5c49eAC6C66620823e1Cb0f45f757f999Eed14D",
+  "arbiter": "0x42D4108f9aec4f872B4562817eDc1Bd8FD61DE2e",
+  "intake": "0xe62c6BAdafa9368aeBD23eDcA5fcC32C1279Bd96",
+  "verifier": "0x2BA42AaE62a6CCe1cfFAe16BE5Ea9B3a64df35FA",
+  "block": 38150764,
+  "tokens": [
+    "0x20C0000000000000000000000000000000000000",
+    "0x20C000000000000000000000b9537d11c60E8b50"
+  ],
+  "txs": {
+    "VerifierRegistry": "reused",
+    "Vault": "0x4c68f826c6cda91558fcb04154bf96cd559fe2ccbf32ec4957cf9cec70661b1f"
+  }
+}
