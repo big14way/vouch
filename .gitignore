@@ -46,3 +46,7 @@ docs/testers/*.local.md
 
 # a family photo used on the first story slide; kept out of the public repo (the founder decides)
 docs/video/img/rita.jpg
+
+# other teams' products: swap notes and the outreach log stay local, never in this public repo
+docs/testers/notes/
+docs/testers/outreach.md
