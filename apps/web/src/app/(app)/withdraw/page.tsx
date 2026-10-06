@@ -17,7 +17,7 @@ import { ZonePayout } from "@/components/job/zone-payout";
 
 /** S6 Withdraw: balance → any address. Fee sponsored on Tempo. */
 export default function Withdraw() {
-  const { ready, authenticated, login, address, getProvider } = useAuth();
+  const { ready, authenticated, login, address, getProvider, ensureWallet, walletError } = useAuth();
   const toast = useToast();
   useEffect(() => {
     if (ready && !authenticated) login();
@@ -39,7 +39,10 @@ export default function Withdraw() {
     let base: bigint;
     try { base = parseAmount(amount); } catch (e) { return setErr(e instanceof Error ? e.message : "Enter an amount."); }
     if (base <= 0n || base > BigInt(row.available)) return setErr(`Enter up to ${formatAmount(row.available)}.`);
-    if (!address) return setErr("Your wallet is still being created.");
+    if (!address) {
+      ensureWallet().catch(() => undefined);
+      return setErr(walletError ?? "Your wallet is being set up. Try again in a few seconds.");
+    }
     setBusy(true);
     try {
       const qs = { chainId: String(row.chainId), token: row.token, amount: base.toString(), to };

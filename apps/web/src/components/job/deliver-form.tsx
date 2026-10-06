@@ -14,7 +14,7 @@ import { signTypedData } from "@/lib/client/wallet";
 /** Worker delivery (S5): files + links + note. Hash computed locally, Submit signed by the worker's wallet, relayed by Vouch. */
 export function DeliverForm({ job, resubmit = false, onDone }: { job: JobDto; resubmit?: boolean; onDone: (j: JobDto) => void }) {
   const toast = useToast();
-  const { authenticated, login, address, getProvider } = useAuth();
+  const { authenticated, login, address, getProvider, ensureWallet, walletError } = useAuth();
   const [files, setFiles] = useState<PickedFile[]>([]);
   const [links, setLinks] = useState("");
   const [note, setNote] = useState("");
@@ -24,7 +24,11 @@ export function DeliverForm({ job, resubmit = false, onDone }: { job: JobDto; re
   const submit = async () => {
     setErr(null);
     if (!authenticated) return login();
-    if (!address) return setErr("Your wallet is still loading. Try again in a moment.");
+    if (!address) {
+      // Retry wallet creation; the result shows up as `address` (then press again) or as `walletError`.
+      ensureWallet().catch(() => undefined);
+      return;
+    }
     const linkList = links.split(/\s+/).map((s) => s.trim()).filter(Boolean);
     if (files.length === 0 && linkList.length === 0 && !note.trim()) return setErr("Add at least one file, link or note.");
     for (const l of linkList) if (!/^https?:\/\//.test(l)) return setErr(`"${l}" is not a full URL (start with https://).`);
@@ -47,7 +51,7 @@ export function DeliverForm({ job, resubmit = false, onDone }: { job: JobDto; re
     }
   };
 
-  const walletLoading = authenticated && !address;
+  const walletLoading = authenticated && !address && !walletError;
   return (
     <Card flush>
       <PanelHeader
@@ -60,7 +64,7 @@ export function DeliverForm({ job, resubmit = false, onDone }: { job: JobDto; re
           <Label htmlFor="links" hint="optional, one per line">Links</Label>
           <Textarea id="links" className="min-h-[72px]" placeholder="https://github.com/…  https://figma.com/…" value={links} onChange={(e) => setLinks(e.target.value)} />
         </Field>
-        <Field error={err} className="mb-0">
+        <Field error={err ?? (authenticated && !address ? walletError : null)} className="mb-0">
           <Label htmlFor="note" hint="paste text deliveries here">Your work, or a note about it</Label>
           <Textarea id="note" className="min-h-24" placeholder="If the scope asks for text (a caption, taglines, a translation), paste it here. Otherwise say what you attached and anything the check should know." value={note} onChange={(e) => setNote(e.target.value)} />
         </Field>
@@ -68,7 +72,7 @@ export function DeliverForm({ job, resubmit = false, onDone }: { job: JobDto; re
       <div className="flex flex-col gap-3 border-t border-border bg-bg/40 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-[12px] text-faint">You sign once. No network fee.</p>
         <Button size="lg" className="sm:min-w-52" loading={busy || walletLoading} onClick={submit}>
-          {!authenticated ? "Sign in to deliver" : walletLoading ? "Preparing your wallet…" : resubmit ? "Sign and resubmit" : "Sign and deliver"}
+          {!authenticated ? "Sign in to deliver" : walletLoading ? "Preparing your wallet…" : !address ? "Try again" : resubmit ? "Sign and resubmit" : "Sign and deliver"}
         </Button>
       </div>
     </Card>

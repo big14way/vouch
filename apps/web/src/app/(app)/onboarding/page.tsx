@@ -9,13 +9,14 @@ import { Field, Input, Label } from "@/components/ui/field";
 import { me } from "@/lib/client/api";
 
 function Inner() {
-  const { ready, authenticated, email, address, login } = useAuth();
+  const { ready, authenticated, email, address, login, ensureWallet, walletError } = useAuth();
   const router = useRouter();
   const next = useSearchParams().get("next") ?? "/dashboard";
   const [name, setName] = useState("");
   const [role, setRole] = useState<"payer" | "worker" | "both">("both");
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [stage, setStage] = useState<"idle" | "wallet" | "saving">("idle");
 
   useEffect(() => {
     if (!ready) return;
@@ -26,16 +27,26 @@ function Inner() {
     }).catch(() => undefined);
   }, [ready, authenticated, router, next, login]);
 
+  // The wallet is created when the user presses Continue if login did not create it, with a timeout and a retry,
+  // instead of a button stuck on "Creating your wallet…" before anything was clicked (tester, Oct 6).
   const save = async () => {
     if (name.trim().length < 1) return setErr("Tell us what to call you.");
+    setErr(null);
     setBusy(true);
     try {
-      await me.update({ name: name.trim(), role, email: email ?? undefined, address: address ?? undefined });
+      let wallet = address;
+      if (!wallet) {
+        setStage("wallet");
+        wallet = await ensureWallet();
+      }
+      setStage("saving");
+      await me.update({ name: name.trim(), role, email: email ?? undefined, address: wallet });
       router.replace(next);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Could not save.");
     } finally {
       setBusy(false);
+      setStage("idle");
     }
   };
 
@@ -57,7 +68,8 @@ function Inner() {
           ))}
         </div>
       </fieldset>
-      <Button full size="lg" loading={busy} onClick={save} disabled={!address}>{address ? "Continue" : "Creating your wallet…"}</Button>
+      <Button full size="lg" loading={busy} onClick={save}>{stage === "wallet" ? "Setting up your wallet…" : err && (walletError || !address) ? "Try again" : "Continue"}</Button>
+      {stage === "wallet" ? <Muted className="mt-2 text-center">This takes a few seconds the first time. It is a wallet for test money; you never see a seed phrase.</Muted> : null}
     </Card>
   );
 }

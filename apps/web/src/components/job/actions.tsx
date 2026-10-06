@@ -22,7 +22,7 @@ import { signTypedData } from "@/lib/client/wallet";
  */
 export function JobActions({ job, onChange }: { job: JobDto; onChange: (j: JobDto) => void }) {
   const toast = useToast();
-  const { authenticated, login, address, getProvider } = useAuth();
+  const { authenticated, login, address, getProvider, ensureWallet, walletError } = useAuth();
   const [busy, setBusy] = useState<string | null>(null);
   const [phase, setPhase] = useState<ActionPhase>("idle");
   const [disputeOpen, setDisputeOpen] = useState(false);
@@ -34,7 +34,10 @@ export function JobActions({ job, onChange }: { job: JobDto; onChange: (j: JobDt
       login();
       throw new ClientError("Sign in first.", "unauthenticated");
     }
-    if (!address) throw new ClientError("Your wallet is still loading.", "no_wallet", "Try again in a moment.");
+    if (!address) {
+      ensureWallet().catch(() => undefined);
+      throw new ClientError(walletError ?? "Your wallet is still being set up.", "no_wallet", "Try again in a few seconds.");
+    }
     const signer = address as Address;
     const { typedData } = await jobs.sign(job.id, { action, signer, ...extra });
     const provider = await getProvider();

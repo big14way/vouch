@@ -22,7 +22,7 @@ type ZoneInfo = { chainId: number; zone: { zoneId: number; name: string; chainId
  */
 export function ZonePayout({ chainId, token, symbol, available }: { chainId: number; token: Address; symbol: string; available: string }) {
   const toast = useToast();
-  const { address, getProvider } = useAuth();
+  const { address, getProvider, ensureWallet, walletError } = useAuth();
   const [amount, setAmount] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -33,7 +33,10 @@ export function ZonePayout({ chainId, token, symbol, available }: { chainId: num
 
   const send = async () => {
     setErr(null);
-    if (!address) return setErr("Your wallet is still being created.");
+    if (!address) {
+      ensureWallet().catch(() => undefined);
+      return setErr(walletError ?? "Your wallet is being set up. Try again in a few seconds.");
+    }
     let base: bigint;
     try { base = parseAmount(amount); } catch (e) { return setErr(e instanceof Error ? e.message : "Enter an amount."); }
     if (base <= 0n || base > BigInt(available)) return setErr(`Enter up to ${formatAmount(available)}.`);

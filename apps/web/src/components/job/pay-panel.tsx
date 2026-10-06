@@ -20,7 +20,7 @@ type BatchInfo = { chainId: 4217 | 42431; vault: Address; token: Address; jobId:
 /** Pay (S3). Tempo: sponsored batched tx from a Tempo wallet, or pay from any wallet with memo. Base: USDC signature, no ETH. */
 export function PayPanel({ job, onFunded }: { job: JobDto; onFunded: (j: JobDto) => void }) {
   const toast = useToast();
-  const { authenticated, login, ready, address, getProvider } = useAuth();
+  const { authenticated, login, ready, address, getProvider, ensureWallet, walletError } = useAuth();
   const [busy, setBusy] = useState<string | null>(null);
   const [anyWallet, setAnyWallet] = useState(false);
   const [qr, setQr] = useState<string | null>(null);
@@ -57,7 +57,10 @@ export function PayPanel({ job, onFunded }: { job: JobDto; onFunded: (j: JobDto)
 
   const payBase = async () => {
     if (!authenticated) return login();
-    if (!address) return toast({ title: "No wallet yet", body: "Finish signing in so your wallet is created.", tone: "danger" });
+    if (!address) {
+      ensureWallet().catch(() => undefined);
+      return toast({ title: "Setting up your wallet", body: walletError ?? "This takes a few seconds the first time. Press again in a moment.", tone: "danger" });
+    }
     setBusy("base");
     try {
       const info = await jobs.fundInfo(job.id);

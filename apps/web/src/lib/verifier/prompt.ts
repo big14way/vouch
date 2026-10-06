@@ -1,3 +1,4 @@
+import { formatDuration } from "@vouch/shared";
 import type { DeliveryManifest, Policy } from "@vouch/shared";
 import type { Artifact } from "./content";
 
@@ -70,7 +71,7 @@ export interface PromptInput {
 function describePolicy(p: Policy): string {
   if (p.autoRelease === 0) return "Manual: the payer will review your report and decide.";
   const which = p.autoRelease === 2 ? "PASS or NEEDS_REVIEW" : "PASS";
-  return `Automatic release on ${which} at confidence ≥ ${(p.minConfidenceBps / 100).toFixed(0)}% after a ${Math.round(p.reviewWindow / 3600)}h review window. Your verdict can move money, so be conservative.`;
+  return `Automatic release on ${which} at confidence ≥ ${(p.minConfidenceBps / 100).toFixed(0)}% after a ${formatDuration(p.reviewWindow)} review window. Your verdict can move money, so be conservative.`;
 }
 
 export function buildUserContent(input: PromptInput): ContentBlock[] {

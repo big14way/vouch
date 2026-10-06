@@ -231,10 +231,10 @@ export function JobView({ id, initial }: { id: string; initial?: JobInitial | nu
               rows={[
                 ["Payer", <span key="p" className="mono">{job.payer ? shortAddress(job.payer) : "Not yet"}</span>],
                 ["Worker", <span key="w" className={job.worker ? "mono" : undefined}>{job.worker ? shortAddress(job.worker) : job.workerHint ?? "First to deliver"}</span>],
-                ["Release", job.policy.autoRelease === 0 ? "When the payer approves" : `Auto at ≥ ${Math.round(job.policy.minConfidenceBps / 100)}% after ${Math.round(job.policy.reviewWindow / 3600)} h`],
+                ["Release", job.policy.autoRelease === 0 ? "When the payer approves" : `Automatic when the verifier scores the delivery ${Math.round(job.policy.minConfidenceBps / 100)}% or more, ${job.policy.reviewWindow > 0 ? `${formatDuration(job.policy.reviewWindow)} after the check` : "right after the check"}`],
                 job.submitDeadlineAt ? ["Deliver by", new Date(job.submitDeadlineAt).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })] : null,
-                ["Network", chainMeta(job.chainId).name],
-                ["Fee", `${job.feeBps / 100}% of the payout`],
+                ["Network", chainMeta(job.chainId).testnet ? `${chainMeta(job.chainId).name} (test network)` : chainMeta(job.chainId).name],
+                ["Fee", job.amount ? `${job.feeBps / 100}%: ${job.role === "payer" ? "the worker receives" : "you receive"} ${formatAmount(BigInt(job.amount) - (BigInt(job.amount) * BigInt(job.feeBps)) / 10000n)}` : `${job.feeBps / 100}% of the payout`],
                 earnsWhileLocked(job.policy) ? ["Earning", locked && !paid ? "Yield to the payer" : "Principal returned in full"] : null,
               ]}
             />
