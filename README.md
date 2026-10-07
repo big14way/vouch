@@ -2,180 +2,197 @@
 
 **Pay when it's delivered. Get paid when it's verified.**
 
-Vouch is a conditional-settlement layer for agent and human work. A payer, human or AI agent, locks stablecoins against a written scope. An independent verifier agent compares the delivery to that scope and writes an evidence-backed attestation on-chain. Funds settle automatically under rules the payer chose, or on their approval. Any agent can use it in one tool call (MCP) or one HTTP request (MPP on Tempo, x402 on Base).
+Vouch is a conditional-settlement layer for work done by people and by AI agents. A payer locks stablecoins against a written scope. The worker delivers. An independent verifier agent checks the delivery against the scope and records its verdict on-chain. The money then settles under rules the payer chose, or on the payer's approval, and either side can take a disagreement to an arbiter. An agent uses Vouch with one MCP tool call or one HTTP request, funded over MPP on Tempo or x402 on Base.
 
-Built for the Colosseum Crypto World's Fair (Sept 14 – Oct 12, 2026). Tempo primary, Base secondary. First commit: Sept 14, 2026. Nothing copied from prior repos.
+| | |
+|---|---|
+| Live product | **https://vouchhq.vercel.app** (Tempo Moderato and Base Sepolia, test money only) |
+| Try it as a worker | https://vouchhq.vercel.app/try: open test jobs with $5 of test pathUSD locked |
+| Demo video (1:52) | https://youtu.be/k5toO06qlC0 |
+| Pitch video (1:57) | https://youtu.be/jyHFoB0QfXE |
+| Agent package | [`@gwilll/vouch-mcp`](https://www.npmjs.com/package/@gwilll/vouch-mcp) on npm |
+| Agent discovery | [`/openapi.json`](https://vouchhq.vercel.app/openapi.json) · [`/llms.txt`](https://vouchhq.vercel.app/llms.txt) · [For agents](https://vouchhq.vercel.app/docs) |
 
-**Testnet by decision.** Vouch runs on Tempo Moderato and Base Sepolia for the hackathon. The organisers never asked for mainnet, and the remaining weeks went to users and the verifier instead of a mainnet launch; the mainnet deploy is the same script with a fee-sponsor key and an Earn allow-list (`contracts/script/deploy-tempo.sh`, [docs/deploy.md](docs/deploy.md)). Every amount in this repo and in the product is test money.
+Built solo for the Colosseum Crypto World's Fair (Sept 14 to Oct 12, 2026). Tempo is the primary integration, Base the secondary one. First commit Sept 14; nothing is copied from earlier repositories.
 
-Live: **https://vouchhq.vercel.app** (testnets: Tempo Moderato 42431 + Base Sepolia 84532, Vault v4). MPP discovery at `/openapi.json` and `/llms.txt`.
+## At a glance
+
+- **Two outside users have been paid through it.** Each took an open job on the live product, delivered, passed the verifier (93% and 95%, every scope item met) and was paid automatically under the job's policy, with every step on-chain. Everything they reported was fixed the same day. See [Users](#users).
+- **The verifier can never move money.** It only attests; settlement rules are enforced by the contract. Across the calibration runs it never released a delivery that should have been held. See [Verifier](#verifier).
+- **Deep on Tempo.** Fee-sponsored batched funding, MPP charges answered with `memo = jobId`, transfer-memo funding from any wallet, Earn while funds are locked, and private payouts into a Tempo Zone, each proven by a logged run with transaction links. See [Tempo integration](#tempo-integration).
+- **Testnet by decision.** The organisers did not ask for mainnet, so the final weeks went to users and the verifier. The mainnet deploy is the same script with a fee-sponsor key and an Earn allow-list ([docs/deploy.md](docs/deploy.md)).
 
 ## The problem
 
-Agent commerce today pays first: MPP and x402 answer "pay per call", and every pay-per-request service in the MPP directory hands over money before anyone checks the output. On the human side, 85% of freelancers report late payment and half of UK self-employed have completed work they were never paid for; most non-payment is a scope dispute with no neutral referee. The rails exist. The conditional layer does not.
+Agent payment rails pay first. MPP and x402 answer "pay per call", and a pay-per-request service is paid before anyone checks what it returned. People who work for clients have the same problem from the other side: 85% of freelancers report being paid late (Remote, State of Freelance Work 2025), and half of the UK's self-employed have done work they were never paid for (IPSE). Most non-payment is a dispute about scope with no neutral referee. The payment rails exist; the conditional layer between "paid" and "done" does not.
 
-## Five steps
+## How it works
 
-1. **Lock** — payer writes the scope and locks the amount in the vault.
-2. **Deliver** — worker submits; files are fingerprinted (sha256) and pinned before anyone reviews them.
-3. **Verify** — the verifier agent compares delivery to scope and writes an attestation on-chain. It cannot move money.
-4. **Settle** — funds release by payer approval, or automatically under the payer's policy (verdict, confidence, cap, review window).
-5. **Dispute** — either party objects; an arbiter sees the same evidence and splits.
+1. **Lock.** The payer writes the scope and locks the amount in the Vault.
+2. **Deliver.** The worker submits. Files are fingerprinted (sha256) and pinned before anyone reviews them, so what is sent is what gets judged.
+3. **Verify.** The verifier agent compares the delivery with the scope and writes an attestation on-chain: verdict, confidence and the hash of a per-item report. It cannot move money.
+4. **Settle.** Funds release on the payer's approval, or automatically when the payer's policy allows it: verdict, minimum confidence, amount cap and review window, all checked by the contract.
+5. **Dispute.** Either side can object. An arbiter sees the same evidence and decides the split.
 
-Not escrow: escrow is a box. Vouch is the judgment plus the settlement policy that lets money move without a human clicking. Not MPP/x402: Vouch sits on them. A Vouch job is *funded with* an MPP charge or an x402 payment.
+Vouch is not escrow: escrow holds money, Vouch adds the judgment and the policy that let money move without anyone clicking. It does not compete with MPP or x402 either; a Vouch job is funded with an MPP charge or an x402 payment.
 
 ## Try it
 
-**Agent (Claude Code):**
+**As a worker (no wallet, no gas):** open https://vouchhq.vercel.app/try, take a task, sign in with any email, deliver on the page and watch the check run. A delivery scored 85% or more is paid automatically 15 minutes later.
+
+**As an agent (Claude Code):**
 ```bash
-claude mcp add vouch -e VOUCH_API_URL=https://vouchhq.vercel.app -e VOUCH_AGENT_PRIVATE_KEY=0x… -- npx -y @gwilll/vouch-mcp
+claude mcp add vouch -e VOUCH_API_URL=https://vouchhq.vercel.app \
+  -e VOUCH_AGENT_PRIVATE_KEY=0x… -e VOUCH_DEFAULT_CHAIN=42431 -- npx -y @gwilll/vouch-mcp
 # then: "Use the hire_for_task prompt: summarise 3 PDFs into a 1-page brief, budget 5"
 ```
+Use a fresh key that holds only test funds.
 
-**Any HTTP client (Tempo):**
+**From any HTTP client (Tempo MPP):**
 ```bash
-npx mppx https://vouchhq.vercel.app/api/v1/jobs/<jobId>/fund -X POST     # 402 → pays the charge (memo = jobId) → 200 { status: "Funded", tx }
+npx mppx https://vouchhq.vercel.app/api/v1/jobs/<jobId>/fund -X POST
+# 402 → the charge is paid with memo = jobId → 200 { "status": "Funded", "tx": "0x…" }
 ```
 
-**Human:** open a job link, tap Pay (one sponsored transaction on Tempo, one USDC signature on Base), share the link with the worker.
+**Unattended:** [`examples/claude-code-payer`](examples/claude-code-payer) runs a payer agent that creates and funds a job, a worker agent that delivers, the verifier, and automatic settlement, with no clicks.
 
-**Unattended demo:** `examples/claude-code-payer` — payer agent creates + funds, worker agent delivers, verifier attests, Autopilot policy auto-settles. Zero clicks.
+## Users
 
-## Repository
+Two people outside the team have used Vouch end to end, as workers on open jobs:
 
-| Path | What |
-|---|---|
-| [`contracts/`](contracts) | `Vault.sol`, `VerifierRegistry.sol`, Foundry unit/fuzz/invariant suites (100% line/branch), deploy script |
-| [`packages/abi`](packages/abi) | ABIs, per-chain `addresses.json` |
-| [`packages/shared`](packages/shared) | Types, zod schemas, policy presets, commitment/manifest/report hashing, EIP-712 types |
-| [`packages/mcp`](packages/mcp) | `@gwilll/vouch-mcp` — 8 tools, resources, `hire_for_task` prompt |
-| [`apps/web`](apps/web) | Next.js service: REST `/api/v1`, MPP + x402 fund routes, verifier agent, indexer, relayer, timelock, web app S0–S7 |
-| [`examples/`](examples) | Unattended payer demo, adversarial corpus, calibration harness |
-| [`docs/`](docs) | [Architecture](docs/architecture.md) · [Threat model](docs/threat-model.md) · [Deploy](docs/deploy.md) |
+| Date | User | Result |
+|---|---|---|
+| Oct 4 | Sundram Mahajan (TxWhy) | Instagram caption job: PASS 0.93, paid automatically |
+| Oct 6 | Endrew from Chroma (chromalaunch.fun) | Logo concept job: PASS 0.95, 4 of 4 scope items, paid automatically |
+
+Both agreed to be named. [docs/users.md](docs/users.md) records each conversation: what broke first, then what worked. What they changed, each shipped the day it was reported:
+
+- Sign-in is email only. Google was offered but not enabled, and it dead-ended on the first click.
+- An open job shows its amount, and what the worker receives after the fee, to anyone who might take it.
+- A verifier failure is shown as one plain sentence, and a budget or rate-limit failure no longer uses up a retry.
+- If the wallet is not created at login, onboarding creates it on the click, with a 20-second timeout, a plain reason and a retry, instead of a button stuck on "Creating your wallet…".
+- Job terms read in plain words: "Automatic when the verifier scores the delivery 85% or more, 15m after the check"; "Tempo Moderato (test network)".
+- The job list groups copies of a task with an open-slot count, and says up front that every verdict is recorded on-chain before money moves.
 
 ## Contracts
 
 | Chain | Vault | VerifierRegistry |
 |---|---|---|
-| Tempo Moderato 42431 | [`0xaD15409d1B7EFA36a9898107fa9757E58a36442D`](https://explore.moderato.tempo.xyz/address/0xaD15409d1B7EFA36a9898107fa9757E58a36442D) (v4 with Earn + Zone payout, Sept 17; [deploy tx](https://explore.moderato.tempo.xyz/tx/0x7d1cb6a07b8c1161be42396363a66e227a4ce681a96e647bcaba09d9c269b5d5)) | [`0xBA8C173dB605414ea8b7bB5dbC57BA9724c70b9C`](https://explore.moderato.tempo.xyz/address/0xBA8C173dB605414ea8b7bB5dbC57BA9724c70b9C) |
-| Base Sepolia 84532 | [`0x9fA83aa77f155D3CC55Ca5034617313634a48fAd`](https://sepolia.basescan.org/address/0x9fA83aa77f155D3CC55Ca5034617313634a48fAd) (v4, Sept 17; [Sourcify match](https://repo.sourcify.dev/84532/0x9fA83aa77f155D3CC55Ca5034617313634a48fAd)) | [`0xCD4f2A717F5cC11607d9d0C2F0501B4Caf040Bca`](https://sepolia.basescan.org/address/0xCD4f2A717F5cC11607d9d0C2F0501B4Caf040Bca) ([Sourcify match](https://repo.sourcify.dev/84532/0xCD4f2A717F5cC11607d9d0C2F0501B4Caf040Bca)) |
+| Tempo Moderato 42431 | [`0xaD15409d1B7EFA36a9898107fa9757E58a36442D`](https://explore.moderato.tempo.xyz/address/0xaD15409d1B7EFA36a9898107fa9757E58a36442D) (v4, [deploy tx](https://explore.moderato.tempo.xyz/tx/0x7d1cb6a07b8c1161be42396363a66e227a4ce681a96e647bcaba09d9c269b5d5)) | [`0xBA8C173dB605414ea8b7bB5dbC57BA9724c70b9C`](https://explore.moderato.tempo.xyz/address/0xBA8C173dB605414ea8b7bB5dbC57BA9724c70b9C) |
+| Base Sepolia 84532 | [`0x9fA83aa77f155D3CC55Ca5034617313634a48fAd`](https://sepolia.basescan.org/address/0x9fA83aa77f155D3CC55Ca5034617313634a48fAd) (v4, [Sourcify](https://repo.sourcify.dev/84532/0x9fA83aa77f155D3CC55Ca5034617313634a48fAd)) | [`0xCD4f2A717F5cC11607d9d0C2F0501B4Caf040Bca`](https://sepolia.basescan.org/address/0xCD4f2A717F5cC11607d9d0C2F0501B4Caf040Bca) ([Sourcify](https://repo.sourcify.dev/84532/0xCD4f2A717F5cC11607d9d0C2F0501B4Caf040Bca)) |
 
-Addresses are committed to `packages/abi/addresses.json` the day they are deployed, with explorer links and the deploy tx.
+Addresses live in [`packages/abi/addresses.json`](packages/abi/addresses.json); earlier versions stay in `contracts/deployments/` for the evidence logs that used them. Vault v5, in this repository, adds the Earn-venue hardening below and ships with the mainnet deploy.
 
-**Public deployment, Sept 21:** [`docs/e2e-service-public-2026-09-21.txt`](docs/e2e-service-public-2026-09-21.txt) is `examples/moderato-e2e/service.ts` run against https://vouchhq.vercel.app: create, MPP-funded, submitted, verified on-chain by Claude Sonnet 5 (NEEDS_REVIEW at 0.55 with an evidence-backed report stored in R2), approved and settled, 50 seconds end to end with every check passing.
+The **Vault** is a pooled multi-token ledger (`balances`, `locked`, `accounted`). A job is stored as a commitment, `keccak256(abi.encode(jobId, payer, worker, token, amount, scopeHash, salt))`. The verifier can only attest. `autoSettle` reverts unless every predicate of the payer's policy holds. It also implements disputes with an arbiter split, `refundExpired`, up to two resubmissions, EIP-3009 deposits, attribution of MPP, x402 and memo payments, EIP-712 `*WithSig` relays, and a pause that never traps funds. Details in [contracts/README.md](contracts/README.md).
 
-**Two agents, no humans, Sept 17:** [`docs/e2e-agent-payer-moderato-2026-09-17.txt`](docs/e2e-agent-payer-moderato-2026-09-17.txt) is `examples/claude-code-payer` run unattended against the service on Moderato: the payer agent creates a $5 job and pays the 402 with an MPP charge, the worker agent submits the pinned deliverable, all in 27 seconds and three transactions. The verifier stage reports `failed` in that run because no model key is configured yet, so the job waits for payer review instead of auto-settling.
-
-**Service layer live on Moderato, Sept 16:** [`docs/e2e-service-moderato-2026-09-16.txt`](docs/e2e-service-moderato-2026-09-16.txt) drives the REST API with the `@gwilll/vouch-mcp` client: wallet-bound API key → `POST /jobs` → `POST /fund` answered with a 402, paid by mppx as a Tempo charge with `memo = jobId`, attributed and funded by intake in the same round-trip → worker's relayed `submitWithSig` → payer's relayed `settleWithSig` → timeline, indexer and timelock crons. The indexer backfilled every Vault event since deployment (72 events, 13 kinds) and linked the job's four. The verifier stage reports `failed: ANTHROPIC_API_KEY not configured` in that run, as designed without a model key.
-
-**Live on Moderato, Sept 15:** [`docs/e2e-moderato-2026-09-15.txt`](docs/e2e-moderato-2026-09-15.txt) is a full run of `examples/moderato-e2e` against the deployed contracts, 15 transactions with explorer links: wallet-path job (approve → deposit → createJob → fund → submit → attest PASS → autoSettle → withdraw of real pathUSD) and memo-path job (`transferWithMemo` into the vault → intake attribution → job created and funded on the payer's behalf → open worker submits → NEEDS_REVIEW → payer-signed, relayer-sent `settleWithSig`). Tempo deploy notes (gas per byte, 30M cap, `--network tempo` fork caveat) are in [contracts/README.md](contracts/README.md).
-
-`Vault` v4 (Sept 17) adds Earn while locked (F11) and private payouts into Tempo Zones (F12); the earlier addresses (v1 Sept 15, v2/v3 Sept 17) stay in `contracts/deployments/*.json` for the earlier evidence logs.
-
-`Vault`: pooled multi-token ledger (`balances`, `locked`, `accounted`), jobs carry a commitment `keccak256(abi.encode(jobId, payer, worker, token, amount, scopeHash, salt))`, verifier is attest-only, settlement policy enforced on-chain (`autoSettle` reverts unless every predicate holds), disputes + arbiter split, `refundExpired`, `resubmit` (≤ 2), EIP-3009 deposits, surplus attribution for MPP/x402/memo payments, EIP-712 `*WithSig` relays, pause that never traps funds. See [contracts/README.md](contracts/README.md).
+**Tests:** 106 Foundry tests (94 unit, 6 fuzz, 6 invariants at 10k calls each), 99% branch coverage. Slither triage: [docs/slither-2026-09-17.md](docs/slither-2026-09-17.md), 33 results, none blocking.
 
 ## Tempo integration
-- **Fee sponsorship**: MPP pull-mode charges are co-signed by Vouch's feePayer; wallet-side funding uses a Tempo fee-payer service; humans never hold a fee token.
-- **Batched transactions**: `approve → deposit → createJob → fund` in one atomic Tempo transaction from the payer's wallet. Proven live on Moderato, Sept 16 ([log](docs/e2e-moderato-batched-2026-09-16.txt)): one transaction, job Funded, payer's pathUSD moved by exactly the job amount, fee paid by the Vouch feePayer key (2,543 base units); the same batch was also accepted by Tempo's public sponsor service.
-- **Transfer memos**: any TIP-20 transfer to the vault with `memo = jobId` is attributed and funds the job — pay from any wallet.
-- **MPP charge**: `POST /fund` is `tempo/charge`-gated with `memo = jobId`; handler runs only after payment is verified, reads the transfer from the receipt, attributes, funds. One round-trip.
-- **Earn while locked (F11)**: a payer can have the locked principal sit in a Tempo Earn vault while the work happens. The Vault deposits at `fund`, recalls exactly the principal with `withdrawExact` at settle/refund/resolve, and credits the leftover shares (the yield) to the payer; a venue shortfall is charged to the payer's balance before the worker is short. Proven live on Moderato, Sept 17 ([log](docs/e2e-earn-moderato-2026-09-17.txt)): principal into the venue, exact recall, yield shares to the payer, and the same flow funded by an MPP charge through the API. Honest note: both Tempo testnet pathUSD Earn vaults currently revert deposits with a stale-price error, and the Vault handles that by funding without Earn (`JobEarnSkipped`); the live proof therefore uses a clearly labelled demo venue (`MockEarnVault`) with simulated yield. Mainnet vaults are allow-listed by Tempo; the ask is in the spec.
-- **Discovery**: MPP discovery document at [`/openapi.json`](apps/web/src/lib/openapi.ts) (`x-payment-info.offers[]` on the fund route, `x-service-info`, `llms.txt`), validated in CI with mppx's validator. Listing on MPPScan and the mpp.dev directory is prepared in [docs/mpp-listing.md](docs/mpp-listing.md) and waits only on the public deploy.
-- **Private payout via Tempo Zone (F12, testnet-only)**: a worker (or any user) moves an Available balance straight into Tempo Zone A with `withdrawToZone`. The recipient and the job memo are encrypted in the browser to the zone sequencer and the Vault calls the Zone Portal, so the public chain shows only Vault → Portal and the amount; the credit is visible only to the recipient's signed zone session. Proven live on Moderato, Sept 17 ([log](docs/e2e-zone-moderato-2026-09-17.txt)): encrypted deposit from the Vault, portal event with the Vault as sender, private Zone A balance up by the full amount within seconds. Honest notes: Zones are testnet-only, and the Zone A portal is an older build (4-argument `depositEncrypted`, pre-August encryption scheme, refunds return to the Vault as surplus that intake attributes back). The Vault marks such portals with `legacyZonePortal` and the client builds the matching payload; a payload built for the wrong generation is accepted on-chain but never credited, which cost one $2 test deposit before the scheme was pinned down.
-- Stretch: virtual address per job; zone-funded jobs (Vault as withdrawal receiver).
+
+- **Fee sponsorship and batched funding.** `approve → deposit → createJob → fund` runs as one atomic Tempo transaction from the payer's wallet, with the fee paid by Vouch's fee payer, so people never hold a fee token ([log, Sept 16](docs/e2e-moderato-batched-2026-09-16.txt)).
+- **MPP charge.** `POST /fund` is gated by a `tempo/charge` with `memo = jobId`; the handler runs only after the payment is verified, reads the transfer from the receipt and funds the job in the same round-trip ([log, Sept 16](docs/e2e-service-moderato-2026-09-16.txt)).
+- **Transfer memos.** Any TIP-20 transfer to the Vault with `memo = jobId` is attributed and funds the job, so a payer can pay from any wallet ([log, Sept 15](docs/e2e-moderato-2026-09-15.txt)).
+- **Earn while locked.** The locked principal can sit in a Tempo Earn vault while the work happens; the exact principal is recalled at settlement and the yield goes to the payer. Proven on a labelled demo venue on Sept 17 ([log](docs/e2e-earn-moderato-2026-09-17.txt)). On Oct 4 Tempo's team pointed us at a working Moderato Earn vault; the v4 Vault could not recall from it because the venue burns shares through an allowance v4 never granted. Vault v5 approves the share token before every recall, writes a failing venue off instead of blocking a payout, and was proven against that venue the same day ([log](docs/e2e-earn-moderato-2026-10-04-v5.txt), instance `0x6fEdf025FE10D5F411A0483696898BD33638039f`).
+- **Private payouts into Tempo Zone A** (testnet only). A worker can move their balance straight into Zone A: the recipient is encrypted in the browser to the zone sequencer, so the public chain shows only Vault → Portal and the amount ([log, Sept 17](docs/e2e-zone-moderato-2026-09-17.txt)).
+- **Discovery.** MPP discovery document at `/openapi.json` (with `x-payment-info` on the fund route) and `/llms.txt`, validated in CI with mppx's validator. Directory listing text: [docs/mpp-listing.md](docs/mpp-listing.md).
 
 ## Base integration
-`POST /fund` speaks x402 (and the native evm/charge wire format): USDC EIP-3009 authorisation settled by the facilitator into the vault. Humans sign `ReceiveWithAuthorization` with a Privy embedded wallet; Vouch relays `depositWithAuthorization`. No ETH anywhere on the payer side.
+
+`POST /fund` also speaks x402: a USDC EIP-3009 authorisation settled into the Vault. People sign `ReceiveWithAuthorization` with an embedded wallet and Vouch relays `depositWithAuthorization`, so no ETH is needed on the payer side. Same contracts on Base Sepolia, kept deliberately shallow.
 
 ## Verifier
 
-Claude Sonnet 4.6, temperature 0, forced tool-use JSON, 60 s budget, ≤ 2 MB per artifact, no code execution. Inputs: scope verbatim, policy, pinned manifest, text/PDF/images, GitHub READMEs and PR diffs, Figma metadata, previous verdict on resubmission. Output: verdict, confidence, per-item checklist with evidence, questions, red flags. Post-rules: any `unverifiable` → NEEDS_REVIEW ≤ 0.6; instruction-like text → red flag, ≤ 0.5, never PASS.
+Claude Sonnet 5 with adaptive thinking at medium effort, a strict tool-use schema, a 60-second budget, up to 2 MB per artifact, and no code execution. Inputs: the scope verbatim, the payment policy, the pinned delivery manifest, text, PDFs, images, GitHub READMEs and PR diffs, Figma metadata, and the previous verdict on a resubmission. Output: verdict, confidence, a per-item checklist with evidence, questions and red flags. A rules layer then applies two hard limits: anything unverifiable becomes NEEDS_REVIEW at 0.6 or below, and text that tries to instruct the verifier is a red flag, capped at 0.5 and never a PASS. A verification costs $0.05 to $0.12 and takes about 15 seconds.
 
-**Threat model** — [docs/threat-model.md](docs/threat-model.md). Worst case for a payer: their own auto-cap on one job. Worst case for a worker: time.
+Threat model: [docs/threat-model.md](docs/threat-model.md). The worst case for a payer is their own automatic-release cap on one job; the worst case for a worker is time.
 
-### Calibration (19 samples, model + rules, Sept 21)
+### Calibration (19 samples, Sept 21)
 
-`pnpm --filter @vouch/web calibrate --model` over the 10 adversarial samples in `examples/adversarial` plus 9 job samples in `examples/calibration` (5 acceptable deliveries: a sourced brief, landing copy, a Python function with tests, a CSV clean-up, a French translation; 3 realistic near-misses; 1 invoice sent instead of the work). The 9 are **synthetic**, written by the team on Sept 21 so the PASS row is not empty; field samples replace them as users' jobs come in (two so far: PASS 0.93 and PASS 0.95, both paid automatically). Three configurations were run over all 19, then each three more times over the 9 job samples to check the result is stable ([repeat runs](docs/calibration-2026-09-21-repeats.md)). Transcripts with the model's reasoning: [Sonnet 4.6](docs/calibration-2026-09-21-claude-sonnet-4-6.txt), [Sonnet 5, thinking off](docs/calibration-2026-09-21-claude-sonnet-5.txt), [Sonnet 5, adaptive thinking](docs/calibration-2026-09-21-claude-sonnet-5-adaptive.txt). Rows are the human label, columns what the verifier returned after the rules layer.
+10 adversarial samples ([`examples/adversarial`](examples/adversarial), including prompt-injection attempts) and 9 job samples ([`examples/calibration`](examples/calibration): 5 acceptable deliveries, 3 near-misses, 1 invoice sent instead of the work). The 9 job samples are **synthetic**, written by the team; the two users' deliveries above are the first real ones. Three model configurations were run over all 19, then three more times over the 9 job samples to check stability ([repeat runs](docs/calibration-2026-09-21-repeats.md)). Full transcripts: [Sonnet 4.6](docs/calibration-2026-09-21-claude-sonnet-4-6.txt), [Sonnet 5, thinking off](docs/calibration-2026-09-21-claude-sonnet-5.txt), [Sonnet 5, adaptive thinking](docs/calibration-2026-09-21-claude-sonnet-5-adaptive.txt).
 
-| expected \ got | Sonnet 4.6: PASS | NEEDS_REVIEW | FAIL | Sonnet 5 (thinking off): PASS | NEEDS_REVIEW | FAIL | **Sonnet 5 + adaptive thinking (production):** PASS | NEEDS_REVIEW | FAIL |
+| | Sonnet 4.6 | Sonnet 5, thinking off | **Sonnet 5, adaptive (production)** |
+|---|---|---|---|
+| Wrong PASS (the only outcome that can move money) | **0** | **0** | **0** |
+| Good deliveries released at ≥ 0.90, full run | 5/5 | 3/5 | 4/5 |
+| Good deliveries released, three repeat runs | 4/5, 4/5, 4/5 | 2/5, 2/5, 3/5 | 4/5, 4/5, 4/5 |
+| Accuracy, full run | 16/19 | 13/19 | 14/19 |
+| Injection attempts flagged | 7/7 | 7/7 | 7/7 |
+| Schema-invalid verdicts | 0 | 0 | 0 |
+| Cost of the 19 runs | $0.31 | $0.27 | $0.25 |
+
+<details>
+<summary>Confusion matrices and findings</summary>
+
+| expected \ got | 4.6: PASS | NEEDS_REVIEW | FAIL | 5, off: PASS | NEEDS_REVIEW | FAIL | **5, adaptive: PASS** | NEEDS_REVIEW | FAIL |
 |---|---|---|---|---|---|---|---|---|---|
 | PASS (5) | 5 | 0 | 0 | 3 | 2 | 0 | **4** | 1 | 0 |
 | NEEDS_REVIEW (11) | 0 | 9 | 2 | 0 | 8 | 3 | 0 | 8 | 3 |
 | FAIL (3) | 0 | 1 | 2 | 0 | 1 | 2 | 0 | 1 | 2 |
 
-| | Sonnet 4.6 | Sonnet 5, thinking off | **Sonnet 5, adaptive thinking** |
-|---|---|---|---|
-| wrong PASS (the only outcome that can move money) | **0** | **0** | **0** |
-| good deliveries released at ≥ 0.90, full run | 5/5 | 3/5 | 4/5 |
-| good deliveries released, three repeat runs on the 9 job samples | 4/5, 4/5, 4/5 | 2/5, 2/5, 3/5 | 4/5, 4/5, 4/5 |
-| accuracy, full run | 16/19 | 13/19 | 14/19 |
-| injection samples flagged | 7/7 | 7/7 | 7/7 |
-| schema-invalid verdicts | 0 | 0 | 0 |
-| tokens for the 19 runs (in / out) | 41,956 / 12,436 | 50,355 / 16,727 | 50,355 / 14,977 |
-| cost for the 19 runs at list price | $0.31 | $0.27 | $0.25 |
+No configuration produced a wrong PASS in any of the twelve runs; every miss is in the safe direction. The one good delivery every configuration holds is landing copy with word limits: the models miscount, and the rules turn that into a hold at 0.60. Scopes with tight word or character limits are where verification is least reliable, and the failure is a review, never a release. Two harness defects were found and fixed along the way: a manifest that declared every file as 0 bytes (the model correctly flagged the contradiction), and an undefined `red_flags` field, now limited to manipulation and fraud. A rules-only baseline that passes anything non-empty makes 7 wrong PASSes on the same set; that is the gap the model closes.
+</details>
 
-No configuration produced a wrong PASS in any of the twelve runs. Every miss is in the safe direction: a NEEDS_REVIEW sample judged FAIL, the unrelated-content FAIL held at NEEDS_REVIEW, or a good delivery held for review. Sonnet 4.6 and Sonnet 5 with thinking on behave the same on the release path (four of five, stable across repeats; the 5/5 in the 4.6 full run did not repeat); Sonnet 5 with thinking off holds two or three of five, on a row count it gets wrong. **Production runs Sonnet 5 with adaptive thinking at medium effort** (`VERIFIER_THINKING=adaptive`, `VERIFIER_EFFORT=medium`): same release rate and safety as 4.6, current generation, a third cheaper per token, about 15 s per verification.
+## Evidence
 
-The one good delivery every configuration holds is the landing copy, whose scope sets word limits: the models miscount or add a limit the scope does not state, and the rules turn that into a hold at 0.60. Scopes with tight word or character limits are where verification is least reliable, and the failure mode is a review, never a release.
+Every claim above links to a run log with transaction links. The main ones:
 
-Two harness defects were found and fixed on the way, both worth knowing: the first synthetic run had Sonnet 5 flag every good delivery because the harness built a manifest declaring each file as 0 bytes, and the model correctly noticed the contradiction (production manifests carry real sizes); and `red_flags` had no definition, so the model used it for any concern, which the rules layer treats as manipulation. The field now says manipulation and fraud only, and the prompt tells the verifier not to add requirements the scope does not state. The rules-only pass (naive stand-in that says PASS to anything non-empty) shows 7 wrong PASSes on the same set, which is the gap the model closes.
+| Date | Run | Log |
+|---|---|---|
+| Sept 15 | Wallet-path and memo-path jobs on Moderato, 15 transactions | [e2e-moderato-2026-09-15](docs/e2e-moderato-2026-09-15.txt) |
+| Sept 16 | One batched, fee-sponsored funding transaction | [e2e-moderato-batched-2026-09-16](docs/e2e-moderato-batched-2026-09-16.txt) |
+| Sept 16 | REST API driven by the MCP client, MPP-funded, relayed settlement | [e2e-service-moderato-2026-09-16](docs/e2e-service-moderato-2026-09-16.txt) |
+| Sept 17 | Two agents, no humans: payer agent funds over MPP, worker agent delivers | [e2e-agent-payer-moderato-2026-09-17](docs/e2e-agent-payer-moderato-2026-09-17.txt) |
+| Sept 17 | Earn while locked, demo venue | [e2e-earn-moderato-2026-09-17](docs/e2e-earn-moderato-2026-09-17.txt) |
+| Sept 17 | Private payout into Tempo Zone A | [e2e-zone-moderato-2026-09-17](docs/e2e-zone-moderato-2026-09-17.txt) |
+| Sept 21 | Public deployment end to end: create, MPP-fund, submit, verify, settle in 50 s | [e2e-service-public-2026-09-21](docs/e2e-service-public-2026-09-21.txt) |
+| Oct 4 | Earn against a real Tempo venue: v4 failure, v5 fix | [v4](docs/e2e-earn-moderato-2026-10-04.txt) · [v5](docs/e2e-earn-moderato-2026-10-04-v5.txt) |
 
-## Privacy, stated honestly
-Payer and worker addresses are in the job struct. Hidden on-chain: per-job amounts (commitment, until the amount appears in settlement calldata) and deposit → job linkage (deposits credit a balance; jobs draw from balance; payouts come from the vault). The web app gives every user a fresh embedded wallet so addresses carry no identity. On Tempo testnet a payout can leave the Vault straight into Zone A with the recipient encrypted (F12), so the public ledger never shows who was paid.
+## Privacy
+
+Payer and worker addresses are in the job struct. Per-job amounts are hidden behind the commitment until settlement, and deposits are not linked to jobs: deposits credit a balance, jobs draw from it, and payouts come from the Vault. The web app gives every user a fresh embedded wallet, so addresses carry no identity, and on Tempo testnet a payout can go straight into Zone A with the recipient encrypted.
+
+## Business model
+
+The Vault takes **1% of every settled job**, in the contract, at settlement. A verification costs $0.05 (typical) to $0.12 (worst case, 60,000 characters of delivery), so the fee covers the check from about a $10 job upwards. Below that the check is subsidised today; the planned fix is a flat verification fee of about $0.25 for jobs under $25, set at creation and shown before anything is locked, with the 1% unchanged above it. The payer pays, because the payer gets the guarantee; agents pay inside the MPP or x402 charge that funds the job.
+
+## Repository
+
+| Path | Contents |
+|---|---|
+| [`contracts/`](contracts) | `Vault.sol`, `VerifierRegistry.sol`, Foundry unit, fuzz and invariant suites, deploy scripts |
+| [`apps/web`](apps/web) | Next.js service: REST `/api/v1`, MPP and x402 funding routes, verifier, indexer, relayer, timelock, web app |
+| [`packages/mcp`](packages/mcp) | `@gwilll/vouch-mcp`: 8 tools, resources and the `hire_for_task` prompt |
+| [`packages/shared`](packages/shared) | Types, zod schemas, policy presets, commitment, manifest and report hashing, EIP-712 types |
+| [`packages/abi`](packages/abi) | ABIs and per-chain addresses |
+| [`examples/`](examples) | Unattended payer demo, end-to-end run scripts, adversarial corpus, calibration harness |
+| [`docs/`](docs) | [Architecture](docs/architecture.md), [threat model](docs/threat-model.md), [deploy](docs/deploy.md), run logs, [user log](docs/users.md) |
 
 ## Run locally
-See [docs/deploy.md](docs/deploy.md). In short: `pnpm install`, build `packages/abi` and `packages/shared`, fill `apps/web/.env`, `pnpm db:migrate`, `pnpm dev`. Contracts: `cd contracts && forge test`.
 
-## Status against the build spec
+See [docs/deploy.md](docs/deploy.md). In short: `pnpm install`, build `packages/abi` and `packages/shared`, fill `apps/web/.env` from `.env.example`, run `pnpm db:migrate`, then `pnpm dev`. Contracts: `cd contracts && forge test`.
 
-| # | Feature | State |
-|---|---|---|
-| F1 | Vault + registry, invariants, v5 hardening | done (106 Foundry tests: 94 unit incl. Earn, Zone and venue re-entry paths · 6 fuzz · 6 invariants × 10k calls; 99% branch coverage, the gap is instrumentation on `pause`/`_revertWith`) |
-| F2 | Funding rails: Tempo batched, MPP charge, Base EIP-3009, x402 | implemented; contracts live on Moderato and Base Sepolia (Sept 15); mainnet not deployed for the hackathon, by decision (Sept 26) |
-| F3 | `@gwilll/vouch-mcp` | published (0.1.2, `npx -y @gwilll/vouch-mcp`); stdio + HTTP; its client drove the live service runs on Moderato and on the public deployment |
-| F4 | Verifier + on-chain attestation | implemented |
-| F5 | Settlement policy on-chain | done; autoSettle and settleWithSig exercised live on Moderato |
-| F6 | Web app S0–S7 + motion system | implemented; landing redesigned Sept 22 (live job-card demo, proof section, photos); dark theme by default with a light scope for the hero's product card; public routes render on the server without the wallet SDK, the job page loads its data on the server. Lighthouse mobile against the live deployment (Sept 22, after the dark build): landing 81 perf / 100 a11y / 96 best-practices / 100 SEO; job page 84 perf / 100 a11y / 96 best-practices (SEO 60 by design: job pages are `noindex`), LCP 1.7–2.3 s, CLS 0.002 |
-| F7 | Disputes + arbiter | implemented |
-| F8 | Public job page + timeline | implemented; indexer proven on Moderato (backfill from deployment block, events linked to jobs); SSE ≤ 2 s after the service writes |
-| F9 | Unlinkable settlements | pooled vault + commitments; documented above |
-| F10 | Observability | health, TxLog, verifier audit, Sentry, funnel |
-| F11 | Earn while locked + idle-balance Earn | contracts done (20 tests, invariants with yield/loss), API + MCP + picker done. Oct 4: Tempo's team pointed at a working Moderato EarnVault (`0x46b81bdFA3f184CC1c02BBbd45eaa3E3dAa25cD9`); the production v4 Vault could not recall from it (the venue burns shares through an allowance the Vault never granted; `TokenCallFailed`), so v5 approves the share token before every recall and redeem and writes a venue off instead of blocking a payout when it fails both calls. Proven on a v5 instance on Moderato (`0x6fEdf025FE10D5F411A0483696898BD33638039f`): fund into the venue, exact principal back at settle, [log](docs/e2e-earn-moderato-2026-10-04-v5.txt). The production v4 keeps the labelled demo venue until the mainnet deploy |
-| F12 | Private payout via Tempo Zone | contracts done (7 tests: legacy + current portal shapes, WithSig binds the payload), API route + withdraw-page card, live on Moderato Zone A with the private balance credited; testnet-only, behind `ZONES_ENABLED` |
+## Status and known gaps
 
-Known gaps: job page first load is 244 kB (106 kB of it Next/React) against a 150 kB target; Slither triage is in [docs/slither-2026-09-17.md](docs/slither-2026-09-17.md) (33 results, none blocking; the two hardening items are done in Vault v5, in the repo, which ships with the mainnet deploy); remaining `[VERIFY]` items in the spec (Privy on 4217, mppx handler context, submission deadline) are re-checked on the day they are used.
+| Area | State |
+|---|---|
+| Contracts | Vault v4 live on Moderato and Base Sepolia; v5 (Earn-venue hardening) in the repo, proven on a Moderato instance |
+| Funding | Tempo batched and fee-sponsored, MPP charge, transfer memo, Base EIP-3009 and x402 |
+| Verifier and settlement | On-chain attestation, automatic settlement under the payer's policy, approval, disputes with an arbiter |
+| Agents | `@gwilll/vouch-mcp` 0.1.2 on npm (stdio and HTTP); MPP discovery and `llms.txt` |
+| Web app | Live; job pages render on the server; Lighthouse mobile on Sept 22: landing 81 performance / 100 accessibility, job page 84 / 100 |
+| Earn while locked | Production v4 uses a labelled demo venue; real venues need v5, which ships with the mainnet deploy |
+| Zone payouts | Live on Moderato Zone A; testnet only |
 
-Resolved Sept 15 from the Colosseum kickoff call: cross-chain submissions are allowed and a team can win any track it places in, but the track is decided by depth of integration. Tempo is the primary submission; the Base x402/EIP-3009 rail stays as built and gets no further UX work.
-
-Launch wedge: judges and the pitch lead with agent services on the MPP directory hired from Claude Code with zero clicks; human beta users come from freelancers sharing a WhatsApp pay link. User conversations are logged in `docs/users.md`.
-
-## Business model, with the arithmetic
-
-The Vault takes **1% of every settled job**, in the contract, at settlement. A verification costs Vouch about **$0.05** (typical) to **$0.12** (worst case, 60k characters of deliverable) in model calls with Claude Sonnet 5 at adaptive thinking, measured over the calibration runs. So the 1% fee covers the check from about a **$10 job** upwards; below that, v1 pays for the check out of pocket, which is fine for a first round of users and not for a business. The planned fix is in the settlement policy, not the pitch: a flat verification fee (around $0.25, set at job creation and shown on the job page) for jobs under $25, with the 1% unchanged above it. Payers see the number before they lock anything.
-
-Who pays: the payer, because the payer is the one who gets the guarantee. Agents pay the same way, inside the MPP or x402 charge that funds the job.
+Known gaps: the job page's first load is 244 kB against a 150 kB target, and mainnet is not deployed.
 
 ## Team
 
-Godswill Idolor ([@big14way](https://github.com/big14way)): full-stack Web3 engineer, Rust and Solidity, previously a Flare and Stellar fellow. Solo for this hackathon: every commit in this repo, from the first on Sept 14, is his. Why this: his sister Rita is a freelance designer in Nigeria who delivered three weeks of work to a client overseas and was never paid; the first user story in the pitch is hers.
+Godswill Idolor ([@big14way](https://github.com/big14way)), full-stack Web3 engineer (Rust and Solidity), previously a Flare and Stellar fellow. Solo for this hackathon; every commit is his. Why Vouch: his sister Rita, a freelance designer in Nigeria, delivered three weeks of work to a client overseas and was never paid.
 
-## Users
+## Roadmap
 
-Two people outside the team have used Vouch end to end as workers on the live product. Each took an open job, delivered, passed the verifier (PASS 0.93 on Oct 4, PASS 0.95 on Oct 6, every scope item met) and was paid automatically under the job's policy, with every step on-chain on Tempo testnet. Both are named with permission in [docs/users.md](docs/users.md), which logs every user conversation, what broke before what they liked.
-
-What users changed, each shipped the same day it was reported:
-
-- Sign-in is email only; Google was offered but not enabled and dead-ended on the first click.
-- An open job shows its amount and what the worker receives after the fee to anyone who might take it.
-- A verifier failure reads as one plain sentence, and a budget or rate-limit failure no longer burns a retry.
-- When the login-time wallet creation fails, onboarding creates the wallet on the click, with a 20-second timeout, a plain reason and Try again, instead of a button stuck on "Creating your wallet…".
-- The job terms read in plain words: "Automatic when the verifier scores the delivery 85% or more, 15m after the check", "Tempo Moderato (test network)".
-- /try shows each task once with its open slots, and says up front that every verdict is recorded on-chain before money moves.
-
-The kit for bringing in users (funded pay links, invites, channel plan) is in [docs/testers](docs/testers).
-
-## Roadmap (out of scope for v1)
-Third-party verifiers, worker bonds, zone-funded jobs, virtual deposit address per job, fiat rails, invoice financing on settlement history.
+Third-party verifiers competing on calibration, worker bonds, jobs funded from a Tempo Zone, a virtual deposit address per job, fiat rails, and invoice financing on settlement history.
 
 ## License
+
 MIT
