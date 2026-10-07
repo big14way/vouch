@@ -1,4 +1,4 @@
-# Tester log
+# User log
 
 Every conversation with someone who tried Vouch, in order. This file is the evidence behind the numbers in the README and the pitch (spec §1.4, §2.3.1). No entry, no number.
 

@@ -6,7 +6,7 @@ Vouch is a conditional-settlement layer for agent and human work. A payer, human
 
 Built for the Colosseum Crypto World's Fair (Sept 14 – Oct 12, 2026). Tempo primary, Base secondary. First commit: Sept 14, 2026. Nothing copied from prior repos.
 
-**Testnet by decision.** Vouch runs on Tempo Moderato and Base Sepolia for the hackathon. The organisers never asked for mainnet, and the remaining weeks went to testers and the verifier instead of a mainnet launch; the mainnet deploy is the same script with a fee-sponsor key and an Earn allow-list (`contracts/script/deploy-tempo.sh`, [docs/deploy.md](docs/deploy.md)). Every amount in this repo and in the product is test money.
+**Testnet by decision.** Vouch runs on Tempo Moderato and Base Sepolia for the hackathon. The organisers never asked for mainnet, and the remaining weeks went to users and the verifier instead of a mainnet launch; the mainnet deploy is the same script with a fee-sponsor key and an Earn allow-list (`contracts/script/deploy-tempo.sh`, [docs/deploy.md](docs/deploy.md)). Every amount in this repo and in the product is test money.
 
 Live: **https://vouchhq.vercel.app** (testnets: Tempo Moderato 42431 + Base Sepolia 84532, Vault v4). MPP discovery at `/openapi.json` and `/llms.txt`.
 
@@ -95,7 +95,7 @@ Claude Sonnet 4.6, temperature 0, forced tool-use JSON, 60 s budget, ≤ 2 MB pe
 
 ### Calibration (19 samples, model + rules, Sept 21)
 
-`pnpm --filter @vouch/web calibrate --model` over the 10 adversarial samples in `examples/adversarial` plus 9 job samples in `examples/calibration` (5 acceptable deliveries: a sourced brief, landing copy, a Python function with tests, a CSV clean-up, a French translation; 3 realistic near-misses; 1 invoice sent instead of the work). The 9 are **synthetic**, written by the team on Sept 21 so the PASS row is not empty; field samples replace them as testers' jobs come in. Three configurations were run over all 19, then each three more times over the 9 job samples to check the result is stable ([repeat runs](docs/calibration-2026-09-21-repeats.md)). Transcripts with the model's reasoning: [Sonnet 4.6](docs/calibration-2026-09-21-claude-sonnet-4-6.txt), [Sonnet 5, thinking off](docs/calibration-2026-09-21-claude-sonnet-5.txt), [Sonnet 5, adaptive thinking](docs/calibration-2026-09-21-claude-sonnet-5-adaptive.txt). Rows are the human label, columns what the verifier returned after the rules layer.
+`pnpm --filter @vouch/web calibrate --model` over the 10 adversarial samples in `examples/adversarial` plus 9 job samples in `examples/calibration` (5 acceptable deliveries: a sourced brief, landing copy, a Python function with tests, a CSV clean-up, a French translation; 3 realistic near-misses; 1 invoice sent instead of the work). The 9 are **synthetic**, written by the team on Sept 21 so the PASS row is not empty; field samples replace them as users' jobs come in (two so far: PASS 0.93 and PASS 0.95, both paid automatically). Three configurations were run over all 19, then each three more times over the 9 job samples to check the result is stable ([repeat runs](docs/calibration-2026-09-21-repeats.md)). Transcripts with the model's reasoning: [Sonnet 4.6](docs/calibration-2026-09-21-claude-sonnet-4-6.txt), [Sonnet 5, thinking off](docs/calibration-2026-09-21-claude-sonnet-5.txt), [Sonnet 5, adaptive thinking](docs/calibration-2026-09-21-claude-sonnet-5-adaptive.txt). Rows are the human label, columns what the verifier returned after the rules layer.
 
 | expected \ got | Sonnet 4.6: PASS | NEEDS_REVIEW | FAIL | Sonnet 5 (thinking off): PASS | NEEDS_REVIEW | FAIL | **Sonnet 5 + adaptive thinking (production):** PASS | NEEDS_REVIEW | FAIL |
 |---|---|---|---|---|---|---|---|---|---|
@@ -130,7 +130,7 @@ See [docs/deploy.md](docs/deploy.md). In short: `pnpm install`, build `packages/
 
 | # | Feature | State |
 |---|---|---|
-| F1 | Vault + registry, invariants, v5 hardening | done (103 Foundry tests: 91 unit incl. Earn, Zone and venue re-entry paths · 6 fuzz · 6 invariants × 10k calls; 99% branch coverage, the gap is instrumentation on `pause`/`_revertWith`) |
+| F1 | Vault + registry, invariants, v5 hardening | done (106 Foundry tests: 94 unit incl. Earn, Zone and venue re-entry paths · 6 fuzz · 6 invariants × 10k calls; 99% branch coverage, the gap is instrumentation on `pause`/`_revertWith`) |
 | F2 | Funding rails: Tempo batched, MPP charge, Base EIP-3009, x402 | implemented; contracts live on Moderato and Base Sepolia (Sept 15); mainnet not deployed for the hackathon, by decision (Sept 26) |
 | F3 | `@gwilll/vouch-mcp` | published (0.1.2, `npx -y @gwilll/vouch-mcp`); stdio + HTTP; its client drove the live service runs on Moderato and on the public deployment |
 | F4 | Verifier + on-chain attestation | implemented |
@@ -147,11 +147,11 @@ Known gaps: job page first load is 244 kB (106 kB of it Next/React) against a 15
 
 Resolved Sept 15 from the Colosseum kickoff call: cross-chain submissions are allowed and a team can win any track it places in, but the track is decided by depth of integration. Tempo is the primary submission; the Base x402/EIP-3009 rail stays as built and gets no further UX work.
 
-Launch wedge: judges and the pitch lead with agent services on the MPP directory hired from Claude Code with zero clicks; human beta users come from freelancers sharing a WhatsApp pay link. Tester conversations are logged in `docs/users.md`.
+Launch wedge: judges and the pitch lead with agent services on the MPP directory hired from Claude Code with zero clicks; human beta users come from freelancers sharing a WhatsApp pay link. User conversations are logged in `docs/users.md`.
 
 ## Business model, with the arithmetic
 
-The Vault takes **1% of every settled job**, in the contract, at settlement. A verification costs Vouch about **$0.05** (typical) to **$0.12** (worst case, 60k characters of deliverable) in model calls with Claude Sonnet 5 at adaptive thinking, measured over the calibration runs. So the 1% fee covers the check from about a **$10 job** upwards; below that, v1 pays for the check out of pocket, which is fine for a tester round and not for a business. The planned fix is in the settlement policy, not the pitch: a flat verification fee (around $0.25, set at job creation and shown on the job page) for jobs under $25, with the 1% unchanged above it. Payers see the number before they lock anything.
+The Vault takes **1% of every settled job**, in the contract, at settlement. A verification costs Vouch about **$0.05** (typical) to **$0.12** (worst case, 60k characters of deliverable) in model calls with Claude Sonnet 5 at adaptive thinking, measured over the calibration runs. So the 1% fee covers the check from about a **$10 job** upwards; below that, v1 pays for the check out of pocket, which is fine for a first round of users and not for a business. The planned fix is in the settlement policy, not the pitch: a flat verification fee (around $0.25, set at job creation and shown on the job page) for jobs under $25, with the 1% unchanged above it. Payers see the number before they lock anything.
 
 Who pays: the payer, because the payer is the one who gets the guarantee. Agents pay the same way, inside the MPP or x402 charge that funds the job.
 
@@ -161,7 +161,18 @@ Godswill Idolor ([@big14way](https://github.com/big14way)): full-stack Web3 engi
 
 ## Users
 
-Every tester conversation is logged in [docs/users.md](docs/users.md), what broke before what they liked. The tester kit (funded pay links, invites, channel plan) is in [docs/testers](docs/testers).
+Two people outside the team have used Vouch end to end as workers on the live product. Each took an open job, delivered, passed the verifier (PASS 0.93 on Oct 4, PASS 0.95 on Oct 6, every scope item met) and was paid automatically under the job's policy, with every step on-chain on Tempo testnet. Both are named with permission in [docs/users.md](docs/users.md), which logs every user conversation, what broke before what they liked.
+
+What users changed, each shipped the same day it was reported:
+
+- Sign-in is email only; Google was offered but not enabled and dead-ended on the first click.
+- An open job shows its amount and what the worker receives after the fee to anyone who might take it.
+- A verifier failure reads as one plain sentence, and a budget or rate-limit failure no longer burns a retry.
+- When the login-time wallet creation fails, onboarding creates the wallet on the click, with a 20-second timeout, a plain reason and Try again, instead of a button stuck on "Creating your wallet…".
+- The job terms read in plain words: "Automatic when the verifier scores the delivery 85% or more, 15m after the check", "Tempo Moderato (test network)".
+- /try shows each task once with its open slots, and says up front that every verdict is recorded on-chain before money moves.
+
+The kit for bringing in users (funded pay links, invites, channel plan) is in [docs/testers](docs/testers).
 
 ## Roadmap (out of scope for v1)
 Third-party verifiers, worker bonds, zone-funded jobs, virtual deposit address per job, fiat rails, invoice financing on settlement history.
