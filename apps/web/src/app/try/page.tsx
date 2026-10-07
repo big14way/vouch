@@ -28,6 +28,9 @@ export default async function TryPage() {
       <Muted className="mt-1">
         Each task below has real test money locked on Tempo testnet. Pick one, sign in with your email, do the 10-minute task, deliver it on the page and watch the verifier check it. If the verifier scores your delivery 85% or more, you are paid automatically 15 minutes later. The first person to deliver takes a slot.
       </Muted>
+      <Muted className="mt-1">
+        Every verdict is recorded on-chain before any money moves, with a reason for each scope item, so you can see exactly why a delivery passed or not.
+      </Muted>
       <Muted className="mt-1">Test money on a test network: nothing here is real dollars. Tell us what confused you or broke; that decides what we fix next.</Muted>
 
       {jobs.length === 0 ? (
