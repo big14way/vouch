@@ -339,14 +339,14 @@
     },
     {
      "k": "Traction",
-     "v": "Oct 4: the first stranger took a test job, delivered, passed at 93% and was paid automatically. 21 builders in a test swap, 10 open jobs at vouchhq.vercel.app/try."
+     "v": "Two users took open jobs, delivered, passed at 93% and 95% and were paid automatically. Every issue they reported was fixed the same day. Open jobs at vouchhq.vercel.app/try."
     },
     {
      "k": "Live",
      "v": "vouchhq.vercel.app, end to end on Tempo testnet. npx -y @gwilll/vouch-mcp on npm."
     }
    ],
-   "vo": "Vouch takes one percent of every settled job; a check costs about a dime, so it pays from a ten-dollar job. And it works for strangers: the first tester delivered, passed at ninety-three percent, and was paid automatically."
+   "vo": "Vouch takes one percent of every settled job; a check costs about a dime, so it pays from a ten-dollar job. And it works for strangers: two users took jobs, passed at ninety-three and ninety-five percent, and were paid automatically."
   },
   {
    "id": "p7",
