@@ -18,7 +18,7 @@ Both users so far are fellow Colosseum builders who took an open job as the work
 
 **What changed, the same evening.** Email-only sign-in; the amount shown on open jobs; the note field relabelled "Your work, or a note about it"; verifier failures shown as one plain sentence, with budget and rate-limit failures no longer using up a retry. The spend limit was raised.
 
-**Outcome.** PASS at 0.93, every scope item met, released automatically 15 minutes later; $4.95 to his balance after the 1% fee. Transactions: [funded](https://explore.moderato.tempo.xyz/tx/0x905fe98bf8185309a083946a1f625a4efe37c3c0317f99f7a49b32fc2993edb7) · [submitted](https://explore.moderato.tempo.xyz/tx/0xa3c6a39faac8594cdeb30e68f55efbc717d55b86e9ca1dacdd89d8cc8fba8f33) · [attested](https://explore.moderato.tempo.xyz/tx/0x54307e83fe3ebf55424364193cc70ef1a072f0bd8449dc9de9780f694b5f3786) · [settled](https://explore.moderato.tempo.xyz/tx/0xe56504c8532f11a8ce5def4eb91e903131a1a2a4169b988c3d66c25fd3dc7c5a).
+**Outcome.** PASS at 0.93, every scope item met, released automatically 16 minutes after the pass; $4.95 to his balance after the 1% fee. Transactions: [funded](https://explore.moderato.tempo.xyz/tx/0x905fe98bf8185309a083946a1f625a4efe37c3c0317f99f7a49b32fc2993edb7) · [submitted](https://explore.moderato.tempo.xyz/tx/0xa3c6a39faac8594cdeb30e68f55efbc717d55b86e9ca1dacdd89d8cc8fba8f33) · [attested](https://explore.moderato.tempo.xyz/tx/0x54307e83fe3ebf55424364193cc70ef1a072f0bd8449dc9de9780f694b5f3786) · [settled](https://explore.moderato.tempo.xyz/tx/0xe56504c8532f11a8ce5def4eb91e903131a1a2a4169b988c3d66c25fd3dc7c5a).
 
 ## 2. Endrew from Chroma (chromalaunch.fun), Oct 6, 2026
 
