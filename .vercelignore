@@ -8,8 +8,9 @@ contracts/out
 contracts/cache
 contracts/lib
 contracts/broadcast
-examples
-docs
+# anchored to the repo root: a bare "docs" also matched apps/web/src/app/docs and dropped the /docs page from every deploy
+/examples
+/docs
 .agents
 .claude
 coverage
