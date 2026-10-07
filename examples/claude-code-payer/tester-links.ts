@@ -73,7 +73,7 @@ async function main() {
   const count = Number(process.env.COUNT ?? 2);
   const payer = new VouchClient(loadConfig({ VOUCH_API_URL: apiUrl, VOUCH_AGENT_PRIVATE_KEY: key, VOUCH_DEFAULT_CHAIN: "42431" }));
   const amount = parseAmount(process.env.AMOUNT ?? "5");
-  const policy = { autoRelease: 1, minConfidenceBps: 8500, maxAutoAmount: amount.toString(), reviewWindow: 15 * 60, submitDeadline: 10 * 86_400 };
+  const policy = { autoRelease: 1, minConfidenceBps: 8500, maxAutoAmount: amount.toString(), reviewWindow: 15 * 60, submitDeadline: 30 * 86_400 };
 
   // TASKS=2,3,4 picks tasks by index (e.g. to finish a round that was rate-limited).
   const pick = process.env.TASKS ? process.env.TASKS.split(",").map(Number).map((i) => TASKS[i]!) : TASKS;
@@ -97,7 +97,7 @@ async function main() {
   for (let round = 0; round < count; round++) {
     for (const t of pick) {
       if (n++) await pause(12_000); // stay under the API's per-wallet rate limit
-      const created = await payer.createJob({ title: t.title, scopeMd: t.scope, amount: amount.toString(), chainId: 42431, policy, paymentDeadline: 10 * 86_400 });
+      const created = await payer.createJob({ title: t.title, scopeMd: t.scope, amount: amount.toString(), chainId: 42431, policy, paymentDeadline: 30 * 86_400 });
       const funded = await fundWithRetry(created.jobId);
       log(funded.status.padEnd(7), t.title, created.payUrl);
       out += `| ${t.title} | ${created.payUrl} | ${funded.status} | |\n`;
